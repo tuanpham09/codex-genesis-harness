@@ -27,12 +27,38 @@ jobs:
           node-version: 20
           registry-url: https://registry.npmjs.org/
 
-      - name: Configure npm auth
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-          npm whoami
+      - name: Configure and validate npm auth
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN is empty or missing. Create an npm automation token with publish rights and save it as the repository secret named NPM_TOKEN."
+            exit 1
+          fi
+
+          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          mkdir -p "$(dirname "$npmrc")"
+          {
+            echo "registry=https://registry.npmjs.org/"
+            echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}"
+          } > "$npmrc"
+          chmod 0600 "$npmrc"
+
+          package_name="$(node -p "require('./package.json').name")"
+          npm_user="$(npm whoami --registry=https://registry.npmjs.org/)"
+          echo "Authenticated to npm as: ${npm_user}"
+
+          if ! npm view "${package_name}" name --registry=https://registry.npmjs.org/ >/tmp/npm-view.out 2>/tmp/npm-view.err; then
+            if grep -Eq 'E404|404 Not Found' /tmp/npm-view.err; then
+              echo "Package ${package_name} is not published yet; the first publish must use a token that can create public packages."
+            else
+              cat /tmp/npm-view.err >&2
+              echo "::error::The NPM_TOKEN cannot read package ${package_name}. This usually means the package name is owned by another npm account/org, npm package access has not been granted to this token, or the token is blocked by npm security policy."
+              exit 1
+            fi
+          fi
 
       - name: Verify package
         run: |

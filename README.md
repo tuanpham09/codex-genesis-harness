@@ -170,3 +170,12 @@ Create it from npm with publish permission for `codex-genesis-harness`, then add
 ```txt
 GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
 ```
+
+If GitHub Actions fails with `npm ERR! code E403` during `npm publish`, npm accepted the token format but rejected the publish authorization. Fix the npm-side credentials before re-running the workflow:
+
+1. Confirm the token belongs to an npm account that owns `codex-genesis-harness`, or can create the package if this is the first publish.
+2. Prefer an npm automation token with publish rights for CI. Granular tokens must include package write access.
+3. If the package name is already owned by another account or organization, either transfer/grant access on npm or rename/scope the package in `package.json`.
+4. Replace the GitHub `NPM_TOKEN` secret after rotating the token.
+
+The workflow validates `NPM_TOKEN` and package visibility before running the expensive verification and publish steps so credential problems fail with an actionable error.
