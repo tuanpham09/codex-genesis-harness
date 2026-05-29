@@ -1,0 +1,36 @@
+{
+  "name": "@genesis-harness/cli",
+  "version": "0.1.0",
+  "description": "Install and manage the Project Genesis Harness Codex skill.",
+  "license": "MIT",
+  "bin": {
+    "genesis-harness": "bin/genesis-harness.js"
+  },
+  "scripts": {
+    "postinstall": "node bin/genesis-harness.js postinstall",
+    "verify": "bash scripts/verify.sh",
+    "pack:check": "npm pack --dry-run"
+  },
+  "files": [
+    ".codex/skills/project-genesis-harness",
+    "bin",
+    "scripts",
+    "README.md",
+    "LICENSE",
+    "VERSION"
+  ],
+  "keywords": [
+    "codex",
+    "codex-skill",
+    "planning",
+    "project-management",
+    "engineering-harness"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
+
