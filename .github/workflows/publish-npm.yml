@@ -25,10 +25,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: https://registry.npmjs.org
+          registry-url: https://registry.npmjs.org/
+
+      - name: Configure npm auth
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Verify package
         run: |
+          npm ci
           npm run verify
           npm run eval
           npm run pack:check
@@ -39,13 +47,21 @@ jobs:
         run: |
           base_version="$(node -p "require('./package.json').version")"
           publish_version="${base_version}-ci.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+
           npm pkg set "version=${publish_version}"
+
           echo "publish_version=${publish_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Check package name
+        run: |
+          node -p "require('./package.json').name"
+          node -p "require('./package.json').version"
 
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public --tag latest
+        run: |
+          npm publish --access public --tag latest
 
       - name: Summary
         run: echo "Published @genesis-harness/cli@${{ steps.version.outputs.publish_version }}"
