@@ -1,0 +1,4 @@
+interface:
+  display_name: "Genesis Upgrade Design"
+  short_description: "Upgrade existing frontend UI quality"
+  default_prompt: "Use $genesis-upgrade-design to improve the existing frontend UI without changing behavior."

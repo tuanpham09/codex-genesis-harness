@@ -14,7 +14,7 @@
   },
   "files": [
     ".codex-plugin",
-    ".codex/skills/project-genesis-harness",
+    ".codex/skills",
     "bin",
     "scripts",
     "README.md",

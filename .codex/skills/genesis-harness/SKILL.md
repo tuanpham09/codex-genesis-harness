@@ -1,5 +1,5 @@
 ---
-name: project-genesis-harness
+name: genesis-harness
 description: Initialize and operate a project planning harness for Codex. Use this skill when the user types /init, asks to create a new project, add a feature, fix a bug, plan work, generate tests first, update docs, track phases, review changes, audit a repository, or manage architecture decisions.
 ---
 

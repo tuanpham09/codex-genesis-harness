@@ -1,0 +1,9 @@
+interface:
+  display_name: "Genesis Harness"
+  short_description: "Plan, track, verify, and review projects"
+  brand_color: "#2563EB"
+  default_prompt: "Use $genesis-harness to initialize planning and operate this repository with test-first workflows."
+
+policy:
+  allow_implicit_invocation: true
+

@@ -1,9 +1,9 @@
 {
-  "name": "project-genesis-harness",
+  "name": "genesis-skill-set",
   "version": "0.1.0",
-  "description": "Codex project operating harness for planning, tracking, verification, docs sync, and reviews.",
+  "description": "Genesis skill set for Codex project planning, verification, and frontend web design workflows.",
   "author": {
-    "name": "Project Genesis Harness"
+    "name": "Genesis Skill Set"
   },
   "license": "MIT",
   "keywords": [
@@ -11,23 +11,25 @@
     "skill",
     "planning",
     "verification",
-    "engineering"
+    "engineering",
+    "design",
+    "frontend"
   ],
   "skills": "./.codex/skills/",
   "interface": {
-    "displayName": "Project Genesis Harness",
-    "shortDescription": "Planning and verification harness for Codex",
-    "longDescription": "A Codex plugin that installs the project-genesis-harness skill for disciplined project initialization, feature planning, bug workflows, documentation synchronization, verification, audits, and completion reports.",
-    "developerName": "Project Genesis Harness",
+    "displayName": "Genesis Skill Set",
+    "shortDescription": "Planning, verification, and frontend design skills",
+    "longDescription": "A Codex plugin that installs the Genesis skill set: genesis-harness for disciplined project initialization, planning, tracking, documentation synchronization, verification, audits, and reviews; genesis-new-design for new premium frontend web experiences; and genesis-upgrade-design for targeted UI upgrades that preserve existing behavior.",
+    "developerName": "Genesis Skill Set",
     "category": "Productivity",
     "capabilities": [
       "Write",
       "Review"
     ],
     "defaultPrompt": [
-      "Use $project-genesis-harness and run /init.",
-      "Use $project-genesis-harness to plan this feature.",
-      "Use $project-genesis-harness to audit this repo."
+      "Use $genesis-harness and run /init.",
+      "Use $genesis-new-design to design and build a premium frontend web experience.",
+      "Use $genesis-upgrade-design to improve the existing frontend UI without changing behavior."
     ],
     "brandColor": "#2563EB"
   }

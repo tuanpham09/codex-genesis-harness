@@ -6,12 +6,13 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
-const skillName = "project-genesis-harness";
-const sourceDir = path.join(packageRoot, ".codex", "skills", skillName);
+const skillNames = ["genesis-harness", "genesis-new-design", "genesis-upgrade-design"];
+const legacySkillNames = ["project-genesis-harness"];
+const sourceRoot = path.join(packageRoot, ".codex", "skills");
 const codexHome = process.env.CODEX_HOME || path.join(process.env.HOME || "", ".codex");
 const agentsHome = process.env.GENESIS_HARNESS_HOME || path.join(process.env.HOME || "", ".agents");
-const legacyTargetDir = path.join(codexHome, "skills", skillName);
-const agentsTargetDir = path.join(agentsHome, "skills", skillName);
+const legacySkillsRoot = path.join(codexHome, "skills");
+const agentsSkillsRoot = path.join(agentsHome, "skills");
 
 function usage(exitCode = 0) {
   const text = `
@@ -38,9 +39,11 @@ function fail(message) {
 }
 
 function ensureSource() {
-  const skillFile = path.join(sourceDir, "SKILL.md");
-  if (!fs.existsSync(skillFile)) {
-    fail(`missing packaged skill at ${skillFile}`);
+  for (const skillName of skillNames) {
+    const skillFile = path.join(sourceRoot, skillName, "SKILL.md");
+    if (!fs.existsSync(skillFile)) {
+      fail(`missing packaged skill at ${skillFile}`);
+    }
   }
 }
 
@@ -58,54 +61,77 @@ function parseTarget(args, fallback = "both") {
   return target;
 }
 
-function targetDirs(target) {
-  if (target === "agents") return [agentsTargetDir];
-  if (target === "legacy") return [legacyTargetDir];
-  return [agentsTargetDir, legacyTargetDir];
+function targetRoots(target) {
+  if (target === "agents") return [agentsSkillsRoot];
+  if (target === "legacy") return [legacySkillsRoot];
+  return [agentsSkillsRoot, legacySkillsRoot];
 }
 
-function copySkill({ quiet = false, target = "both" } = {}) {
+function copySkills({ quiet = false, target = "both" } = {}) {
   ensureSource();
-  for (const dir of targetDirs(target)) {
-    fs.mkdirSync(path.dirname(dir), { recursive: true });
+  for (const root of targetRoots(target)) {
+    fs.mkdirSync(root, { recursive: true });
+    for (const skillName of skillNames) {
+      const sourceDir = path.join(sourceRoot, skillName);
+      const dir = path.join(root, skillName);
 
-    if (fs.existsSync(dir)) {
-      const backupDir = `${dir}.backup.${timestamp()}`;
-      fs.renameSync(dir, backupDir);
-      if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
+      if (fs.existsSync(dir)) {
+        const backupDir = `${dir}.backup.${timestamp()}`;
+        fs.renameSync(dir, backupDir);
+        if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
+      }
+
+      fs.cpSync(sourceDir, dir, { recursive: true });
+      chmodScripts(path.join(dir, "scripts"));
+
+      if (!quiet) console.log(`Installed ${skillName} to: ${dir}`);
     }
-
-    fs.cpSync(sourceDir, dir, { recursive: true });
-    chmodScripts(path.join(dir, "scripts"));
-
-    if (!quiet) console.log(`Installed ${skillName} to: ${dir}`);
   }
 
-  if (!quiet) console.log(`Restart Codex, then invoke: Use $${skillName}`);
+  if (!quiet) console.log("Restart Codex, then invoke: Use $genesis-harness");
 }
 
-function uninstallSkill(target = "both") {
-  for (const dir of targetDirs(target)) {
-    if (!fs.existsSync(dir)) {
-      console.log(`Skill is not installed at: ${dir}`);
-      continue;
+function uninstallSkills(target = "both") {
+  for (const root of targetRoots(target)) {
+    for (const skillName of [...skillNames, ...legacySkillNames]) {
+      const dir = path.join(root, skillName);
+      if (!fs.existsSync(dir)) {
+        console.log(`Skill is not installed at: ${dir}`);
+        continue;
+      }
+      fs.rmSync(dir, { recursive: true, force: true });
+      console.log(`Removed: ${dir}`);
     }
-    fs.rmSync(dir, { recursive: true, force: true });
-    console.log(`Removed: ${dir}`);
   }
 }
 
 function verifySkill(target = "both") {
   const verifyScript = path.join(packageRoot, "scripts", "verify.sh");
   if (!fs.existsSync(verifyScript)) fail(`missing verify script at ${verifyScript}`);
+  const bash = resolveBash();
 
-  for (const verifyTarget of targetDirs(target)) {
-    const result = spawnSync("bash", [verifyScript, verifyTarget], {
-      stdio: "inherit",
-      env: process.env
-    });
-    if (result.status) process.exit(result.status);
+  for (const root of targetRoots(target)) {
+    for (const skillName of skillNames) {
+      const result = spawnSync(bash, [verifyScript, path.join(root, skillName)], {
+        stdio: "inherit",
+        env: process.env
+      });
+      if (result.status) process.exit(result.status);
+    }
   }
+}
+
+function resolveBash() {
+  if (process.platform === "win32") {
+    const candidates = [
+      "C:\\Program Files\\Git\\bin\\bash.exe",
+      "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
+    ];
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) return candidate;
+    }
+  }
+  return "bash";
 }
 
 function chmodScripts(dir) {
@@ -136,23 +162,26 @@ const args = process.argv.slice(3);
 
 switch (command) {
   case "install":
-    copySkill({ target: parseTarget(args, "both") });
+    copySkills({ target: parseTarget(args, "both") });
     break;
   case "postinstall":
     if (process.env.GENESIS_HARNESS_SKIP_POSTINSTALL === "1") {
       process.exit(0);
     }
-    copySkill({ quiet: true, target: "both" });
+    copySkills({ quiet: true, target: "both" });
     break;
   case "verify":
     verifySkill(parseTarget(args, "both"));
     break;
   case "uninstall":
-    uninstallSkill(parseTarget(args, "both"));
+    uninstallSkills(parseTarget(args, "both"));
     break;
   case "path":
-    console.log(agentsTargetDir);
-    console.log(legacyTargetDir);
+    for (const root of [agentsSkillsRoot, legacySkillsRoot]) {
+      for (const skillName of skillNames) {
+        console.log(path.join(root, skillName));
+      }
+    }
     break;
   case "help":
   case "--help":

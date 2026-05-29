@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-skill_name="project-genesis-harness"
+skill_names=(genesis-harness genesis-new-design genesis-upgrade-design project-genesis-harness)
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 agents_home="${GENESIS_HARNESS_HOME:-$HOME/.agents}"
 target="both"
@@ -34,19 +34,22 @@ case "$target" in
 esac
 
 remove_one() {
-  local target_dir="$1"
-  if [ ! -e "$target_dir" ]; then
-    echo "Skill is not installed at: $target_dir"
-    return
-  fi
-  rm -rf "$target_dir"
-  echo "Removed: $target_dir"
+  local target_root="$1"
+  for skill_name in "${skill_names[@]}"; do
+    local target_dir="$target_root/$skill_name"
+    if [ ! -e "$target_dir" ]; then
+      echo "Skill is not installed at: $target_dir"
+      continue
+    fi
+    rm -rf "$target_dir"
+    echo "Removed: $target_dir"
+  done
 }
 
 if [ "$target" = "agents" ] || [ "$target" = "both" ]; then
-  remove_one "$agents_home/skills/$skill_name"
+  remove_one "$agents_home/skills"
 fi
 
 if [ "$target" = "legacy" ] || [ "$target" = "both" ]; then
-  remove_one "$codex_home/skills/$skill_name"
+  remove_one "$codex_home/skills"
 fi

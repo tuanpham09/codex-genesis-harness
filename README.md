@@ -1,22 +1,26 @@
 # Project Genesis Harness
 
-Project Genesis Harness is a Codex skill that turns Codex into a project operating harness: planning first, repository inspection, task tracking, test-first implementation, docs synchronization, architecture decisions, Mermaid diagrams, audits, and completion reports.
+Project Genesis Harness packages the Genesis Codex skill set: project planning, repository inspection, task tracking, verification, docs synchronization, architecture decisions, audits, and frontend web design workflows.
 
 ## Install
 
 ### From npm
 
-After the package is published to npm:
+Install the latest published package globally:
 
 ```sh
 npm install -g codex-genesis-harness@latest
 ```
 
-The package auto-installs the Codex skill into:
+The package auto-installs the Genesis skills into:
 
 ```txt
-~/.agents/skills/project-genesis-harness
-~/.codex/skills/project-genesis-harness
+~/.agents/skills/genesis-harness
+~/.agents/skills/genesis-new-design
+~/.agents/skills/genesis-upgrade-design
+~/.codex/skills/genesis-harness
+~/.codex/skills/genesis-new-design
+~/.codex/skills/genesis-upgrade-design
 ```
 
 You can also manage it manually:
@@ -49,11 +53,15 @@ Clone or download this repository, then run:
 ./scripts/install.sh
 ```
 
-By default, the installer copies the skill to:
+By default, the installer copies the Genesis skills to:
 
 ```txt
-~/.agents/skills/project-genesis-harness
-~/.codex/skills/project-genesis-harness
+~/.agents/skills/genesis-harness
+~/.agents/skills/genesis-new-design
+~/.agents/skills/genesis-upgrade-design
+~/.codex/skills/genesis-harness
+~/.codex/skills/genesis-new-design
+~/.codex/skills/genesis-upgrade-design
 ```
 
 If you use a custom Codex home:
@@ -77,7 +85,7 @@ GENESIS_HARNESS_HOME=/path/to/.agents ./scripts/install.sh
 Verify an installed copy:
 
 ```sh
-./scripts/verify.sh ~/.codex/skills/project-genesis-harness
+./scripts/verify.sh ~/.codex/skills
 ```
 
 ## Uninstall
@@ -88,13 +96,15 @@ Verify an installed copy:
 
 ## Use
 
-After installing, invoke the skill in Codex when working in a project:
+After installing, invoke the skills in Codex when working in a project:
 
 ```txt
-Use $project-genesis-harness and run /init.
+Use $genesis-harness and run /init.
+Use $genesis-new-design to design and build a premium landing page for a developer tool.
+Use $genesis-upgrade-design to improve the existing dashboard UI without changing behavior.
 ```
 
-The skill supports:
+`genesis-harness` supports:
 
 - `/init`
 - `/new-feature <description>`
@@ -107,14 +117,21 @@ The skill supports:
 ## What Gets Installed
 
 ```txt
-.codex/skills/project-genesis-harness/
-├── SKILL.md
-├── agents/openai.yaml
-├── resources/
-└── scripts/
+.codex/skills/
+├── genesis-harness/
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   ├── resources/
+│   └── scripts/
+├── genesis-new-design/
+│   ├── SKILL.md
+│   └── agents/openai.yaml
+└── genesis-upgrade-design/
+    ├── SKILL.md
+    └── agents/openai.yaml
 ```
 
-The skill itself can initialize a target project with a `.planning/` knowledge base after the project brief is confirmed.
+`genesis-harness` can initialize a target project with a `.planning/` knowledge base after the project brief is confirmed. `genesis-new-design` and `genesis-upgrade-design` guide frontend web design creation and upgrades.
 
 ## Plugin Metadata
 
@@ -124,7 +141,7 @@ This repository includes:
 .codex-plugin/plugin.json
 ```
 
-The plugin manifest points Codex-compatible plugin tooling at the packaged skill under `.codex/skills/`.
+The plugin manifest points Codex-compatible plugin tooling at the packaged Genesis skill set under `.codex/skills/`.
 
 ## Publish To npm
 

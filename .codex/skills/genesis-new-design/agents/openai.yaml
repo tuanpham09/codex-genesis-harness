@@ -1,0 +1,4 @@
+interface:
+  display_name: "Genesis New Design"
+  short_description: "Create premium frontend web designs"
+  default_prompt: "Use $genesis-new-design to design and build a premium frontend web experience."
