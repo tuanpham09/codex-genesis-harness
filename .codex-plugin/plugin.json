@@ -1,0 +1,35 @@
+{
+  "name": "project-genesis-harness",
+  "version": "0.1.0",
+  "description": "Codex project operating harness for planning, tracking, verification, docs sync, and reviews.",
+  "author": {
+    "name": "Project Genesis Harness"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "skill",
+    "planning",
+    "verification",
+    "engineering"
+  ],
+  "skills": "./.codex/skills/",
+  "interface": {
+    "displayName": "Project Genesis Harness",
+    "shortDescription": "Planning and verification harness for Codex",
+    "longDescription": "A Codex plugin that installs the project-genesis-harness skill for disciplined project initialization, feature planning, bug workflows, documentation synchronization, verification, audits, and completion reports.",
+    "developerName": "Project Genesis Harness",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Review"
+    ],
+    "defaultPrompt": [
+      "Use $project-genesis-harness and run /init.",
+      "Use $project-genesis-harness to plan this feature.",
+      "Use $project-genesis-harness to audit this repo."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
+

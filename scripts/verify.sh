@@ -59,12 +59,19 @@ fail() {
 [ -d "$skill_dir/resources" ] || fail "missing resources/"
 [ -d "$skill_dir/scripts" ] || fail "missing scripts/"
 [ -f "$skill_dir/agents/openai.yaml" ] || fail "missing agents/openai.yaml"
+[ -f "$repo_root/.codex-plugin/plugin.json" ] || fail "missing .codex-plugin/plugin.json"
 
 grep -q '^name: project-genesis-harness$' "$skill_dir/SKILL.md" || fail "invalid skill name frontmatter"
 grep -q '^description:' "$skill_dir/SKILL.md" || fail "missing description frontmatter"
 grep -q 'Definition Of Ready' "$skill_dir/SKILL.md" || fail "missing Definition Of Ready"
 grep -q 'Definition Of Done' "$skill_dir/SKILL.md" || fail "missing Definition Of Done"
 grep -q 'Quality Rubric' "$skill_dir/SKILL.md" || fail "missing Quality Rubric"
+grep -q '"skills"' "$repo_root/.codex-plugin/plugin.json" || fail "plugin manifest missing skills path"
+
+for ref in workflows.md planning-schema.md research-rubric.md quality-rubric.md; do
+  [ -f "$skill_dir/references/$ref" ] || fail "missing reference: $ref"
+  grep -q "references/$ref" "$skill_dir/SKILL.md" || fail "SKILL.md does not mention reference: $ref"
+done
 
 for file in "${required_resources[@]}"; do
   [ -f "$skill_dir/resources/$file" ] || fail "missing resource: $file"

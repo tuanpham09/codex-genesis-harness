@@ -9,9 +9,11 @@
   "scripts": {
     "postinstall": "node bin/genesis-harness.js postinstall",
     "verify": "bash scripts/verify.sh",
+    "eval": "bash scripts/run-evals.sh",
     "pack:check": "npm pack --dry-run"
   },
   "files": [
+    ".codex-plugin",
     ".codex/skills/project-genesis-harness",
     "bin",
     "scripts",
@@ -33,4 +35,3 @@
     "access": "public"
   }
 }
-

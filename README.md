@@ -15,6 +15,7 @@ npm install -g @genesis-harness/cli@latest
 The package auto-installs the Codex skill into:
 
 ```txt
+~/.agents/skills/project-genesis-harness
 ~/.codex/skills/project-genesis-harness
 ```
 
@@ -24,6 +25,14 @@ You can also manage it manually:
 genesis-harness install
 genesis-harness verify
 genesis-harness uninstall
+```
+
+Install only one target:
+
+```sh
+genesis-harness install --target agents
+genesis-harness install --target legacy
+genesis-harness install --target both
 ```
 
 To skip auto-install during npm installation:
@@ -43,6 +52,7 @@ Clone or download this repository, then run:
 By default, the installer copies the skill to:
 
 ```txt
+~/.agents/skills/project-genesis-harness
 ~/.codex/skills/project-genesis-harness
 ```
 
@@ -50,6 +60,12 @@ If you use a custom Codex home:
 
 ```sh
 CODEX_HOME=/path/to/.codex ./scripts/install.sh
+```
+
+If you use a custom modern skills home:
+
+```sh
+GENESIS_HARNESS_HOME=/path/to/.agents ./scripts/install.sh
 ```
 
 ## Verify
@@ -100,6 +116,16 @@ The skill supports:
 
 The skill itself can initialize a target project with a `.planning/` knowledge base after the project brief is confirmed.
 
+## Plugin Metadata
+
+This repository includes:
+
+```txt
+.codex-plugin/plugin.json
+```
+
+The plugin manifest points Codex-compatible plugin tooling at the packaged skill under `.codex/skills/`.
+
 ## Publish To npm
 
 The npm package name is:
@@ -112,6 +138,9 @@ Publish flow:
 
 ```sh
 npm login
+npm run verify
+npm run eval
+npm run pack:check
 npm version patch
 npm publish --access public
 ```

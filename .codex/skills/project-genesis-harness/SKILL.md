@@ -58,6 +58,13 @@ Bundled resources live under `resources/`. Use them as starting content when cre
 - `agents-template.md`: concise root `AGENTS.md`.
 - `project-template.md` through `check-template.md`: starter content for project, phase, feature, bug, ADR, research, review, verification, audit, and check files.
 
+Bundled references live under `references/`. Load them only when needed:
+
+- `references/workflows.md`: command routing, readiness gate, and completion gate.
+- `references/planning-schema.md`: detailed `.planning/` file meanings and required subtrees.
+- `references/research-rubric.md`: local/external evidence format for research.
+- `references/quality-rubric.md`: scoring rubric for `QUALITY_SCORE.md`.
+
 Bundled scripts live under `scripts/`. Prefer copying or adapting these into `.planning/scripts/` or project scripts during `/init`:
 
 - `init-planning.sh`: creates `AGENTS.md` and the `.planning/` tree.

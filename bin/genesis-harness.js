@@ -9,20 +9,23 @@ const packageRoot = path.resolve(__dirname, "..");
 const skillName = "project-genesis-harness";
 const sourceDir = path.join(packageRoot, ".codex", "skills", skillName);
 const codexHome = process.env.CODEX_HOME || path.join(process.env.HOME || "", ".codex");
-const targetDir = path.join(codexHome, "skills", skillName);
+const agentsHome = process.env.GENESIS_HARNESS_HOME || path.join(process.env.HOME || "", ".agents");
+const legacyTargetDir = path.join(codexHome, "skills", skillName);
+const agentsTargetDir = path.join(agentsHome, "skills", skillName);
 
 function usage(exitCode = 0) {
   const text = `
 Project Genesis Harness
 
 Usage:
-  genesis-harness install
-  genesis-harness verify
-  genesis-harness uninstall
+  genesis-harness install [--target agents|legacy|both]
+  genesis-harness verify [--target agents|legacy|both]
+  genesis-harness uninstall [--target agents|legacy|both]
   genesis-harness path
 
 Environment:
   CODEX_HOME=/custom/.codex  Override Codex home
+  GENESIS_HARNESS_HOME=/custom/.agents  Override modern skills home
   GENESIS_HARNESS_SKIP_POSTINSTALL=1  Skip npm postinstall auto-install
 `;
   console.log(text.trim());
@@ -41,43 +44,68 @@ function ensureSource() {
   }
 }
 
-function copySkill({ quiet = false } = {}) {
+function parseTarget(args, fallback = "both") {
+  let target = fallback;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--target") {
+      target = args[i + 1];
+      i++;
+      continue;
+    }
+    usage(2);
+  }
+  if (!["agents", "legacy", "both"].includes(target)) usage(2);
+  return target;
+}
+
+function targetDirs(target) {
+  if (target === "agents") return [agentsTargetDir];
+  if (target === "legacy") return [legacyTargetDir];
+  return [agentsTargetDir, legacyTargetDir];
+}
+
+function copySkill({ quiet = false, target = "both" } = {}) {
   ensureSource();
-  fs.mkdirSync(path.dirname(targetDir), { recursive: true });
+  for (const dir of targetDirs(target)) {
+    fs.mkdirSync(path.dirname(dir), { recursive: true });
 
-  if (fs.existsSync(targetDir)) {
-    const backupDir = `${targetDir}.backup.${timestamp()}`;
-    fs.renameSync(targetDir, backupDir);
-    if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
+    if (fs.existsSync(dir)) {
+      const backupDir = `${dir}.backup.${timestamp()}`;
+      fs.renameSync(dir, backupDir);
+      if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
+    }
+
+    fs.cpSync(sourceDir, dir, { recursive: true });
+    chmodScripts(path.join(dir, "scripts"));
+
+    if (!quiet) console.log(`Installed ${skillName} to: ${dir}`);
   }
 
-  fs.cpSync(sourceDir, targetDir, { recursive: true });
-  chmodScripts(path.join(targetDir, "scripts"));
+  if (!quiet) console.log(`Restart Codex, then invoke: Use $${skillName}`);
+}
 
-  if (!quiet) {
-    console.log(`Installed ${skillName} to: ${targetDir}`);
-    console.log(`Restart Codex, then invoke: Use $${skillName}`);
+function uninstallSkill(target = "both") {
+  for (const dir of targetDirs(target)) {
+    if (!fs.existsSync(dir)) {
+      console.log(`Skill is not installed at: ${dir}`);
+      continue;
+    }
+    fs.rmSync(dir, { recursive: true, force: true });
+    console.log(`Removed: ${dir}`);
   }
 }
 
-function uninstallSkill() {
-  if (!fs.existsSync(targetDir)) {
-    console.log(`Skill is not installed at: ${targetDir}`);
-    return;
-  }
-  fs.rmSync(targetDir, { recursive: true, force: true });
-  console.log(`Removed: ${targetDir}`);
-}
-
-function verifySkill() {
+function verifySkill(target = "both") {
   const verifyScript = path.join(packageRoot, "scripts", "verify.sh");
   if (!fs.existsSync(verifyScript)) fail(`missing verify script at ${verifyScript}`);
 
-  const result = spawnSync("bash", [verifyScript, targetDir], {
-    stdio: "inherit",
-    env: process.env
-  });
-  process.exit(result.status || 0);
+  for (const verifyTarget of targetDirs(target)) {
+    const result = spawnSync("bash", [verifyScript, verifyTarget], {
+      stdio: "inherit",
+      env: process.env
+    });
+    if (result.status) process.exit(result.status);
+  }
 }
 
 function chmodScripts(dir) {
@@ -104,25 +132,27 @@ function timestamp() {
 }
 
 const command = process.argv[2] || "help";
+const args = process.argv.slice(3);
 
 switch (command) {
   case "install":
-    copySkill();
+    copySkill({ target: parseTarget(args, "both") });
     break;
   case "postinstall":
     if (process.env.GENESIS_HARNESS_SKIP_POSTINSTALL === "1") {
       process.exit(0);
     }
-    copySkill({ quiet: true });
+    copySkill({ quiet: true, target: "both" });
     break;
   case "verify":
-    verifySkill();
+    verifySkill(parseTarget(args, "both"));
     break;
   case "uninstall":
-    uninstallSkill();
+    uninstallSkill(parseTarget(args, "both"));
     break;
   case "path":
-    console.log(targetDir);
+    console.log(agentsTargetDir);
+    console.log(legacyTargetDir);
     break;
   case "help":
   case "--help":
