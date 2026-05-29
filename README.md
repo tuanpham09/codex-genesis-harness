@@ -9,7 +9,7 @@ Project Genesis Harness is a Codex skill that turns Codex into a project operati
 After the package is published to npm:
 
 ```sh
-npm install -g @genesis-harness/cli@latest
+npm install -g codex-genesis-harness@latest
 ```
 
 The package auto-installs the Codex skill into:
@@ -38,7 +38,7 @@ genesis-harness install --target both
 To skip auto-install during npm installation:
 
 ```sh
-GENESIS_HARNESS_SKIP_POSTINSTALL=1 npm install -g @genesis-harness/cli@latest
+GENESIS_HARNESS_SKIP_POSTINSTALL=1 npm install -g codex-genesis-harness@latest
 ```
 
 ### From Git
@@ -131,7 +131,7 @@ The plugin manifest points Codex-compatible plugin tooling at the packaged skill
 The npm package name is:
 
 ```txt
-@genesis-harness/cli
+codex-genesis-harness
 ```
 
 Publish flow:
@@ -145,7 +145,7 @@ npm version patch
 npm publish --access public
 ```
 
-The npm scope `@genesis-harness` must exist and your npm account must have publish rights for it.
+The package is intentionally unscoped so it can be published by the token owner without requiring a pre-created npm organization or scope.
 
 ## GitHub Actions npm Publish
 
@@ -157,7 +157,7 @@ On every push to `main`, the workflow:
 2. runs `npm run eval`
 3. runs `npm run pack:check`
 4. derives a unique CI version like `0.1.0-ci.123.1`
-5. publishes `@genesis-harness/cli` to npm with the `latest` tag
+5. publishes `codex-genesis-harness` to npm with the `latest` tag
 
 Required GitHub secret:
 
@@ -165,7 +165,7 @@ Required GitHub secret:
 NPM_TOKEN
 ```
 
-Create it from npm with publish permission for `@genesis-harness/cli`, then add it under:
+Create it from npm with publish permission for `codex-genesis-harness`, then add it under:
 
 ```txt
 GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
