@@ -146,3 +146,27 @@ npm publish --access public
 ```
 
 The npm scope `@genesis-harness` must exist and your npm account must have publish rights for it.
+
+## GitHub Actions npm Publish
+
+This repository includes `.github/workflows/publish-npm.yml`.
+
+On every push to `main`, the workflow:
+
+1. runs `npm run verify`
+2. runs `npm run eval`
+3. runs `npm run pack:check`
+4. derives a unique CI version like `0.1.0-ci.123.1`
+5. publishes `@genesis-harness/cli` to npm with the `latest` tag
+
+Required GitHub secret:
+
+```txt
+NPM_TOKEN
+```
+
+Create it from npm with publish permission for `@genesis-harness/cli`, then add it under:
+
+```txt
+GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
+```
