@@ -1,5 +1,5 @@
 {
-  "name": "@genesis-harness/cli",
+  "name": "codex-genesis-harness",
   "version": "0.1.0",
   "description": "Install and manage the Project Genesis Harness Codex skill.",
   "license": "MIT",

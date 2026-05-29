@@ -64,4 +64,4 @@ jobs:
           npm publish --access public --tag latest
 
       - name: Summary
-        run: echo "Published @genesis-harness/cli@${{ steps.version.outputs.publish_version }}"
+        run: echo "Published codex-genesis-harness@${{ steps.version.outputs.publish_version }}"
