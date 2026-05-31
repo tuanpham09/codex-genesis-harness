@@ -6,7 +6,7 @@
 
 ## 📌 Genesis Codex Harness Là Gì?
 
-**Genesis Codex Harness** là một bộ framework phát triển phần mềm cấp enterprise, **chỉ dành cho Codex** (Claude 3 Opus), giúp bạn xây dựng phần mềm chất lượng cao một cách có quy trình và hiệu quả.
+**Genesis Codex Harness** là một bộ framework phát triển phần mềm cấp enterprise, **chỉ dành cho Codex**, giúp bạn xây dựng phần mềm chất lượng cao một cách có quy trình và hiệu quả.
 
 ### Các Khả Năng Chính
 
@@ -598,7 +598,7 @@ Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 A: Không! Genesis xử lý hầu hết. Bạn chỉ dùng commands đơn giản như `/genesis-init`, `/new-feature`.
 
 **Q: Genesis có dành cho mô hình AI khác không?**  
-A: **Chỉ dành cho Codex (Claude 3 Opus)**. Genesis được thiết kế riêng cho Codex.
+A: **Chỉ dành cho Codex**. Genesis được thiết kế riêng cho Codex.
 
 **Q: Tiết kiệm token bao nhiêu thực tế?**  
 A: **40-60% per project**. Dự án bình thường: 150k tokens → 60-90k tokens (với Genesis).
@@ -619,7 +619,7 @@ A: Main limits: max 5 giai đoạn/project, token budget enforcement.
 ### Yêu Cầu
 - Node.js 16+
 - npm 8+
-- Codex (Claude 3 Opus) qua VS Code Copilot
+- Codex qua VS Code Copilot
 
 ### Cách Cài
 

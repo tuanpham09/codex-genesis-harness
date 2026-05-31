@@ -6,7 +6,7 @@
 
 ## 📌 What is Genesis Codex Harness?
 
-**Genesis Codex Harness** is an enterprise-grade, **Codex-exclusive** development framework for building production-quality software with Codex (Claude 3 Opus) as your AI engineer.
+**Genesis Codex Harness** is an enterprise-grade, **Codex-exclusive** development framework for building production-quality software with Codex as your AI engineer.
 
 ### Core Capabilities
 
@@ -599,7 +599,7 @@ Each skill follows standardized naming under the `.codex/skills/` directory:
 A: No! Genesis handles most Codex interactions. You mainly use simple commands like `/genesis-init`, `/new-feature`, etc.
 
 **Q: Is Genesis Codex-exclusive or can I use it with other models?**  
-A: **Codex-exclusive only**. Genesis is specifically designed for Claude 3 Opus strengths. Using other models will break the workflow.
+A: **Codex-exclusive only**. Genesis is specifically designed for Codex strengths. Using other models will break the workflow.
 
 **Q: How much can I actually save on tokens?**  
 A: Typically **40-60% per project**. Average project: 150k tokens (normal) → 60-90k tokens (with Genesis caching).
@@ -620,7 +620,7 @@ A: Main limits are technical: max 5 phases per project (performance), token budg
 ### Requirements
 - Node.js 16+
 - npm 8+
-- Codex (Claude 3 Opus) via VS Code Copilot
+- Codex via VS Code Copilot
 
 ### Install Methods
 

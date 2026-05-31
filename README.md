@@ -1,12 +1,12 @@
-# 🚀 Genesis Codex Harness | The Ultimate Enterprise SDLC Harness for Codex (Claude 3 Opus)
+# 🚀 Genesis Codex Harness | The Ultimate Enterprise SDLC Harness for Codex
 
 [![npm version](https://img.shields.io/npm/v/codex-genesis-harness.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/codex-genesis-harness)
 [![license](https://img.shields.io/npm/l/codex-genesis-harness.svg?style=flat-square&color=green)](LICENSE)
 [![Harness Verification](https://img.shields.io/badge/harness--verification-passed-brightgreen?style=flat-square)](#)
 [![Token Savings](https://img.shields.io/badge/token--savings-40%20to%2060%25-blueviolet?style=flat-square)](#)
-[![Target Model](https://img.shields.io/badge/model-Codex%20(Claude%203%20Opus)-orange?style=flat-square)](#)
+[![Target Model](https://img.shields.io/badge/model-Codex-orange?style=flat-square)](#)
 
-**Genesis Codex Harness** is an enterprise-grade, Codex-exclusive software development lifecycle (SDLC) framework. It converts Codex (Claude 3 Opus) from a simple autocomplete assistant into a rigorous, autonomous AI Software Engineer that enforces strict test-first development, contract-first design, and persistent codebase memory.
+**Genesis Codex Harness** is an enterprise-grade, Codex-exclusive software development lifecycle (SDLC) framework. It converts Codex from a simple autocomplete assistant into a rigorous, autonomous AI Software Engineer that enforces strict test-first development, contract-first design, and persistent codebase memory.
 
 > [!NOTE]
 > Engineered to eliminate the #1 frustration of AI-assisted development—**context decay, token exhaustion, and silent regression**—while slashing API token overhead by **40% to 60%** per project.
@@ -193,7 +193,7 @@ Learn more: [FILE_NAMING_CLARIFICATION.md](.codebase/FILE_NAMING_CLARIFICATION.m
 ### Requirements
 - Node.js 16+
 - npm 8+
-- Codex (Claude 3 Opus)
+- Codex
 
 ### Quick Install
 ```bash
