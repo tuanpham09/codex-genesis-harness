@@ -46,7 +46,7 @@ mkdir -p \
   .planning/diagrams \
   .planning/research \
   .planning/decisions \
-  .planning/phases/01-foundation \
+  .planning/phases/00-foundation \
   .planning/features \
   .planning/bugs \
   .planning/audits \
@@ -160,16 +160,19 @@ EOF
 write_if_missing .planning/ROADMAP.md <<'EOF'
 # Roadmap
 
-| Phase | Status | Dependencies | Acceptance Criteria |
-|---|---|---|---|
-| 01 Foundation | [ ] | None | Planning harness initialized and verified |
+**Note**: Phase 0 (Foundation) is setup and documentation only. Feature phases will be added after requirements are finalized.
+
+| Phase | Type | Status | Dependencies | Acceptance Criteria |
+|---|---|---|---|---|
+| 00 Foundation | Setup | [ ] | None | Project docs completed, requirements confirmed, harness verified |
+| TBD | Feature | [ ] | 00 Foundation | To be planned after requirements finalized |
 EOF
 
 write_if_missing .planning/STATE.md <<'EOF'
 # State
 
 Current project state: [ ] Initialized planning harness pending product confirmation.
-Current phase: 01 Foundation
+Current phase: 00 Foundation (Setup phase - documentation only)
 Current feature or bug: None
 Last completed task: None
 Next task: Confirm project brief and refine planning docs.
@@ -320,7 +323,7 @@ write_if_missing .planning/FEATURE_INDEX.md <<'EOF'
 
 | Feature | Status | Phase | Path | Notes |
 |---|---|---|---|---|
-| Foundation | [ ] | 01 | phases/01-foundation | Pending |
+| Foundation | [ ] | 00 | phases/00-foundation | Setup phase - documentation only |
 EOF
 
 write_if_missing .planning/CHANGE_IMPACT_MATRIX.md <<'EOF'
@@ -590,48 +593,76 @@ TBD
 TBD
 EOF
 
-write_if_missing .planning/phases/01-foundation/PLAN.md <<'EOF'
-# 01 Foundation Plan
+write_if_missing .planning/phases/00-foundation/PLAN.md <<'EOF'
+# 00 Foundation Plan
+
+Phase 0 is documentation and setup only. No feature implementation.
 
 - [ ] Confirm project brief
-- [ ] Complete core planning docs
+- [ ] Complete PROJECT.md, REQUIREMENTS.md, STACK.md
+- [ ] Document ARCHITECTURE.md from codebase
+- [ ] Extract CONVENTIONS.md patterns
+- [ ] Create base Mermaid diagrams
 - [ ] Establish verification commands
-- [ ] Run initial audit
+- [ ] Run initial quality audit
 EOF
-write_if_missing .planning/phases/01-foundation/TASKS.md <<'EOF'
-# 01 Foundation Tasks
+write_if_missing .planning/phases/00-foundation/TASKS.md <<'EOF'
+# 00 Foundation Tasks
 
-- [ ] Confirm product intent
-- [ ] Inspect repository
-- [ ] Initialize `.planning/`
-- [ ] Fill stack and architecture docs
-- [ ] Run verification scripts
-- [ ] Review planning harness
+Setup and documentation phase - no feature implementation.
+
+- [ ] Confirm product intent and brief
+- [ ] Inspect existing repository structure
+- [ ] Complete PROJECT.md with confirmed details
+- [ ] Document REQUIREMENTS.md (functional & non-functional)
+- [ ] Document STACK.md with all tech details
+- [ ] Document ARCHITECTURE.md (module boundaries, data flow)
+- [ ] Extract CONVENTIONS.md from existing patterns
+- [ ] Identify PITFALLS.md warnings
+- [ ] Create system-context.mmd diagram
+- [ ] Create container-architecture.mmd diagram
+- [ ] Create database-erd.mmd (if applicable)
+- [ ] Create deployment-flow.mmd diagram
+- [ ] Create initial QUALITY_SCORE.md
+- [ ] Verify all `.planning/` structure exists
+- [ ] Run existing project verification (tests, builds)
+- [ ] Review planning harness is complete
 EOF
-write_if_missing .planning/phases/01-foundation/TESTS.md <<'EOF'
-# 01 Foundation Tests
+write_if_missing .planning/phases/00-foundation/TESTS.md <<'EOF'
+# 00 Foundation Tests
+
+Verify documentation framework is in place.
 
 - [ ] Required planning files exist
+- [ ] No critical TBDs in PROJECT, REQUIREMENTS, STACK, ARCHITECTURE
 - [ ] Task tracking exists
-- [ ] Base diagrams exist
+- [ ] Base diagrams exist (system-context, container-architecture, deployment-flow)
 EOF
-write_if_missing .planning/phases/01-foundation/VERIFICATION.md <<'EOF'
-# 01 Foundation Verification
+write_if_missing .planning/phases/00-foundation/VERIFICATION.md <<'EOF'
+# 00 Foundation Verification
+
+Verify setup phase is complete.
 
 - [ ] Run required planning file check
 - [ ] Run task tracking check
+- [ ] Verify no critical TBD placeholders
 
 ```sh
-.planning/scripts/check-required-planning-files.sh .
-.planning/scripts/check-task-tracking.sh .
+.planning/scripts/check-required-planning-files.sh . || true
+.planning/scripts/check-task-tracking.sh . || true
+grep -L "TBD" .planning/{PROJECT,REQUIREMENTS,STACK,ARCHITECTURE}.md
 ```
 EOF
-write_if_missing .planning/phases/01-foundation/REVIEW.md <<'EOF'
-# 01 Foundation Review
+write_if_missing .planning/phases/00-foundation/REVIEW.md <<'EOF'
+# 00 Foundation Review
+
+Review Phase 0 documentation quality.
 
 - [ ] Changed files reviewed
 - [ ] Unnecessary files removed
-- [ ] Docs synchronized
+- [ ] Docs are clear and complete
+- [ ] No TBD in core docs
+- [ ] Team confirms understanding
 EOF
 
 write_if_missing .planning/features/FEATURE_TEMPLATE.md <<'EOF'

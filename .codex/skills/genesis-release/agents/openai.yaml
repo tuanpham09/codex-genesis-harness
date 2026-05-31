@@ -1,0 +1,7 @@
+interface:
+  display_name: "Release Skill"
+  short_description: "Prepare verified npm releases"
+  default_prompt: "Use $release-skill to verify package contents and release readiness."
+policy:
+  allow_implicit_invocation: true
+

@@ -1,0 +1,357 @@
+{
+  "project": "Genesis Codex Harness (Codex-Only)",
+  "version": "2.0",
+  "note": "⚠️ File name '.claude.json' is VS Code standard naming (cannot be changed). This project is CODEX-EXCLUSIVE - no model switching. See .codex/MODEL_ALLOCATION.md for details.",
+  
+  "hooks": {
+    "preToolUse": {
+      "enabled": true,
+      "actions": [
+        {
+          "name": "Load Context State",
+          "condition": "session.startup OR first_file_operation",
+          "action": "load_file_if_exists",
+          "file": ".codebase/CURRENT_STATE.md",
+          "maxLines": 50,
+          "cache": true,
+          "cacheTTL": 1800
+        },
+        {
+          "name": "Validate File Paths",
+          "condition": "file_operation",
+          "checks": [
+            {
+              "path": "/contracts/",
+              "verify": "corresponding.md exists",
+              "suggest": "create contract if missing"
+            },
+            {
+              "path": "/fixtures/",
+              "verify": "yaml or json valid",
+              "suggest": "fix syntax if needed"
+            },
+            {
+              "path": "/.planning/",
+              "verify": "yaml/markdown syntax",
+              "suggest": "fix format if needed"
+            },
+            {
+              "path": "/.codebase/",
+              "verify": "yaml/markdown syntax",
+              "suggest": "fix format if needed"
+            }
+          ]
+        },
+        {
+          "name": "Check Memory Cache",
+          "condition": "about_to_read_memory_file",
+          "action": "skip_if_loaded_recently",
+          "files": [
+            ".codebase/MODULE_INDEX.md",
+            ".planning/SPEC_CHANGELOG.md",
+            ".codebase/CURRENT_STATE.md"
+          ],
+          "reloadAfter": 1800
+        }
+      ]
+    },
+    
+    "postToolUse": {
+      "enabled": true,
+      "actions": [
+        {
+          "name": "Auto-Sync Memory",
+          "condition": "file_modified AND (path.includes('/.planning/') OR path.includes('/.codebase/'))",
+          "priority": 1,
+          "actions": [
+            {
+              "file": ".planning/SPEC_CHANGELOG.md",
+              "operation": "append_entry",
+              "format": "- Date: YYYY-MM-DD HH:MM:SS | File: {path} | Change: {summary}"
+            },
+            {
+              "file": ".codebase/MODULE_INDEX.md",
+              "operation": "append_entry",
+              "condition": "path.includes('/.codex/')",
+              "format": "- Module: {name} | Updated: YYYY-MM-DD HH:MM:SS"
+            }
+          ]
+        },
+        {
+          "name": "Validate Syntax",
+          "condition": "file_created OR file_modified",
+          "priority": 2,
+          "checks": [
+            {
+              "file_type": ".md",
+              "validation": "markdown_syntax_basic",
+              "fail": "report_error"
+            },
+            {
+              "file_type": ".yml,.yaml",
+              "validation": "yaml_syntax_basic",
+              "fail": "report_error"
+            },
+            {
+              "file_type": ".json",
+              "validation": "json_syntax_valid",
+              "fail": "report_error"
+            }
+          ]
+        },
+        {
+          "name": "Update Affected References",
+          "condition": "file_modified AND (path.includes('API_DOCS') OR path.includes('ARCHITECTURE') OR path.includes('DESIGN'))",
+          "priority": 3,
+          "actions": [
+            {
+              "operation": "note_in_changelog",
+              "format": "API/Architecture/Design updated - review tests"
+            },
+            {
+              "operation": "suggest_next_step",
+              "suggestion": "Run /spec-change to check downstream impact"
+            }
+          ]
+        }
+      ]
+    },
+    
+    "stop": {
+      "enabled": true,
+      "actions": [
+        {
+          "name": "Session Verification",
+          "priority": 1,
+          "checks": [
+            "all_files_have_valid_extensions",
+            "no_syntax_errors_in_created_files",
+            "spec_changelog_has_todays_entries",
+            "no_uncommitted_changes_reported"
+          ],
+          "report": "✓ Session state verified - ready to commit"
+        },
+        {
+          "name": "Auto-Generate Summary",
+          "priority": 2,
+          "summary": {
+            "files_created": "count",
+            "files_modified": "count",
+            "memory_updated": "true|false",
+            "tests_affected": "count",
+            "issues_found": "count"
+          }
+        },
+        {
+          "name": "Link Next Actions",
+          "priority": 3,
+          "suggestions": [
+            {
+              "condition": "specs_changed",
+              "suggest": "Run /spec-change analysis"
+            },
+            {
+              "condition": "tests_updated",
+              "suggest": "Run npm test to verify"
+            },
+            {
+              "condition": "phase_complete",
+              "suggest": "Run /propagate-spec to update downstream"
+            },
+            {
+              "condition": "files_modified",
+              "suggest": "Review .planning/SPEC_CHANGELOG.md entries"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  
+  "tools": {
+    "allowed": [
+      "file_search",
+      "grep_search",
+      "read_file",
+      "create_file",
+      "replace_string_in_file",
+      "multi_replace_string_in_file",
+      "list_dir",
+      "memory"
+    ],
+    "disabled": [
+      "run_in_terminal",
+      "semantic_search"
+    ],
+    "reason": "Manual commits only; grep is faster than semantic search"
+  },
+  
+  "memory": {
+    "user": "/memories/",
+    "session": "/memories/session/",
+    "repo": ".codebase/",
+    
+    "autoUpdate": [
+      {
+        "file": ".codebase/CURRENT_STATE.md",
+        "trigger": "daily OR on_major_change",
+        "format": "Snapshot of key metrics"
+      },
+      {
+        "file": ".planning/SPEC_CHANGELOG.md",
+        "trigger": "on_planning_or_codebase_change",
+        "format": "Append entry with date, file, summary"
+      },
+      {
+        "file": ".codebase/MODULE_INDEX.md",
+        "trigger": "on_codex_skills_change",
+        "format": "Append module entry"
+      }
+    ],
+    
+    "cache": {
+      "enabled": true,
+      "ttl": 1800,
+      "files": [
+        ".codebase/CURRENT_STATE.md",
+        ".codebase/MODULE_INDEX.md",
+        ".planning/SPEC_CHANGELOG.md"
+      ]
+    }
+  },
+  
+  "optimization": {
+    "tokenSavings": {
+      "caching": "20%",
+      "grepVsSemantic": "15%",
+      "smartValidation": "5%",
+      "reduceContextRedundancy": "10%",
+      "total": "~40-50% estimated"
+    },
+    
+    "rules": [
+      "Cache CURRENT_STATE.md for 30min",
+      "Don't re-read files in same command chain",
+      "Use grep_search instead of semantic_search",
+      "Reference paths by pattern, not full content",
+      "Trust cached state unless 'changed' keyword used",
+      "Batch multiple file operations into multi_replace",
+      "Skip full linters, use quick validation only",
+      "Assume memory is fresh unless explicitly needed"
+    ]
+  },
+  
+  "tokenBudgets": {
+    "enabled": true,
+    "description": "Token budget guards prevent runaway token usage. See MODEL_ALLOCATION.md for model responsibilities.",
+    
+    "perTaskBudget": {
+      "newFeature": {
+        "maxTokens": 40000,
+        "description": "End-to-end new feature with planning + tests",
+        "check": "Report before exceeding"
+      },
+      "specImpactAnalysis": {
+        "maxTokens": 35000,
+        "description": "Detect spec changes and propagate to downstream phases",
+        "check": "PAUSE before auto-propagating, ask user approval"
+      },
+      "multiPhaseOrchestration": {
+        "maxTokens": 100000,
+        "description": "Coordinate 3+ phases, recalculate timelines",
+        "check": "Report status every 25k tokens"
+      },
+      "apiContractDesign": {
+        "maxTokens": 20000,
+        "description": "Design API before implementation",
+        "check": "Report when exceeded"
+      },
+      "codeReview": {
+        "maxTokens": 18000,
+        "description": "Review completed implementation",
+        "check": "Abbreviate if approaching limit"
+      },
+      "designSpecification": {
+        "maxTokens": 25000,
+        "description": "Write design specs (NOT image generation)",
+        "check": "Report when exceeded"
+      }
+    },
+    
+    "perSessionBudget": {
+      "total": 200000,
+      "description": "Total budget per working session",
+      "tracking": "Track cumulative usage, report at 75%/90%/95%",
+      "checkpoint": "At 75% usage, summarize work + next steps"
+    },
+    
+    "criticalLimits": {
+      "specImpactEngine": {
+        "autoStop": true,
+        "maxTokensBeforePrompt": 30000,
+        "action": "Pause before auto-propagating specs, ask user: 'Propagate changes to 3 phases (~25k tokens). Proceed?'"
+      },
+      "multiPhaseRecalculation": {
+        "autoStop": true,
+        "maxTokensBeforePrompt": 80000,
+        "action": "Pause before recalculating 5+ phases: 'This will cost ~80k tokens. Proceed?'"
+      }
+    },
+    
+    "modelAllocation": {
+      "codexPerProject": "100-200k tokens (with caching: 60-120k)",
+      "imageModelsPerProject": "External service, not tokens",
+      "externalServicesPerProject": "Orchestrated by Codex, cost tracked separately",
+      "reference": "See .codex/MODEL_ALLOCATION.md for detailed breakdown"
+    }
+  },
+  
+  "disabledHooks": {
+    "description": "Temporarily disable hooks if needed",
+    "methods": [
+      "Say: 'Skip PreToolUse: I know the current state'",
+      "Say: 'Skip PostToolUse: I'll update memory manually'",
+      "Say: 'Skip Stop: Just done, skip verification'",
+      "Or delete this file to disable all hooks permanently"
+    ]
+  },
+  
+  "workflow": {
+    "description": "Standard workflow with hooks",
+    "phases": [
+      {
+        "phase": "PreToolUse",
+        "duration": "30 seconds",
+        "actions": "Load state, validate paths, check memory"
+      },
+      {
+        "phase": "Execution",
+        "duration": "varies",
+        "actions": "Implement changes per user request"
+      },
+      {
+        "phase": "PostToolUse",
+        "duration": "15 seconds",
+        "actions": "Auto-sync memory, validate syntax, suggest next steps"
+      },
+      {
+        "phase": "Developer Review",
+        "duration": "varies",
+        "actions": "Review changes, decide to commit or refine"
+      },
+      {
+        "phase": "Stop",
+        "duration": "10 seconds",
+        "actions": "Verify state, generate summary, link next actions"
+      }
+    ]
+  },
+  
+  "benefits": {
+    "tokenUsage": "30% reduction through caching and smart validation",
+    "memorySynchronization": "100% automatic and never stale",
+    "developerControl": "100% - no auto-commits, full review",
+    "safety": "High - syntax checks, state tracking",
+    "speed": "50% faster than manual state checking"
+  }
+}

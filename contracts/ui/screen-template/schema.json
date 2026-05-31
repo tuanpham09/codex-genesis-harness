@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "required": ["route", "state"],
+  "properties": {
+    "route": { "type": "string" },
+    "state": { "type": "string" }
+  }
+}

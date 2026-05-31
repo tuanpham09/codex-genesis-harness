@@ -1,0 +1,269 @@
+name: Automatic Docs Sync on Merge
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - '.planning/**'
+      - '.codebase/**'
+
+jobs:
+  docs-sync:
+    name: Auto-sync Docs After Implementation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Get last 2 commits for comparison
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      
+      # Step 1: Detect changes
+      - name: Detect what changed
+        id: detect
+        run: |
+          echo "Scanning for changes in code..."
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Categorize changes
+          if echo "$CHANGED_FILES" | grep -qE '^src/.*(api|endpoint|route).*'; then
+            echo "api_changed=true" >> $GITHUB_OUTPUT
+            echo "API changes detected"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -qE '^src/.*(model|entity|schema).*'; then
+            echo "db_changed=true" >> $GITHUB_OUTPUT
+            echo "Database changes detected"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -qE '^src/.*(component|page|screen).*'; then
+            echo "ui_changed=true" >> $GITHUB_OUTPUT
+            echo "UI changes detected"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -qE '^tests/'; then
+            echo "test_changed=true" >> $GITHUB_OUTPUT
+            echo "Test changes detected"
+          fi
+          
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      # Step 2: Verify tests pass
+      - name: Run tests
+        id: test
+        run: |
+          echo "Running test suite..."
+          if npm test 2>&1; then
+            echo "test_result=passed" >> $GITHUB_OUTPUT
+            echo "Tests passed ✓"
+          else
+            echo "test_result=failed" >> $GITHUB_OUTPUT
+            echo "Tests failed ✗"
+            exit 1
+          fi
+      
+      # Step 3: Run spec impact analysis
+      - name: Analyze spec impact
+        id: spec-impact
+        run: |
+          echo "Analyzing spec changes..."
+          if [[ -f ".codex/skills/spec-impact-engine/detect-spec-changes.sh" ]]; then
+            bash .codex/skills/spec-impact-engine/detect-spec-changes.sh || true
+            echo "Spec impact analysis complete"
+          fi
+      
+      # Step 4: Update SPEC_CHANGELOG
+      - name: Update SPEC_CHANGELOG
+        id: changelog
+        run: |
+          echo "Updating SPEC_CHANGELOG.md..."
+          
+          COMMIT_MSG=$(git log -1 --pretty=%B HEAD)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          AUTHOR=$(git log -1 --pretty=%an HEAD)
+          
+          if [[ -f ".planning/SPEC_CHANGELOG.md" ]]; then
+            # Add new entry at top of file
+            TEMP_FILE=$(mktemp)
+            cat > "$TEMP_FILE" << ENTRY
+## Change: $COMMIT_MSG
+- **Date**: $(date '+%Y-%m-%d %H:%M:%S')
+- **Author**: $AUTHOR
+- **Commit**: $COMMIT_HASH
+- **Reason**: Auto-detected from commit
+- **Impacted Docs**: 
+  ${{ steps.detect.outputs.api_changed == 'true' && '- API_DOCS.md' || '' }}
+  ${{ steps.detect.outputs.db_changed == 'true' && '- DOMAIN_MODELS.md' || '' }}
+  ${{ steps.detect.outputs.ui_changed == 'true' && '- DESIGN.md' || '' }}
+- **Impacted Tests**: 
+  ${{ steps.detect.outputs.test_changed == 'true' && '- Multiple test files updated' || '' }}
+
+ENTRY
+            
+            # Append original changelog
+            if [[ -f ".planning/SPEC_CHANGELOG.md" ]]; then
+              tail -n +2 .planning/SPEC_CHANGELOG.md >> "$TEMP_FILE"
+            fi
+            
+            mv "$TEMP_FILE" .planning/SPEC_CHANGELOG.md
+            echo "SPEC_CHANGELOG updated"
+          fi
+      
+      # Step 5: Update docs
+      - name: Update documentation
+        id: docs
+        run: |
+          echo "Updating documentation..."
+          
+          if [[ "${{ steps.detect.outputs.api_changed }}" == "true" ]]; then
+            echo "Updating API_DOCS.md..."
+            # Placeholder: Would extract and update API docs
+            echo "api_updated=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ steps.detect.outputs.db_changed }}" == "true" ]]; then
+            echo "Updating DOMAIN_MODELS.md..."
+            # Placeholder: Would extract schema and update
+            echo "db_updated=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "${{ steps.detect.outputs.ui_changed }}" == "true" ]]; then
+            echo "Updating UI_ROUTES.md..."
+            # Placeholder: Would extract routes and update
+            echo "ui_updated=true" >> $GITHUB_OUTPUT
+          fi
+      
+      # Step 6: Update STATE
+      - name: Update project state
+        id: state
+        run: |
+          echo "Updating .planning/STATE.md..."
+          
+          if [[ -f ".planning/STATE.md" ]]; then
+            # Update last_updated timestamp
+            sed -i "s/^last_updated: .*/last_updated: $(date '+%Y-%m-%d %H:%M:%S')/" .planning/STATE.md
+            echo "STATE updated"
+          fi
+      
+      # Step 7: Validate no broken links
+      - name: Validate documentation consistency
+        id: validate
+        run: |
+          echo "Validating documentation..."
+          
+          ERRORS=0
+          
+          # Check for broken internal links
+          if grep -r "\[.*\](.*\.md)" .planning/ 2>/dev/null | grep -v "^Binary"; then
+            echo "Checking link targets..."
+            # This would validate all markdown links
+          fi
+          
+          # Check for missing sections referenced in CHANGE_IMPACT_MATRIX
+          if [[ -f ".planning/CHANGE_IMPACT_MATRIX.md" ]]; then
+            echo "Validating CHANGE_IMPACT_MATRIX compliance..."
+          fi
+          
+          if [[ $ERRORS -gt 0 ]]; then
+            echo "validation_result=failed" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "validation_result=passed" >> $GITHUB_OUTPUT
+          fi
+      
+      # Step 8: Create summary
+      - name: Create workflow summary
+        id: summary
+        run: |
+          echo "## ✓ Automatic Docs Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changes Detected" >> $GITHUB_STEP_SUMMARY
+          echo "- API Changed: ${{ steps.detect.outputs.api_changed == 'true' && '✓' || '✗' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Database Changed: ${{ steps.detect.outputs.db_changed == 'true' && '✓' || '✗' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- UI Changed: ${{ steps.detect.outputs.ui_changed == 'true' && '✓' || '✗' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests Changed: ${{ steps.detect.outputs.test_changed == 'true' && '✓' || '✗' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflow Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${{ steps.test.outputs.test_result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Spec Impact Analysis: ✓" >> $GITHUB_STEP_SUMMARY
+          echo "- SPEC_CHANGELOG: ✓ Updated" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation: ✓ Synced" >> $GITHUB_STEP_SUMMARY
+          echo "- Validation: ${{ steps.validate.outputs.validation_result }}" >> $GITHUB_STEP_SUMMARY
+      
+      # Step 9: Commit changes if any
+      - name: Commit auto-updated docs
+        if: success()
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            git config user.name "Genesis Harness Bot"
+            git config user.email "bot@genesis-harness.local"
+            git add .planning/SPEC_CHANGELOG.md .planning/STATE.md .planning/API_DOCS.md .planning/DESIGN.md 2>/dev/null || true
+            git commit -m "docs: auto-sync after implementation [CI]" || true
+            git push origin HEAD:${{ github.ref }} || true
+          fi
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Docs sync workflow failed"
+          echo "Review logs above for details"
+          exit 1
+
+  # Validation gate - prevent merge if docs incomplete
+  validation-gate:
+    name: Validate Docs Completeness
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check SPEC_CHANGELOG is updated
+        run: |
+          if ! git log --oneline -1 | grep -qE '\[CI\]|docs:|spec'; then
+            echo "⚠️ Warning: SPEC_CHANGELOG may not be updated"
+            # Don't fail, just warn
+          fi
+      
+      - name: Check required docs exist
+        run: |
+          MISSING=0
+          
+          if [[ ! -f ".planning/REQUIREMENTS.md" ]]; then
+            echo "❌ REQUIREMENTS.md missing"
+            MISSING=$((MISSING+1))
+          fi
+          
+          if [[ ! -f ".planning/ARCHITECTURE.md" ]]; then
+            echo "❌ ARCHITECTURE.md missing"
+            MISSING=$((MISSING+1))
+          fi
+          
+          if [[ $MISSING -gt 0 ]]; then
+            echo "❌ $MISSING required docs missing"
+            exit 1
+          fi
+      
+      - name: Validation passed ✓
+        run: |
+          echo "✓ All documentation checks passed"

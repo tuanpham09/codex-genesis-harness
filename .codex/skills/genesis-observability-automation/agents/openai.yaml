@@ -1,0 +1,7 @@
+interface:
+  display_name: "Observability Automation Skill"
+  short_description: "Automated observability setup, monitoring configuration, and incident response workflows"
+  default_prompt: "Use $genesis-observability-automation to set up monitoring, alerting, and observability pipelines for this service."
+
+policy:
+  allow_implicit_invocation: true

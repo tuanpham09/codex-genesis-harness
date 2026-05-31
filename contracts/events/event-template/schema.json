@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "required": ["event", "payload"],
+  "properties": {
+    "event": { "type": "string" },
+    "payload": { "type": "object" }
+  }
+}

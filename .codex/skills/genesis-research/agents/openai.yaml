@@ -1,0 +1,7 @@
+interface:
+  display_name: "Research Skill"
+  short_description: "Ground harness decisions in evidence"
+  default_prompt: "Use $research-skill to gather evidence before choosing an implementation path."
+policy:
+  allow_implicit_invocation: true
+

@@ -1,7 +1,7 @@
 {
   "name": "genesis-skill-set",
   "version": "0.1.0",
-  "description": "Genesis skill set for Codex project planning, verification, and frontend web design workflows.",
+  "description": "Genesis harness skill system for Codex test-first, contract-first, memory-aware autonomous workflows.",
   "author": {
     "name": "Genesis Skill Set"
   },
@@ -18,8 +18,8 @@
   "skills": "./.codex/skills/",
   "interface": {
     "displayName": "Genesis Skill Set",
-    "shortDescription": "Planning, verification, and frontend design skills",
-    "longDescription": "A Codex plugin that installs the Genesis skill set: genesis-harness for disciplined project initialization, planning, tracking, documentation synchronization, verification, audits, and reviews; genesis-new-design for new premium frontend web experiences; and genesis-upgrade-design for targeted UI upgrades that preserve existing behavior.",
+    "shortDescription": "Test-first, contract-first Codex harness skills",
+    "longDescription": "A Codex plugin that installs the Genesis harness skill system: planning, architecture, codebase mapping, design specs, API contracts, UI tests, AI provider reliability, pipeline orchestration, research, docs, release workflows, repository memory, contracts, fixtures, Playwright templates, observability templates, and frontend design skills.",
     "developerName": "Genesis Skill Set",
     "category": "Productivity",
     "capabilities": [
@@ -27,9 +27,9 @@
       "Review"
     ],
     "defaultPrompt": [
-      "Use $genesis-harness and run /init.",
-      "Use $genesis-new-design to design and build a premium frontend web experience.",
-      "Use $genesis-upgrade-design to improve the existing frontend UI without changing behavior."
+      "Use $genesis-harness and run /genesis-init.",
+      "Use $pipeline-orchestration-skill to run the full test-first harness workflow.",
+      "Use $api-contract-skill to create endpoint contracts and tests before implementation."
     ],
     "brandColor": "#2563EB"
   }

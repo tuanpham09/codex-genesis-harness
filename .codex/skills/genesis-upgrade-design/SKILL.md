@@ -7,6 +7,45 @@ description: Upgrade existing frontend web UI quality without changing behavior.
 
 Use this skill for existing frontend projects. Improve what is there; do not rewrite the product or change behavior unless the user explicitly asks.
 
+## Purpose
+Upgrade existing frontend web UI quality while preserving behavior, contracts, and accessibility.
+
+## When to use
+Use for visual polish, redesigns, responsive fixes, interaction states, UI audits, and anti-slop cleanup.
+
+## When NOT to use
+Do not use for greenfield UI creation; use `genesis-new-design` instead.
+
+## Inputs required
+Current UI routes, components, styling system, screenshots when available, behavior constraints, and verification commands.
+
+## Outputs required
+Targeted UI improvements, before/after evidence, preserved behavior, updated tests, fixtures, contracts, and memory.
+
+## Required tests
+Create or update regression tests for changed screens, interactions, validation, and visual states before implementation.
+
+## Required fixtures
+Create fixtures for existing and expected UI states.
+
+## Required contract updates
+Update `contracts/ui/` only when the intended UI state contract changes.
+
+## Required codebase map updates
+Update UI routes, frontend summary, and test matrix.
+
+## Token saving rules
+Read summaries and route maps first; inspect only affected UI files and shared styling primitives.
+
+## Acceptance criteria
+Behavior is preserved, UI quality improves, responsive states work, and verification passes.
+
+## Common mistakes
+Rewriting instead of upgrading, changing data flow, and improving only the happy path.
+
+## Recovery workflow
+If behavior changes unintentionally, restore the contract expectation, add a regression test, and narrow the UI diff.
+
 ## Workflow
 
 1. Audit before editing:

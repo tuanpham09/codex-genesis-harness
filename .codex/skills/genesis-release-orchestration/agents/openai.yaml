@@ -1,0 +1,7 @@
+interface:
+  display_name: "Release Orchestration Skill"
+  short_description: "Automated release versioning, deployment planning, and production safety orchestration"
+  default_prompt: "Use $genesis-release-orchestration to automate the release process including versioning, runbooks, and deployment strategy."
+
+policy:
+  allow_implicit_invocation: true

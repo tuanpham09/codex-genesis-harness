@@ -1,0 +1,7 @@
+interface:
+  display_name: "Harness Engineering Skill"
+  short_description: "Improve Codex harness reliability"
+  default_prompt: "Use $harness-engineering-skill to evolve the harness with tests first."
+policy:
+  allow_implicit_invocation: true
+

@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/api/example",
+    "body": { "id": "demo-001" }
+  },
+  "expectedResponse": {
+    "status": 200,
+    "body": { "ok": true }
+  }
+}

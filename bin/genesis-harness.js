@@ -6,7 +6,32 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 
 const packageRoot = path.resolve(__dirname, "..");
-const skillNames = ["genesis-harness", "genesis-new-design", "genesis-upgrade-design"];
+const skillNames = [
+  "genesis-harness",
+  "genesis-new-design",
+  "genesis-upgrade-design",
+  "genesis-architecture",
+  "genesis-planning",
+  "genesis-codebase-map",
+  "genesis-design-spec",
+  "genesis-api-contract",
+  "ui-ux-test-skill",
+  "genesis-harness-engineering",
+  "genesis-ai-provider",
+  "genesis-pipeline-orchestration",
+  "genesis-research",
+  "genesis-docs",
+  "genesis-release",
+  "genesis-api-sync",
+  "genesis-debug-guide",
+  "genesis-docs-automation",
+  "genesis-spec-propagation",
+  "genesis-release-orchestration",
+  "genesis-performance-profiling",
+  "genesis-observability-automation",
+  "genesis-research-first",
+  "spec-impact-engine"
+];
 const legacySkillNames = ["project-genesis-harness"];
 const sourceRoot = path.join(packageRoot, ".codex", "skills");
 const codexHome = process.env.CODEX_HOME || path.join(process.env.HOME || "", ".codex");

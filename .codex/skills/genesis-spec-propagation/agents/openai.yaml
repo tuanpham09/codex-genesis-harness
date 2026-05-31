@@ -1,0 +1,7 @@
+interface:
+  display_name: "Spec Propagation Skill"
+  short_description: "Propagate spec changes automatically across all downstream project phases"
+  default_prompt: "Use $genesis-spec-propagation to cascade this spec change to all affected downstream phases."
+
+policy:
+  allow_implicit_invocation: true

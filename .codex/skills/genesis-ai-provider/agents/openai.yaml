@@ -1,0 +1,7 @@
+interface:
+  display_name: "AI Provider Skill"
+  short_description: "Harden AI provider contracts and tests"
+  default_prompt: "Use $ai-provider-skill to define provider contracts, fixtures, and recovery tests."
+policy:
+  allow_implicit_invocation: true
+

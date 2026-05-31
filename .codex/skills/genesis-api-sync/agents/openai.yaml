@@ -1,0 +1,7 @@
+interface:
+  display_name: "API Sync Skill"
+  short_description: "Automatic API contract synchronization with implementation"
+  default_prompt: "Use $genesis-api-sync to synchronize API contracts with the current implementation and detect breaking changes."
+
+policy:
+  allow_implicit_invocation: true

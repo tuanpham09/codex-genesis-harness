@@ -7,6 +7,45 @@ description: Create premium frontend web designs and usable first-screen experie
 
 Use this skill for greenfield frontend web design. Build the actual usable experience first, not a placeholder, explanation page, or generic marketing shell unless the user explicitly asks for one.
 
+## Purpose
+Create new frontend web experiences with testable UI contracts, fixtures, visual states, and verification.
+
+## When to use
+Use when building a new web page, app screen, dashboard, tool, landing page, or frontend flow.
+
+## When NOT to use
+Do not use for redesigning existing UI without first preserving behavior; use `genesis-upgrade-design` instead.
+
+## Inputs required
+Product intent, target users, primary workflow, stack details, route or entry point, state list, and visual constraints.
+
+## Outputs required
+Implemented UI, UI contract, fixtures, responsive states, visual verification, and docs or memory updates.
+
+## Required tests
+Create UI load, interaction, validation, API sync, and visual checks where practical before implementation.
+
+## Required fixtures
+Create UI fixtures for default, loading, empty, error, and success states.
+
+## Required contract updates
+Update `contracts/ui/` and API contracts for changed UI/API behavior.
+
+## Required codebase map updates
+Update `.codebase/UI_ROUTES.md`, frontend summary, and test matrix.
+
+## Token saving rules
+Read UI route maps and summaries first; inspect only relevant components, routes, and styles.
+
+## Acceptance criteria
+The UI renders correctly on desktop/mobile, supports expected states, and passes available checks.
+
+## Common mistakes
+Building a marketing page instead of the requested app, using placeholder content, and skipping error/empty states.
+
+## Recovery workflow
+If visual output fails, capture screenshot evidence, update the fixture or contract, then apply the smallest design correction.
+
 ## Workflow
 
 1. Inspect the project stack before choosing patterns:

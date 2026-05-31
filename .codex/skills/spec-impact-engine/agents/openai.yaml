@@ -1,0 +1,7 @@
+interface:
+  display_name: "Spec Impact Engine"
+  short_description: "Automatically detect spec changes and calculate cascade impact on downstream project phases"
+  default_prompt: "Use $spec-impact-engine to detect the impact of this spec change on all downstream phases and generate a migration plan."
+
+policy:
+  allow_implicit_invocation: true

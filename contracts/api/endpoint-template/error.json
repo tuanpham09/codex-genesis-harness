@@ -1,0 +1,7 @@
+{
+  "status": 400,
+  "body": {
+    "error": "validation_error",
+    "message": "Request body failed contract validation."
+  }
+}

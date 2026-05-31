@@ -1,0 +1,7 @@
+interface:
+  display_name: "Planning Skill"
+  short_description: "Create test-first harness plans"
+  default_prompt: "Use $planning-skill to create a decision-complete test-first plan."
+policy:
+  allow_implicit_invocation: true
+

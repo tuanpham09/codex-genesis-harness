@@ -1,0 +1,1 @@
+{"type":"object","required":["agent","input"],"properties":{"agent":{"const":"SubtitleGenerationAgent"},"input":{"type":"object"}}}

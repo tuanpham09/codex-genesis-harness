@@ -1,0 +1,7 @@
+interface:
+  display_name: "Pipeline Orchestration Skill"
+  short_description: "Run phase-gated autonomous workflows"
+  default_prompt: "Use $pipeline-orchestration-skill to execute the full test-first harness workflow."
+policy:
+  allow_implicit_invocation: true
+

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Debug Guide Skill"
+  short_description: "Systematic debugging for test failures and production bugs"
+  default_prompt: "Use $genesis-debug-guide to debug this issue systematically with root cause analysis."
+
+policy:
+  allow_implicit_invocation: true

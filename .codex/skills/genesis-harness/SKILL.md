@@ -9,6 +9,45 @@ This skill turns Codex into a project operating harness.
 
 Codex must not behave like a simple code generator. Codex must behave like a disciplined engineering agent that understands the project before coding, confirms missing product intent, researches the repository and best practices, plans before implementation, defines tests or verification first, keeps docs synchronized with code, tracks tasks explicitly, records bug lessons, maintains architecture diagrams, reviews changed files after implementation, removes unnecessary changes, and escalates when human judgment is required.
 
+## Purpose
+Operate a repository through test-first, contract-first, memory-aware Codex workflows.
+
+## When to use
+Use for project initialization, planning, feature work, bug fixes, audits, reviews, verification, and repository memory updates.
+
+## When NOT to use
+Do not use for simple read-only answers that do not require repository workflow or durable artifacts.
+
+## Inputs required
+Read `.codebase/CURRENT_STATE.md`, `.codebase/MODULE_INDEX.md`, and `.codebase/TEST_MATRIX.md` when present, then inspect only relevant files.
+
+## Outputs required
+Plan or implementation artifact, tests, fixtures, verification evidence, docs sync, and codebase memory updates.
+
+## Required tests
+Create or update failing tests before implementation.
+
+## Required fixtures
+Create fixtures for expected inputs, outputs, validation notes, and recovery cases.
+
+## Required contract updates
+Update API, agent, event, or UI contracts when public behavior changes.
+
+## Required codebase map updates
+Update `.codebase` memory after meaningful changes.
+
+## Token saving rules
+Read summaries before source files, maps before modules, and avoid loading the entire repository.
+
+## Acceptance criteria
+Work is complete only when tests pass, contracts and docs are current, and verification evidence is reported.
+
+## Common mistakes
+Implementing before tests, skipping fixtures, overloading `AGENTS.md`, and duplicating long context across skills.
+
+## Recovery workflow
+If blocked or interrupted, reread current state, rerun verification, identify the first failing phase, and resume from that point.
+
 ## Core Principle
 
 Do not code first.
@@ -46,9 +85,60 @@ Support these user intents:
 /audit
 /review
 /status
+/spec-change <file>                      [NEW]
+/propagate-spec                          [NEW]
+/validate-specs                          [NEW]
 ```
 
 If the user does not type an exact command but clearly asks for one of these workflows, infer the correct workflow.
+
+## NEW: Spec Impact & Propagation Commands
+
+These commands enable automatic cascade prevention:
+
+### `/spec-change <file>` - Detect & Analyze Spec Changes
+
+```bash
+/spec-change .planning/API_DOCS.md
+
+What it does:
+1. Detects what changed in the file
+2. Identifies breaking changes vs feature additions
+3. Finds all downstream phases that depend on the change
+4. Calculates impact severity (high/medium/low)
+5. Generates impact report with recommendations
+6. Offers to auto-update all affected phases
+```
+
+### `/propagate-spec` - Auto-Update Downstream Phases
+
+```bash
+/propagate-spec
+
+What it does:
+1. Checks SPEC_CHANGELOG.md for unpropagated changes
+2. Queries PHASE_DEPENDENCY_MAP for affected phases
+3. AUTO-UPDATES all dependent phase specs
+4. AUTO-UPDATES all affected phase tests
+5. Runs validation tests in all phases
+6. Generates migration guides for breaking changes
+7. Updates ROADMAP.md if timeline affected
+8. Creates comprehensive impact report
+```
+
+### `/validate-specs` - Check All Phases Aligned
+
+```bash
+/validate-specs
+
+What it does:
+1. Validates all phases against their dependencies
+2. Detects spec drift (phase using stale upstream specs)
+3. Identifies breaking changes not yet propagated
+4. Lists any alignment issues
+5. Suggests fixes
+6. Blocks start of phase if upstream specs incomplete
+```
 
 ## Resource And Script Map
 
@@ -57,6 +147,22 @@ Bundled resources live under `resources/`. Use them as starting content when cre
 - `planning-tree-template.md`: required `.planning/` tree.
 - `agents-template.md`: concise root `AGENTS.md`.
 - `project-template.md` through `check-template.md`: starter content for project, phase, feature, bug, ADR, research, review, verification, audit, and check files.
+- `post-implementation-guide.md`: Auto-update workflow after successful implementation. Guides doc synchronization, state tracking, and continuity.
+- `requirements-validation.md`: Final validation checklist before implementation to ensure all requirements are clear and complete.
+
+Bundled checklists live under `checklists/`. Use these as structured Q&A before planning:
+
+- **MANDATORY**: `new-feature-qa.md`: Comprehensive Q&A for new features. Complete before `/new-feature` planning.
+- **MANDATORY**: `bug-fix-qa.md`: Comprehensive Q&A for bug fixes. Complete before `/fix-bug` planning.
+- **MANDATORY**: `refactor-qa.md`: Comprehensive Q&A for refactors. Complete before refactor planning.
+- **MANDATORY**: `requirements-validation.md`: Final validation checklist. Use after Q&A, before contracts and tests.
+- `checklist.md`: General Genesis Harness workflow checklist.
+
+Bundled skills live under `skills/`. These are specialized automation tools:
+
+- **NEW**: `spec-impact-engine/SKILL.md`: Automatically detect when specs change and update all downstream phases. Prevents cascading rework.
+- `api-sync-skill/SKILL.md`: Auto-sync API contracts with implementation after changes.
+- `docs-skill/SKILL.md`: Auto-update documentation after implementation.
 
 Bundled references live under `references/`. Load them only when needed:
 
@@ -72,14 +178,21 @@ Bundled scripts live under `scripts/`. Prefer copying or adapting these into `.p
 - `create-bug.sh`: scaffolds `.planning/bugs/NNN-bug-slug/`.
 - `create-adr.sh`: scaffolds `.planning/decisions/ADR-NNN-slug.md`.
 - `update-state.sh`: updates common fields in `.planning/STATE.md`.
+- `offload-log.sh`: captures and trims large command outputs to protect the context window.
+- `compact-context.sh`: intelligent context compaction summarizing state to disk.
+- `run-verify-loop.sh`: state-tracked Ralph Loop verify-fix loop executor.
 - `detect-stack.sh`: inspects repository stack clues.
 - `list-changed-files.sh`: lists git changes when git is available.
 - `run-verification.sh`: runs detected lint/typecheck/test/build checks.
+- `detect-changes.sh`: Auto-detect file changes and identify what `.codebase` docs need updating.
 - `check-docs-sync.sh`, `check-task-tracking.sh`, `check-no-debug-logs.sh`, `check-spec-changelog.sh`, `check-required-planning-files.sh`, `check-architecture-boundaries.sh`: mechanical harness checks.
+- **NEW**: `spec-impact-engine/detect-spec-changes.sh`: Auto-detect spec changes and generate impact report.
 
 ## `/init` Workflow
 
 When the user types `/init`, initialize the project planning harness. Before creating files, inspect the current repository.
+
+**Important**: Do not create feature-specific phases. Create only a Foundation phase (Phase 0) as a planning framework. Feature phases are created only after requirements are confirmed and roadmap is finalized.
 
 Look for:
 
@@ -118,6 +231,9 @@ Out of scope:
 Assumptions:
 
 Please confirm before I initialize `.planning/`.
+
+Note: I will create a Foundation phase (Phase 0) for documentation 
+only. Feature phases will be created later when requirements are finalized.
 ```
 
 If the app idea is missing or ambiguous, stop and ask:
@@ -133,7 +249,21 @@ If the app idea is missing or ambiguous, stop and ask:
 
 Do not create implementation code until the project idea is confirmed.
 
-After confirmation, create root `AGENTS.md`, the `.planning/` structure, initial planning files, base Mermaid diagrams, the first roadmap phase, initial checks, and the initial quality score. Use `scripts/init-planning.sh` when it fits the repository.
+After confirmation, create root `AGENTS.md`, the `.planning/` structure, initial planning files, base Mermaid diagrams, a Foundation phase (Phase 0) as planning framework only, initial checks, the initial quality score, and the phase dependency map. Use `scripts/init-planning.sh` when it fits the repository.
+
+**Foundation Phase (Phase 0)**: This is a setup phase only, not a feature phase. It contains:
+- Tasks to complete project documentation
+- No feature implementation tasks
+- Placeholder roadmap with no feature phases yet
+
+**Phase Dependency Map**: Created as `.codebase/PHASE_DEPENDENCY_MAP.md`, this is:
+- Mapping of which phases provide what
+- Which phases depend on which other phases
+- Impact calculation rules for spec changes
+- Timeline sensitivity analysis
+- Used by spec-impact-engine for auto-updates
+
+Feature phases must not be created until requirements are finalized and prioritized. Each feature gets its own numbered phase folder when work begins.
 
 `scripts/init-planning.sh` must only be run after confirmation, using `--confirmed` or `PROJECT_BRIEF_CONFIRMED=1`. Do not bypass this guard unless the user explicitly asks to create a blank harness with unknown product details.
 
@@ -247,14 +377,20 @@ Work is done only when:
 
 - [x] implementation is complete and scoped to the plan
 - [x] automated tests or documented verification passed
-- [x] docs were synchronized, or no-docs-needed was justified
+- [x] docs were synchronized (see Docs Sync Rule below)
 - [x] task tracking moved from `[ ]` or `[~]` to `[x]`
-- [x] `STATE.md`, `SUMMARY.md`, and feature/bug/phase tracking are current
+- [x] `.planning/STATE.md` updated (current phase, active feature, next task)
+- [x] `.planning/SUMMARY.md` updated (recent changes, next recommended task)
+- [x] `.planning/SPEC_CHANGELOG.md` updated if behavior/API/requirements changed
+- [x] `.planning/QUALITY_SCORE.md` recalculated
+- [x] `.planning/FEATURE_INDEX.md` updated with feature status
 - [x] changed files were reviewed
 - [x] debug logs, dead code, unrelated edits, and unnecessary files were removed
 - [x] risks and follow-up tasks are recorded
 
-Never use completion language until the Definition of Done is satisfied.
+**Never use completion language until ALL items above are satisfied.**
+
+If a doc doesn't need updating, explicitly explain why in the completion report.
 
 ## Research Rule
 
@@ -317,7 +453,50 @@ A feature must also have `.planning/features/NNN-feature-name/DIAGRAM.mmd`. Do n
 
 ## `/new-feature` Workflow
 
-When adding a new feature, first read:
+**IMPORTANT**: Always use `checklists/new-feature-qa.md` BEFORE starting any feature work.
+
+When adding a new feature:
+
+### Step 0: Complete Q&A Checklist (MANDATORY)
+
+```bash
+# Before any planning, complete:
+cat .codex/skills/genesis-harness/checklists/new-feature-qa.md
+
+# Answer all questions:
+- User story clearly defined?
+- Success criteria measurable?
+- Out of scope documented?
+- Requirements clear?
+- API/database/UI impacts known?
+- Edge cases identified?
+- Test strategy defined?
+- No unknowns remaining?
+```
+
+If ANY question is unanswered → Stop and get clarification before continuing.
+
+### Step 1: Requirements Validation
+
+After Q&A is complete, validate requirements:
+
+```bash
+# Use requirements validation checklist:
+cat .codex/skills/genesis-harness/checklists/requirements-validation.md
+
+# Verify:
+- All items are specific and measurable
+- Scope is bounded
+- Technical feasibility confirmed
+- Acceptance criteria are testable
+- Stakeholder alignment obtained
+```
+
+If ANY validation fails → Do not continue. Fix before proceeding.
+
+### Step 2: Confirm Definition of Ready
+
+Then read:
 
 ```txt
 .planning/SUMMARY.md
@@ -329,7 +508,27 @@ When adding a new feature, first read:
 .planning/STACK.md
 ```
 
-Then research local patterns and best practices. Create:
+Verify ALL of these are TRUE:
+
+```
+[ ] Q&A checklist completed and all questions answered
+[ ] Requirements validation passed
+[ ] Product intent is clear enough to avoid guessing
+[ ] Required planning docs were read (7 docs above)
+[ ] Relevant local codebase patterns were researched
+[ ] Best-practice research is recorded or internet unavailability stated
+[ ] Impact on API, database, UI, auth, integrations, config, docs, and tests is KNOWN
+[ ] Test contract or verification contract will be created
+[ ] Diagram or ADR impact is handled if architecture changes
+[ ] Escalation concerns are resolved or explicitly recorded
+
+If ANY checkbox is FALSE → Do not continue. 
+Ask user for clarification or update tracking to [!] blocked.
+```
+
+### Step 3: Research & Plan
+
+Research local patterns and best practices. Create:
 
 ```txt
 .planning/features/NNN-feature-slug/
@@ -361,13 +560,100 @@ Docs impact:
 
 `TEST_CONTRACT.md` must include normal input/output, edge cases, invalid inputs, expected errors, acceptance tests, and manual verification if automated tests are unavailable.
 
-`TASKS.md` must include checkbox tasks for required doc reads, pitfalls, lessons, codebase research, best-practice research, diagram, spec, impact, plan, test contract, failing tests or verification, implementation, verification, docs, review, cleanup, state, feature index, spec changelog, and completion tracking.
+`TASKS.md` must include checkbox tasks for:
+
+**Phase 1: Confirmation & Research**
+- [ ] Complete `.codex/skills/genesis-harness/checklists/new-feature-qa.md`
+- [ ] Complete `.codex/skills/genesis-harness/checklists/requirements-validation.md`
+- [ ] Read required `.planning/` docs (SUMMARY, STATE, PITFALLS, LESSONS, CONVENTIONS, ARCHITECTURE, STACK)
+- [ ] Verify Definition of Ready (all 10 items confirmed YES)
+
+**Phase 2: Planning & Contracts**
+- [ ] Research codebase patterns for similar features
+- [ ] Research best practices (external sources or mark unavailable)
+- [ ] Complete SPEC.md with full acceptance criteria
+- [ ] Complete IMPACT.md answering all 11 impact questions
+- [ ] Complete PLAN.md with file changes, risks, rollback
+- [ ] Create TEST_CONTRACT.md with test cases
+- [ ] Create DIAGRAM.mmd if architecture affected
+- [ ] Identify all docs that will need updates (API_DOCS? REQUIREMENTS? DESIGN? etc.)
+
+**Phase 3: Implementation**
+- [ ] Create failing test or verification
+- [ ] Implement to pass test
+- [ ] Run verification - all pass?
+- [ ] Review code for quality
+
+**Phase 4: Documentation & Sync**
+- [ ] Check CHANGE_IMPACT_MATRIX.md → which docs must update?
+- [ ] Update REQUIREMENTS.md (if behavior/feature added)
+- [ ] Update API_DOCS.md (if API endpoints changed)
+- [ ] Update ARCHITECTURE.md (if structure changed)
+- [ ] Update DESIGN.md (if UI/UX changed)
+- [ ] Update INTEGRATIONS.md (if external services changed)
+- [ ] Update CONVENTIONS.md (if new patterns established)
+- [ ] Update STACK.md (if new tech added)
+- [ ] Update SPEC_CHANGELOG.md with: date, reason, impacted docs, impacted tests, migration notes
+- [ ] Update .planning/STATE.md (current phase, active feature, next task)
+- [ ] Update .planning/SUMMARY.md (recent changes, next recommended task)
+- [ ] Update .planning/FEATURE_INDEX.md (add feature status)
+- [ ] Update .planning/QUALITY_SCORE.md (recalculate scores)
+- [ ] Run post-implementation state sync: `.codex/skills/genesis-harness/resources/post-implementation-guide.md`
+
+**Phase 5: Review & Completion**
+- [ ] Review changed files (remove debug logs, dead code, unrelated changes)
+- [ ] Update feature REVIEW.md with findings
+- [ ] Verify cleanup pass complete
+- [ ] Create `.codebase/RECOVERY_POINTS.md` entry for resumption
+- [ ] Create or update `.codebase/IMPLEMENTATION_HANDOFF.md`
+- [ ] Mark TASKS checklist complete [x]
 
 Prefer `scripts/create-feature.sh` for the initial folder and file scaffold, then fill the generated files with task-specific content.
 
 ## `/fix-bug` Workflow
 
-Before fixing a bug, always read:
+**IMPORTANT**: Always use `checklists/bug-fix-qa.md` BEFORE starting any bug fix work.
+
+Before fixing a bug, always:
+
+### Step 0: Complete Bug Fix Q&A (MANDATORY)
+
+```bash
+# Complete the bug fix questionnaire:
+cat .codex/skills/genesis-harness/checklists/bug-fix-qa.md
+
+# Answer all questions:
+- Bug clearly reproduced?
+- Root cause identified?
+- Severity assessed?
+- Affected versions known?
+- Impact assessed?
+- Fix approach decided?
+- Regression prevention plan?
+- Deployment strategy known?
+```
+
+If ANY question is unanswered → Stop and get clarification before continuing.
+
+### Step 1: Requirements Validation
+
+After bug Q&A is complete:
+
+```bash
+# Use requirements validation checklist:
+cat .codex/skills/genesis-harness/checklists/requirements-validation.md
+
+# For bugs, verify:
+- Root cause is clear
+- Fix approach is feasible
+- Test strategy is defined
+- No scope creep
+- Stakeholders aligned
+```
+
+### Step 2: Read Context
+
+Then read:
 
 ```txt
 .planning/PITFALLS.md
@@ -390,11 +676,52 @@ Then reproduce and diagnose before changing code. Create:
 └── REVIEW.md
 ```
 
-Bug `TASKS.md` must include checkboxes for reading pitfalls and lessons, reproducing the bug, identifying root cause, writing regression test or verification, fixing, verification, updating lessons learned, updating docs if behavior changed, reviewing changed files, updating state, and updating spec changelog if needed.
+### Step 3: Bug Documentation
 
-Prefer `scripts/create-bug.sh` for the initial folder and file scaffold, then fill the generated files with task-specific evidence.
+Create `TASKS.md` with checkboxes for:
 
-After fixing the bug, append to `.planning/LESSONS_LEARNED.md`:
+**Phase 1: Understanding**
+- [ ] Complete `.codex/skills/genesis-harness/checklists/bug-fix-qa.md`
+- [ ] Complete `.codex/skills/genesis-harness/checklists/requirements-validation.md`
+- [ ] Read PITFALLS.md and LESSONS_LEARNED.md
+- [ ] Reproduce bug with exact steps
+- [ ] Identify root cause
+- [ ] Check for similar bugs in LESSONS_LEARNED.md
+
+**Phase 2: Planning**
+- [ ] Complete REPORT.md (what is broken?)
+- [ ] Complete ROOT_CAUSE.md (why is it broken?)
+- [ ] Complete PLAN.md (how to fix it?)
+- [ ] Create TEST_CONTRACT.md (regression test)
+- [ ] Identify risk level (low/medium/high)
+- [ ] Plan rollback strategy
+
+**Phase 3: Implementation**
+- [ ] Create regression test (should fail with current code)
+- [ ] Fix with minimal change (don't refactor unrelated code)
+- [ ] Verify regression test now passes
+- [ ] Run full test suite - all pass?
+
+**Phase 4: Documentation & Sync**
+- [ ] Update LESSONS_LEARNED.md with bug finding
+- [ ] Check which docs affected
+- [ ] Update REQUIREMENTS.md (if behavior changed)
+- [ ] Update API_DOCS.md (if API changed)
+- [ ] Update .planning/STATE.md
+- [ ] Update .planning/SUMMARY.md
+- [ ] Update .planning/SPEC_CHANGELOG.md if needed
+- [ ] Update .planning/QUALITY_SCORE.md
+- [ ] Run post-implementation state sync: `.codex/skills/genesis-harness/resources/post-implementation-guide.md`
+
+**Phase 5: Review & Completion**
+- [ ] Review changed files (minimal change?)
+- [ ] Update bug REVIEW.md
+- [ ] Verify cleanup pass complete
+- [ ] Create `.codebase/RECOVERY_POINTS.md` entry
+- [ ] Create or update `.codebase/IMPLEMENTATION_HANDOFF.md`
+- [ ] Mark TASKS checklist complete [x]
+
+Append to `.planning/LESSONS_LEARNED.md`:
 
 ```md
 ## Bug: <name>
@@ -410,7 +737,305 @@ Verification:
 
 Never fix the same type of bug without checking `LESSONS_LEARNED.md`.
 
-## `/plan` Workflow
+Prefer `scripts/create-bug.sh` for the initial folder and file scaffold, then fill the generated files with task-specific evidence.
+
+## `/api-sync` Workflow
+
+**NEW**: After implementing API-related features or changes, use the **api-sync-skill** to automatically sync contracts with implementation.
+
+When API code is modified, invoke:
+
+```bash
+invoke api-sync-skill
+
+# Parameters:
+- changed_files: [list of API files modified]
+- contract_file: ".codebase/API_CONTRACTS.md"
+- breaking_changes: true/false
+- version_bump: "major/minor/patch"
+```
+
+This workflow:
+
+1. Detects API endpoint changes (new, modified, deprecated)
+2. Extracts request/response schemas from code
+3. Updates API_CONTRACTS.md with all changes
+4. Identifies breaking changes
+5. Generates test contracts
+6. Creates migration guide if needed
+7. Documents version changes
+
+See `.codex/skills/api-sync-skill/SKILL.md` for full workflow.
+
+**Important**: Run before committing API changes.
+
+## `/spec-change` Workflow
+
+**NEW**: When a specification document changes, use this to propagate changes to downstream phases.
+
+When user calls `/spec-change <file>` or notifies you of spec changes:
+
+### Step 1: Detect the Change
+
+```bash
+# User says: "I updated the API response format in API_DOCS.md"
+
+Harness:
+1. Reads old vs new version of .planning/API_DOCS.md
+2. Identifies what changed (breaking vs additive)
+3. Classifies severity (high/medium/low)
+4. Extracts specific changes (what field changed, how)
+```
+
+### Step 2: Query Impact
+
+```bash
+# Using PHASE_DEPENDENCY_MAP.md
+
+Query: Which phases depend on the API_DOCS.md changes?
+
+Example:
+- Phase 1 changed: GET /api/users/:id response format
+- PHASE_DEPENDENCY_MAP shows:
+  - Phase 2 imports user_api ← AFFECTED
+  - Phase 3 imports user_api ← AFFECTED
+  - Phase 4 imports user_api ← AFFECTED
+```
+
+### Step 3: Generate Impact Report
+
+```bash
+# Create .codebase/IMPACT_REPORT_<timestamp>.md
+
+Contains:
+- What changed (before/after)
+- Severity level
+- All affected phases
+- Estimated impact time (30 min? 2 hours?)
+- Recommended fix order
+- Rollback strategy
+```
+
+### Step 4: Auto-Update (Optional)
+
+```bash
+# If user says: "Auto-update all affected phases"
+
+For each affected phase:
+1. Auto-update SPEC.md (replace old API calls)
+2. Auto-update TEST_CONTRACT.md (update assertions)
+3. Auto-update PLAN.md (note breaking change)
+4. Run validation tests
+5. Flag for developer review if HIGH severity
+```
+
+### Step 5: Update Tracking
+
+```bash
+1. Add entry to SPEC_CHANGELOG.md
+2. Update STATE.md with status
+3. Create notification with impact details
+4. Suggest next steps
+```
+
+---
+
+## `/propagate-spec` Workflow
+
+**NEW**: Automatically propagate all pending spec changes to downstream phases.
+
+When user calls `/propagate-spec`:
+
+### Step 1: Find Pending Changes
+
+```bash
+# Scan SPEC_CHANGELOG.md for entries marked "pending_propagation"
+
+These are changes that were made but not yet pushed to dependent phases.
+```
+
+### Step 2: Identify Affected Phases
+
+```bash
+# For each pending change:
+# 1. Query PHASE_DEPENDENCY_MAP
+# 2. Find phases that depend on the changed capability
+# 3. Build execution order (upstream first)
+```
+
+### Step 3: Auto-Update All Phases
+
+```bash
+# For each affected phase (in order):
+
+1. Update SPEC.md
+   - Replace old patterns with new ones
+   - Update examples
+   - Note breaking changes
+
+2. Update TEST_CONTRACT.md
+   - Update test expectations
+   - Add migration notes
+
+3. Update PLAN.md
+   - Note: "Depends on Phase N spec change"
+   - Estimate new work time
+
+4. Generate migration guide if breaking change
+
+5. Run tests
+   - If PASS: Mark phase as ready ✓
+   - If FAIL: Flag for manual review ⚠️
+```
+
+### Step 4: Update Timeline
+
+```bash
+# If any phase specs changed significantly:
+
+1. Recalculate ROADMAP.md
+   - Update phase timelines
+   - Recalculate critical path
+   - Notify if project delay > 1 day
+
+2. Update STATE.md
+   - Note propagation completed
+   - Mark phases as ready to resume
+```
+
+### Step 5: Generate Summary
+
+```bash
+# Create comprehensive report:
+
+"Spec propagation complete
+
+Updated phases:
+- Phase 2: 1 spec, 3 tests (HIGH severity - requires review)
+- Phase 3: 2 specs, 5 tests (MEDIUM - ready to resume)
+- Phase 4: 0 changes (LOW severity, no impact)
+
+Timeline impact: +2 hours estimated work
+Critical path: No changes
+Status: Ready to proceed
+
+Next steps:
+1. Review Phase 2 changes
+2. Run tests in Phase 2
+3. Continue Phase 2 implementation"
+```
+
+---
+
+## `/validate-specs` Workflow
+
+**NEW**: Check that all phases are aligned with their dependencies.
+
+When user calls `/validate-specs`:
+
+### Step 1: Load Dependency Map
+
+```bash
+# Read PHASE_DEPENDENCY_MAP.md
+
+For each phase:
+- What it provides
+- What it requires
+- Which phases it depends on
+```
+
+### Step 2: Validate Each Phase
+
+```bash
+# For each phase N:
+
+Check: Does phase N's SPEC.md match what upstream provides?
+
+Example:
+  Phase 2 spec says: "Uses user_api with { name, email, role }"
+  Phase 1 API_DOCS says: "Returns { id, name, email, roles[] }"
+  
+  Result: MISALIGNED ❌
+  Phase 2 spec is STALE (3 days old)
+  
+  Action: Flag for update
+```
+
+### Step 3: Check for Drift
+
+```bash
+# Detect stale specs:
+
+For each phase:
+1. How old is SPEC.md?
+2. How old is TEST_CONTRACT.md?
+3. Have upstream phases changed since?
+4. If spec older than upstream change → DRIFT DETECTED
+
+Report all drifted phases.
+```
+
+### Step 4: Identify Breaking Changes Not Propagated
+
+```bash
+# Query: Are there HIGH severity changes in SPEC_CHANGELOG?
+# That haven't been propagated to dependent phases?
+
+If YES:
+  - Flag as blocker
+  - Cannot start downstream phase work until propagated
+  - Suggest running /propagate-spec
+```
+
+### Step 5: Generate Alignment Report
+
+```bash
+# Create report with:
+
+✓ Phases in alignment:
+  - Phase 1, 3, 4
+  
+❌ Phases with issues:
+  - Phase 2: Spec STALE (3 days, Phase 1 changed 2 days ago)
+  - Phase 5: Cannot start until Phase 4 propagation complete
+  
+⚠️ Risky:
+  - Phase 3 depends on Phase 2 which depends on Phase 1
+  - Both Phase 1 and 2 have HIGH severity changes
+  - Timeline risk: +4 hours if cascading changes needed
+
+Recommendations:
+1. Run /propagate-spec immediately
+2. Re-validate after propagation
+3. Run tests in all phases
+```
+
+---
+
+## Spec Impact Integration into `/new-feature`
+
+When a feature is completed and phases are affected:
+
+### Phase 4: Documentation & Sync (Updated)
+
+- [ ] Check CHANGE_IMPACT_MATRIX.md → which docs must update?
+- [ ] Update REQUIREMENTS.md (if behavior/feature added)
+- [ ] Update API_DOCS.md (if API endpoints changed)
+- [ ] Update ARCHITECTURE.md (if structure changed)
+- [ ] Update DESIGN.md (if UI/UX changed)
+- [ ] Update INTEGRATIONS.md (if external services changed)
+- [ ] Update CONVENTIONS.md (if new patterns established)
+- [ ] Update STACK.md (if new tech added)
+- [ ] Update SPEC_CHANGELOG.md with: date, reason, impacted docs, impacted tests, migration notes
+- [ ] Update .planning/STATE.md (current phase, active feature, next task)
+- [ ] Update .planning/SUMMARY.md (recent changes, next recommended task)
+- [ ] Update .planning/FEATURE_INDEX.md (add feature status)
+- [ ] Update .planning/QUALITY_SCORE.md (recalculate scores)
+- [ ] **NEW**: Run `/spec-change <changed-file>` for each updated spec file
+- [ ] **NEW**: Review impact report from spec-impact-engine
+- [ ] **NEW**: Run `/propagate-spec` to auto-update downstream phases
+- [ ] **NEW**: Run `/validate-specs` to confirm all phases aligned
+- [ ] Run post-implementation state sync: `.codex/skills/genesis-harness/resources/post-implementation-guide.md`
 
 When the user asks for a plan:
 
@@ -495,33 +1120,99 @@ If no test framework exists, create a minimal verification script, document manu
 
 During implementation, make the smallest working change. Follow `CONVENTIONS.md`, `ARCHITECTURE.md`, and `STACK.md`. Reuse existing utilities. Avoid unrelated refactors, hidden dependencies, public behavior changes without docs, integrations without `INTEGRATIONS.md`, deleting files without justification, and destructive migrations without user confirmation.
 
+## State Continuity & Resumption
+
+**NEW**: After each implementation phase, document state for resumption:
+
+### Create `.codebase/IMPLEMENTATION_HANDOFF.md`
+
+After successful implementation completion:
+
+```bash
+# Create handoff document with:
+- What was built (modules created/modified)
+- Current state (what's complete, known issues)
+- Files changed (detailed list)
+- Metrics and status
+- For continuation (resumption instructions)
+- Recovery points (where to resume if paused)
+- Architecture decisions (why this approach?)
+```
+
+See `.codebase/IMPLEMENTATION_HANDOFF.md` for template.
+
+### Create `.codebase/RECOVERY_POINTS.md`
+
+Track where work can be safely paused:
+
+```bash
+# For each phase, document:
+- Phase status (complete, in-progress, paused)
+- What was completed
+- What remains
+- How to resume from this point
+- Rollback procedures
+```
+
+See `.codebase/RECOVERY_POINTS.md` for template and examples.
+
+### Use After Implementation
+
+Run this workflow after implementation passes tests:
+
+```bash
+# 1. Verify all tests passing
+npm test
+
+# 2. Auto-detect changes and sync docs
+./scripts/detect-changes.sh
+
+# 3. Follow post-implementation guide
+cat .codex/skills/genesis-harness/resources/post-implementation-guide.md
+
+# 4. Update state tracking
+cat .codebase/IMPLEMENTATION_HANDOFF.md  # Fill out
+cat .codebase/RECOVERY_POINTS.md        # Fill out
+
+# 5. Verify all docs in sync
+./scripts/check-docs-sync.sh
+```
+
 ## Docs Sync Rule
 
-Whenever implementation changes behavior, API, data model, UI, integration, architecture, convention, config, environment variable, security behavior, or requirement, update all related docs.
+**CRITICAL**: Whenever implementation changes behavior, API, data model, UI, integration, architecture, convention, config, environment variable, security behavior, or requirement, update ALL related docs.
 
-Possible docs include:
+Reference `.planning/CHANGE_IMPACT_MATRIX.md` to identify which docs must be updated based on change type.
 
-- `.planning/REQUIREMENTS.md`
-- `.planning/API_DOCS.md`
-- `.planning/ARCHITECTURE.md`
-- `.planning/DESIGN.md`
-- `.planning/INTEGRATIONS.md`
-- `.planning/STACK.md`
-- `.planning/CONVENTIONS.md`
-- `.planning/ROADMAP.md`
-- `.planning/STATE.md`
-- `.planning/SPEC_CHANGELOG.md`
-- `.planning/QUALITY_SCORE.md`
-- `.planning/OBSERVABILITY.md`
-- `.planning/SMOKE_TESTS.md`
-- `.planning/JOURNEYS.md`
-- `.planning/diagrams/*.mmd`
-- `.planning/decisions/*.md`
-- `.planning/features/*/*.md`
-- `.planning/phases/*/*.md`
-- `.planning/bugs/*/*.md`
+Possible docs to update:
 
-If no docs need updating, explicitly explain why in the final report.
+- `.planning/REQUIREMENTS.md` - If feature/behavior/requirement changed
+- `.planning/API_DOCS.md` - If endpoints/schemas/auth changed
+- `.planning/ARCHITECTURE.md` - If module boundaries/data flow changed
+- `.planning/DESIGN.md` - If UI/UX/screens/components changed
+- `.planning/INTEGRATIONS.md` - If external services/env vars changed
+- `.planning/STACK.md` - If tech stack/versions/commands changed
+- `.planning/CONVENTIONS.md` - If patterns/style/rules changed
+- `.planning/ROADMAP.md` - If timeline/phases/priorities changed
+- `.planning/STATE.md` - ALWAYS update (current phase, active work, next task)
+- `.planning/SPEC_CHANGELOG.md` - ALWAYS update (date, reason, impacted docs)
+- `.planning/QUALITY_SCORE.md` - Update with new metrics
+- `.planning/OBSERVABILITY.md` - If logging/metrics/traces changed
+- `.planning/SMOKE_TESTS.md` - If verification paths changed
+- `.planning/JOURNEYS.md` - If user flows changed
+- `.planning/diagrams/*.mmd` - If architecture/flow changed
+- `.planning/decisions/*.md` - If ADR-level changes made
+- `.planning/features/*/*.md` - Update feature folder docs
+- `.planning/FEATURE_INDEX.md` - Update feature table
+
+**Docs Sync Checklist (from TASKS.md)**:
+- [ ] Check CHANGE_IMPACT_MATRIX.md for required updates
+- [ ] Update all applicable docs from list above
+- [ ] Add entry to SPEC_CHANGELOG.md with date and reason
+- [ ] Update STATE.md and SUMMARY.md
+- [ ] Recalculate QUALITY_SCORE.md
+
+If no docs need updating, explicitly state why in the completion report (e.g., "Internal refactor, no behavior change").
 
 ## Decision Record Rule
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Docs Skill"
+  short_description: "Synchronize harness documentation"
+  default_prompt: "Use $docs-skill to update concise docs and repository memory after changes."
+policy:
+  allow_implicit_invocation: true
+

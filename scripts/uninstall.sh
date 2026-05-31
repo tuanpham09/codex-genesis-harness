@@ -1,7 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-skill_names=(genesis-harness genesis-new-design genesis-upgrade-design project-genesis-harness)
+skill_names=(
+  genesis-harness
+  genesis-new-design
+  genesis-upgrade-design
+  genesis-architecture
+  genesis-planning
+  genesis-codebase-map
+  genesis-design-spec
+  genesis-api-contract
+  ui-ux-test-skill
+  genesis-harness-engineering
+  genesis-ai-provider
+  genesis-pipeline-orchestration
+  genesis-research
+  genesis-docs
+  genesis-release
+  genesis-api-sync
+  genesis-debug-guide
+  genesis-docs-automation
+  genesis-spec-propagation
+  genesis-release-orchestration
+  genesis-performance-profiling
+  genesis-observability-automation
+  genesis-research-first
+  spec-impact-engine
+  project-genesis-harness
+)
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 agents_home="${GENESIS_HARNESS_HOME:-$HOME/.agents}"
 target="both"
