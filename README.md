@@ -1,23 +1,28 @@
-# Genesis Codex Harness | 开发高效软件的完整工具集
+# 🚀 Genesis Codex Harness | The Ultimate Enterprise SDLC Harness for Codex (Claude 3 Opus)
 
-🌍 **Choose Your Language**:
-- **[📘 English Documentation](README.EN.md)** - Full comprehensive guide with real-world examples
-- **[📗 Tiếng Việt](README.VI.md)** - Hướng dẫn chi tiết bằng tiếng Việt
+[![npm version](https://img.shields.io/npm/v/codex-genesis-harness.svg?style=flat-square&color=blue)](https://www.npmjs.com/package/codex-genesis-harness)
+[![license](https://img.shields.io/npm/l/codex-genesis-harness.svg?style=flat-square&color=green)](LICENSE)
+[![Harness Verification](https://img.shields.io/badge/harness--verification-passed-brightgreen?style=flat-square)](#)
+[![Token Savings](https://img.shields.io/badge/token--savings-40%20to%2060%25-blueviolet?style=flat-square)](#)
+[![Target Model](https://img.shields.io/badge/model-Codex%20(Claude%203%20Opus)-orange?style=flat-square)](#)
+
+**Genesis Codex Harness** is an enterprise-grade, Codex-exclusive software development lifecycle (SDLC) framework. It converts Codex (Claude 3 Opus) from a simple autocomplete assistant into a rigorous, autonomous AI Software Engineer that enforces strict test-first development, contract-first design, and persistent codebase memory.
+
+> [!NOTE]
+> Engineered to eliminate the #1 frustration of AI-assisted development—**context decay, token exhaustion, and silent regression**—while slashing API token overhead by **40% to 60%** per project.
 
 ---
 
-## ⚡ Quick Summary
+## ⚡ Core Pillars at a Glance
 
-**Genesis Codex Harness** is an enterprise-grade, Codex-exclusive development framework for building production-quality software with:
+*   🛑 **The Death of Context Rot:** Automatically offloads massive terminal outputs (`offload-log.sh`) and dynamically compacts codebase state (`compact-context.sh`). Your prompt stays clean and sharp even after 100+ continuous development turns.
+*   🔥 **Autonomous Self-Healing (Ralph Loops):** Caught a test failure or compiler crash? The harness executes closed-loop **Verify-Fix cycles** (`run-verify-loop.sh`) up to 5 times autonomously, reading errors and refactoring source code until the tests turn green.
+*   🧠 **Empirical, Research-First Engineering:** Enforces evidence-based solutions. Genesis runs automated scans of your local codebase patterns and official package repositories *before* writing a single line of plans or implementation code.
+*   🔄 **Cascading Spec Propagation:** Change a single schema field or API contract and watch the harness automatically cascade modifications (`/propagate-spec`) across all downstream phases, test fixtures, and integration assertions.
 
-- ✅ **Test-first development** (RED → GREEN → IMPROVE)
-- ✅ **Contract-first API design** (before coding)
-- ✅ **Persistent project memory** (no re-explaining needed)
-- ✅ **40-60% token savings** (via smart caching)
-- ✅ **Automatic spec propagation** (changes cascade through phases)
-- ✅ **Multi-phase orchestration** (5 phases per project)
+---
 
-### 🎯 Perfect For
+## 🎯 Perfect For
 - Enterprise teams building complex software with Codex
 - Projects requiring reliable, repeatable workflows
 - Organizations wanting to reduce token costs
