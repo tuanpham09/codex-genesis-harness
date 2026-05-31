@@ -1,6 +1,6 @@
 {
   "name": "codex-genesis-harness",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Install and manage the Project Genesis Harness Codex skill.",
   "license": "MIT",
   "bin": {
