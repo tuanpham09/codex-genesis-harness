@@ -631,7 +631,7 @@ genesis-harness verify
 
 **Cách 2: Từ Git**
 ```bash
-git clone https://github.com/your-org/codex-genesis-harness.git
+git clone https://github.com/tuanpham09/codex-genesis-harness.git
 cd codex-genesis-harness
 ./scripts/install.sh
 ./scripts/verify.sh
@@ -677,9 +677,20 @@ npm run eval            # Chạy evaluation
 
 ---
 
+## 💖 Ủng Hộ Dự Án (Donate)
+
+Dự án này là mã nguồn mở và được phát triển hoàn toàn vì đam mê. Nếu bạn thấy **Genesis Codex Harness** hữu ích và giúp bạn tiết kiệm thời gian, bạn có thể mời tôi một ly cafe để tiếp thêm động lực phát triển nhé:
+
+- **Momo**: `0865814259`
+- **PayPal**: *(Sẽ cập nhật sau)*
+
+Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển của dự án! ❤️
+
+---
+
 ## 🔗 Tài Nguyên
 
-- **GitHub**: [codex-genesis-harness](https://github.com/your-org/codex-genesis-harness)
+- **GitHub**: [codex-genesis-harness](https://github.com/tuanpham09/codex-genesis-harness)
 - **Tài Liệu**: Xem thư mục [.codex/](./codex/)
 - **Issues**: GitHub Issues
 - **Thảo Luận**: GitHub Discussions

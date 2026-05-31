@@ -19,7 +19,7 @@ Use for project initialization, planning, feature work, bug fixes, audits, revie
 Do not use for simple read-only answers that do not require repository workflow or durable artifacts.
 
 ## Inputs required
-Read `.codebase/CURRENT_STATE.md`, `.codebase/MODULE_INDEX.md`, and `.codebase/TEST_MATRIX.md` when present, then inspect only relevant files.
+Read `.codebase/state.json` (MANDATORY on boot), `.codebase/CURRENT_STATE.md`, `.codebase/MODULE_INDEX.md`, and `.codebase/TEST_MATRIX.md` when present, then inspect only relevant files.
 
 ## Outputs required
 Plan or implementation artifact, tests, fixtures, verification evidence, docs sync, and codebase memory updates.
@@ -46,7 +46,7 @@ Work is complete only when tests pass, contracts and docs are current, and verif
 Implementing before tests, skipping fixtures, overloading `AGENTS.md`, and duplicating long context across skills.
 
 ## Recovery workflow
-If blocked or interrupted, reread current state, rerun verification, identify the first failing phase, and resume from that point.
+If blocked or interrupted, read `.codebase/state.json` to identify your exact FSM state. Rerun verification, identify the first failing phase, and resume from that point based on the strict state rules.
 
 ## Core Principle
 
@@ -178,6 +178,7 @@ Bundled scripts live under `scripts/`. Prefer copying or adapting these into `.p
 - `create-bug.sh`: scaffolds `.planning/bugs/NNN-bug-slug/`.
 - `create-adr.sh`: scaffolds `.planning/decisions/ADR-NNN-slug.md`.
 - `update-state.sh`: updates common fields in `.planning/STATE.md`.
+- **NEW**: `transition_state.sh`: Strict FSM transition script. You MUST use this script to move between `INIT`, `REQUIREMENTS_GATHERING`, `PLANNING`, `IMPLEMENTATION`, `VERIFICATION`, and `COMPLETED` states.
 - `offload-log.sh`: captures and trims large command outputs to protect the context window.
 - `compact-context.sh`: intelligent context compaction summarizing state to disk.
 - `run-verify-loop.sh`: state-tracked Ralph Loop verify-fix loop executor.
@@ -370,6 +371,14 @@ Feature, bug, phase, audit, and architecture work is ready to implement only whe
 - [x] escalation concerns were resolved or explicitly recorded
 
 If any item is false, do not implement. Update tracking to `[!]` or ask the user.
+
+## Validation Gates
+
+Before moving to the `COMPLETED` state, the agent MUST pass the validation gates:
+- Run `bash scripts/validation_gates.sh`
+- Ensure no leftover `TODO`, `FIXME`, `console.log`, or `print` statements remain in production code.
+- Ensure all tests and `verify.sh` checks pass.
+- If the validation gates fail, the agent is forced to remain in `VERIFICATION` or return to `IMPLEMENTATION` to fix the issues.
 
 ## Definition Of Done
 

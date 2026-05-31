@@ -546,14 +546,14 @@ Genesis:
 
 ---
 
-## 📚 All 24 Skills
+## 📚 24 Skills (All Available)
 
-Each skill follows standardized naming under the `.codex/skills/` directory:
+Each skill follows the standard naming convention in `.codex/skills/`:
 
 | Skill Directory | Purpose | When to Use |
 |---|---|---|
-| **genesis-harness** | Main orchestration engine and CLI entry point | `/genesis-init`, `/new-feature`, `/fix-bug` |
-| **genesis-research-first** | Autonomous empirical research before design & planning | Triggers automatically on new tasks |
+| **genesis-harness** | Main entry point of the system | `/genesis-init`, `/new-feature`, `/fix-bug` |
+| **genesis-research-first** | Autonomous empirical research before planning | Triggers automatically on new tasks |
 | **genesis-api-contract** | Design robust API contracts (schema, request, response) | Before implementing endpoints |
 | **genesis-api-sync** | Automate bi-directional contract & codebase synchronization | When endpoints are updated |
 | **genesis-spec-propagation** | Automatically cascade design specification updates downstream | When specs change |
@@ -632,7 +632,7 @@ genesis-harness verify
 
 **Method 2: From Git**
 ```bash
-git clone https://github.com/your-org/codex-genesis-harness.git
+git clone https://github.com/tuanpham09/codex-genesis-harness.git
 cd codex-genesis-harness
 ./scripts/install.sh
 ./scripts/verify.sh
@@ -684,9 +684,20 @@ npm run pack:check      # Check npm package
 
 ---
 
+## 💖 Support the Project (Donate)
+
+This project is open-source and developed with passion. If you find **Genesis Codex Harness** helpful and it saves you time, consider buying me a coffee to keep the momentum going:
+
+- **Momo (Vietnam)**: `0865814259`
+- **PayPal**: *(Will be updated later)*
+
+Thank you so much for supporting the development of this project! ❤️
+
+---
+
 ## 🔗 Resources
 
-- **GitHub**: [codex-genesis-harness](https://github.com/your-org/codex-genesis-harness)
+- **GitHub**: [codex-genesis-harness](https://github.com/tuanpham09/codex-genesis-harness)
 - **Documentation**: See [.codex/](./codex/) folder
 - **Issues**: GitHub Issues
 - **Discussions**: GitHub Discussions

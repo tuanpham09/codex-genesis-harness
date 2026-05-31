@@ -1,6 +1,6 @@
 {
   "name": "genesis-skill-set",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Genesis harness skill system for Codex test-first, contract-first, memory-aware autonomous workflows.",
   "author": {
     "name": "Genesis Skill Set"

@@ -1,7 +1,7 @@
 {
   "name": "codex-genesis-harness",
-  "version": "0.1.4",
-  "description": "Install and manage the Project Genesis Harness Codex skill.",
+  "version": "0.1.5",
+  "description": "Hệ thống quản trị (Harness) dành cho AI Agent (Codex) với cơ chế FSM State Persistence, Validation Gates và Test-First Workflow. Đảm bảo agent không bị trôi context.",
   "license": "MIT",
   "bin": {
     "genesis-harness": "bin/genesis-harness.js"
@@ -29,15 +29,34 @@
   ],
   "keywords": [
     "codex",
-    "codex-skill",
-    "planning",
+    "ai-agent",
+    "autonomous-agent",
+    "harness-engineering",
+    "llm-workflow",
     "project-management",
-    "engineering-harness"
+    "state-machine",
+    "fsm",
+    "codex-plugin",
+    "developer-tools",
+    "validation-gates"
   ],
   "engines": {
     "node": ">=18"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "author": "Genesis Codex Team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tuanpham09/codex-genesis-harness.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tuanpham09/codex-genesis-harness/issues"
+  },
+  "homepage": "https://github.com/tuanpham09/codex-genesis-harness#readme",
+  "funding": {
+    "type": "momo",
+    "url": "tel:0865814259"
   }
 }
