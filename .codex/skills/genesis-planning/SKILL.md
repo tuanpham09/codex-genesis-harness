@@ -44,3 +44,28 @@ Planning implementation before tests, omitting fixtures, and leaving verificatio
 ## Recovery workflow
 If a plan becomes invalid, update the failing test and fixture first, then revise phases.
 
+---
+
+## 🏗️ 5-Phase MVP Roadmap Standards
+
+When decomposing large-scale features or initializing new project modules, you must enforce the **5-Phase MVP Roadmap Standard** using the provided templates:
+
+1. **Phase 1: Core Foundation & Base Setup** (Templates: `phase-1-core.md`, `phase-2-auth.md`)
+   - Establish environment skeletons, base CLI arguments, dependency configurations, and contract JSON structures.
+   - Core DB migrations, model schemes, and basic configurations.
+2. **Phase 2: Contract-First & Skeletal Tests** (Template: `phase-3-features.md`)
+   - Compile exhaustive contract endpoints (`contracts/api/`) and mock fixture skeletons (`fixtures/api/`).
+   - Auto-generate test skeletons in `tests/integration/` (RED state).
+3. **Phase 3: Logic Implementation & Self-Healing** (Template: `phase-3-features.md`)
+   - Implement minimal code handlers, controllers, or service endpoints.
+   - Execute closed-loop Verify-Fix cycles autonomously until all tests turn GREEN.
+4. **Phase 4: Multi-Agent & External Integrations** (Template: `phase-4-integrations.md`)
+   - Wire up external components, API sync triggers, or media providers.
+5. **Phase 5: E2E Visual QA & Release Readiness** (Template: `phase-5-readiness.md`)
+   - Execute full Playwright E2E smoke tests, visual regression checks, and packaging checklists.
+
+### Related Planning Assets
+* **Checklist**: `checklists/mvp-readiness.md`
+* **Example**: `examples/5-phase-roadmap-example.md`
+* **Templates**: `templates/phase-1-core.md`, `phase-2-auth.md`, `phase-3-features.md`, `phase-4-integrations.md`, `phase-5-readiness.md`
+

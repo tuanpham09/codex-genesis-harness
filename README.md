@@ -30,8 +30,8 @@ To cater to all developers, Genesis features separate, highly exhaustive step-by
 
 | Language | Primary Link | Content Included |
 | :--- | :--- | :--- |
-| 🇬🇧 **English** | [README.EN.md](README.EN.md) | Exhaustive runbooks, all 25 skill details, learning paths, & production workflows. |
-| 🇻🇳 **Tiếng Việt** | [README.VI.md](README.VI.md) | Cẩm nang chi tiết bằng Tiếng Việt, giải nghĩa 25 skills, quy trình TDD chuẩn. |
+| 🇬🇧 **English** | [README.EN.md](README.EN.md) | Exhaustive runbooks, all 21 skill details, learning paths, & production workflows. |
+| 🇻🇳 **Tiếng Việt** | [README.VI.md](README.VI.md) | Cẩm nang chi tiết bằng Tiếng Việt, giải nghĩa 21 skills, quy trình TDD chuẩn. |
 
 ---
 
@@ -89,14 +89,14 @@ Genesis is built on five core, state-of-the-art technological breakthroughs that
 1. **Context Compaction Engine (`compact-context.sh`)**: Automatically condenses architectural decisions, API states, and task history into `.codebase/context/` when prompt window boundaries are reached, freeing up massive context space while keeping 100% decision recall.
 2. **Tool Call Offloading (`offload-log.sh`)**: Intercepts massive terminal outputs (such as verbose test suites or compiler logs) and offloads them to disk log files (`.system_generated/tasks/`), returning a clean, structural status summary back to the model.
 3. **Verify-Fix Self-Healing Loop (`run-verify-loop.sh`)**: An autonomous, closed-loop debug engine that captures test failures, reads error output from disk logs, refactors implementation code, and re-runs tests autonomously up to 5 times until the build turns green.
-4. **5-Phase MVP Planner (`genesis-mvp-planning`)**: Guarantees architectural rigor. Runs immediately post-initialization to break down requirements into 5 standard delivery phases, ensuring core contracts are validated before feature coding.
+4. **5-Phase MVP Planner (`genesis-planning`)**: Guarantees architectural rigor. Breaks down requirements into 5 standard delivery phases, ensuring core contracts are validated before feature coding.
 5. **Documentation Drift Check Validation Gates (`validation_gates.sh`)**: A hook-level scan that alerts the engineer on phase state changes if source code changes are detected without matching spec updates under `.codebase/`.
 
 ---
 
-## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.6)
+## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.7)
 
-Genesis v0.1.6 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
+Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
 
 1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
 2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
@@ -145,8 +145,8 @@ After installation, simply type standard commands in your Codex chat interface t
   ├── genesis-upgrade-design/             # Existing visual audit and upgrade engine
   ├── genesis-api-contract/               # Enterprise API contract designer
   ├── genesis-spec-propagation/           # Automated spec propagation engine
-  ├── genesis-mvp-planning/               # 5-Phase MVP roadmap generator [NEW v0.1.6]
-  └── ... (19 more skills, total 25 skills)
+  ├── genesis-planning/                   # 5-Phase MVP roadmap planner
+  └── ... (15 more skills, total 21 skills)
 
 .codebase/                                # Persistent repository memory system
 contracts/                                # Enterprise API, UI, and Data contracts
@@ -162,9 +162,9 @@ observability/                            # Run records and architectural ADR lo
 
 - ✅ **Architecture Rating**: `10/10` (Enforced research-first + self-healing + spec-propagation)
 - ✅ **Codex-Only Enforcement**: `100%`
-- ✅ **Skills Matrix**: 25 fully implemented, structured, and verified skills
+- ✅ **Skills Matrix**: 21 fully implemented, structured, and verified skills
 - ✅ **Token Caching Savings**: `40% to 60%` verified per enterprise project
-- ✅ **Stability & Readiness**: Production Ready (`v0.1.6` - June 2026)
+- ✅ **Stability & Readiness**: Production Ready (`v0.1.7` - June 2026)
 
 ---
 
@@ -174,5 +174,5 @@ Licensed under the [MIT License](LICENSE). Contributions, bug reports, and featu
 
 ---
 
-**Genesis Codex Harness** v0.1.6 | June 2026
+**Genesis Codex Harness** v0.1.7 | June 2026
 👉 **[Full English Guide](README.EN.md) | [Tiếng Việt Hướng Dẫn](README.VI.md)**

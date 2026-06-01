@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.1.7] - 2026-06-01
+
+### Changed
+- **Skill Consolidation**: Merged overlapping skills to resolve duplicated slash commands and clean up the architecture.
+  - `genesis-docs` consolidated into `genesis-docs-automation`.
+  - `genesis-mvp-planning` consolidated into `genesis-planning`.
+  - `genesis-release-orchestration` consolidated into `genesis-release`.
+  - `genesis-research` consolidated into `genesis-research-first`.
+  - `genesis-state-machine` consolidated into `genesis-harness`.
+- **Harness & Verification Improvements**: Updated tests and scripts (`verify.sh`, `run-evals.sh`, `install.sh`, `uninstall.sh`, `genesis-harness.js`) to reflect the consolidated folder structure.
+- **Documentation**: Updated `README.md`, `README.EN.md`, `README.VI.md`, and `AGENTS.md` to reflect the new standardized skill set.
+
+---
+
 ## [0.1.6] - 2026-06-01
 
 ### Added

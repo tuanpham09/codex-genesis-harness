@@ -621,27 +621,7 @@ Codex doesn't hand off control to other models mid-project.
 
 **Related**: See `.codex/MODEL_ALLOCATION.md` for detailed model responsibilities
 
----
-
 ## Documentation & Release Skills
-
-### genesis-docs
-**Location**: `.codex/skills/genesis-docs/`
-
-**Purpose**: Documentation generation and maintenance (Codex-only)
-
-**Features**:
-- API documentation
-- User guides
-- Architecture guides
-- Code examples
-- Tutorial creation
-
-**When to use**: Project kickoff, feature completion, release preparation
-
-**Output**: Documentation files, guides, examples
-
----
 
 ### genesis-research-first (NEW v2.1)
 **Location**: `.codex/skills/genesis-research-first/`
@@ -678,24 +658,6 @@ Codex doesn't hand off control to other models mid-project.
 **Output**: Research notes (`.planning/RESEARCH_NOTES/`), pre-populated plans, evidence-based recommendations
 
 **Token Savings**: Research targets specific topics (not broad), cites sources instead of copying content
-
----
-
-### genesis-research
-**Location**: `.codex/skills/genesis-research/`
-
-**Purpose**: Feature research and best-practice analysis (Codex-only)
-
-**Features**:
-- Solution analysis
-- Best-practice research
-- Technology evaluation
-- Implementation guidance
-- Risk assessment
-
-**When to use**: Planning features, evaluating technologies, solving complex problems
-
-**Output**: Research reports, solution recommendations, implementation guides
 
 ---
 
@@ -776,39 +738,39 @@ Codex doesn't hand off control to other models mid-project.
 
 | Task | Skills to Use |
 |------|---|
-| New feature | `/init` → `planning-skill` → `api-contract-skill` → implement |
+| New feature | `/init` → `genesis-planning` → `genesis-api-contract` → implement |
 | Bug fix | `genesis-harness /fix-bug` → reproduce → fix → test |
-| API work | `api-contract-skill` (FIRST) → implement → test |
+| API work | `genesis-api-contract` (FIRST) → implement → test |
 | UI design | `genesis-new-design` or `genesis-upgrade-design` |
-| Refactoring | `codebase-map-skill` → `architecture-skill` → implement |
-| Testing | `harness-engineering-skill` → test-first workflow |
-| Documentation | `docs-skill` after feature complete |
-| Release | `release-skill` before shipping |
+| Refactoring | `genesis-codebase-map` → `genesis-architecture` → implement |
+| Testing | `genesis-harness-engineering` → test-first workflow |
+| Documentation | `genesis-docs-automation` after feature complete |
+| Release | `genesis-release` before shipping |
 
 ### By Role
 
 **Frontend Developer**:
 - `genesis-new-design` / `genesis-upgrade-design`
-- `ui-ux-test-skill`
-- `api-contract-skill`
-- `harness-engineering-skill`
+- `genesis-ui-ux-test`
+- `genesis-api-contract`
+- `genesis-harness-engineering`
 
 **Backend Developer**:
-- `architecture-skill`
-- `api-contract-skill` (FIRST for APIs)
-- `pipeline-orchestration-skill`
-- `ai-provider-skill` (if AI features)
+- `genesis-architecture`
+- `genesis-api-contract` (FIRST for APIs)
+- `genesis-pipeline-orchestration`
+- `genesis-ai-provider` (if AI features)
 
 **Tech Lead**:
 - `genesis-harness` (orchestration)
-- `planning-skill`
-- `architecture-skill`
-- `codebase-map-skill`
+- `genesis-planning`
+- `genesis-architecture`
+- `genesis-codebase-map`
 
 **QA Engineer**:
-- `harness-engineering-skill`
-- `ui-ux-test-skill`
-- `api-contract-skill` (validation)
+- `genesis-harness-engineering`
+- `genesis-ui-ux-test`
+- `genesis-api-contract` (validation)
 
 ---
 
@@ -817,21 +779,21 @@ Codex doesn't hand off control to other models mid-project.
 ```
 genesis-harness (entry point)
 │
-├─ planning-skill (plan work)
-│  ├─ architecture-skill (design)
-│  └─ codebase-map-skill (analyze)
+├─ genesis-planning (plan work)
+│  ├─ genesis-architecture (design)
+│  └─ genesis-codebase-map (analyze)
 │
-├─ api-contract-skill (MUST RUN FIRST for APIs)
-│  └─ harness-engineering-skill (test)
+├─ genesis-api-contract (MUST RUN FIRST for APIs)
+│  └─ genesis-harness-engineering (test)
 │
-├─ design-spec-skill (UI work)
+├─ genesis-design-spec (UI work)
 │  └─ genesis-new-design / genesis-upgrade-design
 │
-├─ pipeline-orchestration-skill (AI workflows)
-│  └─ ai-provider-skill (models)
+├─ genesis-pipeline-orchestration (AI workflows)
+│  └─ genesis-ai-provider (models)
 │
-└─ release-skill (deployment)
-   └─ docs-skill (documentation)
+└─ genesis-release (deployment)
+   └─ genesis-docs-automation (documentation)
 ```
 
 ---
@@ -858,19 +820,19 @@ Use $genesis-new-design
 
 ### Plan Complex Work
 ```bash
-Use $planning-skill
+Use $genesis-planning
 Plan: [detailed description of work]
 ```
 
 ### Create API Contract
 ```bash
-Use $api-contract-skill
+Use $genesis-api-contract
 New endpoint: [method] /path/to/resource
 ```
 
 ### Orchestrate AI Pipeline
 ```bash
-Use $pipeline-orchestration-skill
+Use $genesis-pipeline-orchestration
 Pipeline: [describe the workflow]
 ```
 
@@ -900,11 +862,11 @@ skill-name/
 **For best results, follow this order:**
 
 1. **Always start with** `genesis-harness /init` or `/plan`
-2. **For APIs** use `api-contract-skill` BEFORE implementation
+2. **For APIs** use `genesis-api-contract` BEFORE implementation
 3. **For design** use `genesis-new-design` or `genesis-upgrade-design`
-4. **For complex work** use `planning-skill` → `architecture-skill`
-5. **For testing** use `harness-engineering-skill` throughout
-6. **Before release** use `release-skill` → `docs-skill`
+4. **For complex work** use `genesis-planning` → `genesis-architecture`
+5. **For testing** use `genesis-harness-engineering` throughout
+6. **Before release** use `genesis-release` → `genesis-docs-automation`
 
 ---
 

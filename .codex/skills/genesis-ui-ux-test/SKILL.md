@@ -1,5 +1,5 @@
 ---
-name: ui-ux-test-skill
+name: genesis-ui-ux-test
 description: Create UI smoke, e2e, interaction, validation, API synchronization, and visual regression tests before frontend changes. Use for screens, flows, forms, dashboards, and UI regressions.
 ---
 

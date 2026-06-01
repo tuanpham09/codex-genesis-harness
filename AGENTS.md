@@ -29,19 +29,24 @@ Primary skills live under `.codex/skills/`:
 - `genesis-harness`
 - `genesis-new-design`
 - `genesis-upgrade-design`
-- `architecture-skill`
-- `planning-skill`
-- `genesis-mvp-planning`
-- `codebase-map-skill`
-- `design-spec-skill`
-- `api-contract-skill`
-- `ui-ux-test-skill`
-- `harness-engineering-skill`
-- `ai-provider-skill`
-- `pipeline-orchestration-skill`
-- `research-skill`
-- `docs-skill`
-- `release-skill`
+- `genesis-architecture`
+- `genesis-planning`
+- `genesis-codebase-map`
+- `genesis-design-spec`
+- `genesis-api-contract`
+- `genesis-ui-ux-test`
+- `genesis-harness-engineering`
+- `genesis-ai-provider`
+- `genesis-pipeline-orchestration`
+- `genesis-api-sync`
+- `genesis-debug-guide`
+- `genesis-docs-automation`
+- `genesis-spec-propagation`
+- `genesis-performance-profiling`
+- `genesis-observability-automation`
+- `genesis-research-first`
+- `genesis-release`
+- `spec-impact-engine`
 
 Each skill must keep `SKILL.md`, `templates/`, `examples/`, and `checklists/`.
 

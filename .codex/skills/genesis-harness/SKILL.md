@@ -19,7 +19,7 @@ Use for project initialization, planning, feature work, bug fixes, audits, revie
 Do not use for simple read-only answers that do not require repository workflow or durable artifacts.
 
 ## Inputs required
-Read `.codebase/state.json` (MANDATORY on boot), `.codebase/CURRENT_STATE.md`, `.codebase/MODULE_INDEX.md`, and `.codebase/TEST_MATRIX.md` when present, then inspect only relevant files.
+Run `genesis-harness status` and `genesis-harness docs` (or `genesis-harness prime`) IMMEDIATELY on boot to retrieve a high-fidelity, token-minimized FSM state, active roadmap checklist, memory beads, and API contract catalog. Do NOT manually run search commands or read entire planning folders to discover the repository state. Only inspect specific relevant code files.
 
 ## Outputs required
 Plan or implementation artifact, tests, fixtures, verification evidence, docs sync, and codebase memory updates.
@@ -37,7 +37,7 @@ Update API, agent, event, or UI contracts when public behavior changes.
 Update `.codebase` memory after meaningful changes.
 
 ## Token saving rules
-Read summaries before source files, maps before modules, and avoid loading the entire repository.
+Always prioritize running standard CLI queries (`genesis-harness status`, `docs`, `recall`, and `prime`) to pull structured data rather than traversing directories manually. Read summaries before source files, maps before modules, and avoid loading the entire repository.
 
 ## Acceptance criteria
 Work is complete only when tests pass, contracts and docs are current, and verification evidence is reported.
@@ -170,6 +170,7 @@ Bundled references live under `references/`. Load them only when needed:
 - `references/planning-schema.md`: detailed `.planning/` file meanings and required subtrees.
 - `references/research-rubric.md`: local/external evidence format for research.
 - `references/quality-rubric.md`: scoring rubric for `QUALITY_SCORE.md`.
+- `references/state-machine.md`: FSM state definitions, transitions, and verification gates.
 
 Bundled scripts live under `scripts/`. Prefer copying or adapting these into `.planning/scripts/` or project scripts during `/init`:
 

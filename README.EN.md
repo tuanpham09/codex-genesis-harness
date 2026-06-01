@@ -133,9 +133,9 @@ Genesis Codex Harness introduces five groundbreaking architectural subsystems to
 
 ---
 
-## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.6)
+## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.7)
 
-Genesis v0.1.6 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
+Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
 
 1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
 2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
@@ -599,7 +599,7 @@ Genesis:
 
 ---
 
-## 📚 25 Skills (All Available)
+## 📚 21 Skills (All Available)
 
 Each skill follows the standard naming convention in `.codex/skills/`:
 
@@ -611,17 +611,13 @@ Each skill follows the standard naming convention in `.codex/skills/`:
 | **genesis-api-sync** | Automate bi-directional contract & codebase synchronization | When endpoints are updated |
 | **genesis-spec-propagation** | Automatically cascade design specification updates downstream | When specs change |
 | **genesis-docs-automation** | Automatically synchronize system technical docs | Triggers after tests pass |
-| **ui-ux-test-skill** | Design and validate UI user journeys and visual test specs | Before frontend implementation |
+| **genesis-ui-ux-test** | Design and validate UI user journeys and visual test specs | Before frontend implementation |
 | **genesis-debug-guide** | Systematic, evidence-based debugging and troubleshooting | On compile errors or test failures |
 | **genesis-pipeline-orchestration** | Orchestrate multi-phase software development lifecycle | Complex multi-phase projects |
 | **genesis-architecture** | High-level system design and architecture decisions (ADRs) | Major design changes |
 | **genesis-planning** | Breakdown complex business requirements into micro-plans | Preparing large features |
-| **genesis-mvp-planning** | Automate the setup of a 5-Phase MVP Roadmap post-initialization | Runs right after initialization |
 | **genesis-codebase-map** | Build comprehensive dependency graphs and architecture maps | Navigating large codebases |
-| **genesis-docs** | Generate exhaustive technical engineering summaries | End of phase / release |
-| **genesis-research** | Search official docs, packages, and code patterns | Finding best practices |
-| **genesis-release** | Manage semantic versioning and Git release tags | Preparing releases |
-| **genesis-release-orchestration** | Generate release checklists, rollback plans, and runbooks | Before production deployment |
+| **genesis-release** | Manage semantic versioning, Git tags, runbooks, and rollback plans | Preparing releases & deployments |
 | **genesis-performance-profiling** | Measure system latency and execute runtime optimization | Before performance tuning |
 | **genesis-observability-automation** | Log autonomous decisions, ADR history, and tool outputs | Maintaining execution trace |
 | **genesis-ai-provider** | Monitor, budget, and optimize LLM token consumption | Safeguarding API token limits |
@@ -765,7 +761,7 @@ Thank you so much for supporting the development of this project! ❤️
 - ✅ **Skills**: 25 fully implemented & verified (added 5-Phase MVP Roadmap planner, advanced self-healing and compaction engines)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.6)
+- ✅ **Production Ready**: Yes (v0.1.7)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -777,7 +773,7 @@ Thank you so much for supporting the development of this project! ❤️
 
 MIT License - See [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Build production software with Codex | v0.1.6 | June 2026
+**Genesis Codex Harness** - Build production software with Codex | v0.1.7 | June 2026
 
 ---
 

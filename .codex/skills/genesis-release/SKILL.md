@@ -44,3 +44,26 @@ Publishing cache files, missing executable scripts, and omitting npm 2FA/token r
 ## Recovery workflow
 If publish fails, capture error, update known problems, do not change version until root cause is fixed.
 
+---
+
+## 🚀 Automated Release & Deployment Orchestration
+
+This skill incorporates the **Release & Deployment Orchestration Standard** to manage production-ready releases and rollbacks using the provided templates and playbooks:
+
+1. **Release Checklists** (`checklists/pre-release-validation.md`, `checklists/post-deployment-verification.md`)
+   - Mandatory gates before staging/production merges.
+   - Comprehensive post-deployment validations (health checks, API connectivity).
+2. **Release Playbooks** (`playbooks/semantic-versioning-automation.md`, `playbooks/canary-deployment-orchestration.md`)
+   - Executable guidelines for version bump calculations (v1.0.0 → v1.1.0) and git tags.
+   - Closed-loop canary deployments (5% to 100% routing steps, metrics checks, instant triggers).
+3. **Observability Tracking** (`observability/release-tracking.md`)
+   - Structured release audits, recording versions, commit hashes, pipelines results, and rollout windows.
+4. **Release Templates** (`templates/deployment-strategy-template.md`, `templates/release-runbook-template.md`)
+   - Runbooks for critical steps and standardized strategy sheets.
+
+### Related Release Assets
+* **Checklists**: `checklists/checklist.md`, `checklists/pre-release-validation.md`, `checklists/post-deployment-verification.md`
+* **Playbooks**: `playbooks/semantic-versioning-automation.md`, `playbooks/canary-deployment-orchestration.md`
+* **Observability**: `observability/release-tracking.md`
+* **Templates**: `templates/release-checklist-template.md`, `templates/deployment-strategy-template.md`, `templates/release-runbook-template.md`
+

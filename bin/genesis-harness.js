@@ -12,25 +12,21 @@ const skillNames = [
   "genesis-upgrade-design",
   "genesis-architecture",
   "genesis-planning",
-  "genesis-mvp-planning",
   "genesis-codebase-map",
   "genesis-design-spec",
   "genesis-api-contract",
-  "ui-ux-test-skill",
+  "genesis-ui-ux-test",
   "genesis-harness-engineering",
   "genesis-ai-provider",
   "genesis-pipeline-orchestration",
-  "genesis-research",
-  "genesis-docs",
-  "genesis-release",
   "genesis-api-sync",
   "genesis-debug-guide",
   "genesis-docs-automation",
   "genesis-spec-propagation",
-  "genesis-release-orchestration",
   "genesis-performance-profiling",
   "genesis-observability-automation",
   "genesis-research-first",
+  "genesis-release",
   "spec-impact-engine"
 ];
 const legacySkillNames = ["project-genesis-harness"];
@@ -49,6 +45,13 @@ Usage:
   genesis-harness verify [--target agents|legacy|both]
   genesis-harness uninstall [--target agents|legacy|both]
   genesis-harness path
+  genesis-harness status                 Show implementation status & skills inventory
+  genesis-harness docs                   Show API contracts & documentation sync report
+  genesis-harness remember [cat] "<msg>" Remember a persistent project fact/insight (Bead)
+  genesis-harness recall [query]         Recall and search remembered project facts
+  genesis-harness forget <id>            Forget/delete a fact by its unique 6-char ID
+  genesis-harness prime                  Generate the token-minimized Agent Priming Prompt
+  genesis-harness view-mockup [slug]      Interactive console UI to search & view mockups
 
 Environment:
   CODEX_HOME=/custom/.codex  Override Codex home
@@ -185,6 +188,582 @@ function timestamp() {
   ].join("");
 }
 
+function showStatus() {
+  console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+  console.log("\x1b[1m\x1b[36m                     GENESIS HARNESS - STATUS REPORT                  \x1b[0m");
+  console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+
+  // 1. Current State
+  const currentStateFile = path.join(packageRoot, ".codebase", "CURRENT_STATE.md");
+  if (fs.existsSync(currentStateFile)) {
+    const content = fs.readFileSync(currentStateFile, "utf8");
+    console.log("\n\x1b[1m\x1b[32m[+] Repository State (.codebase/CURRENT_STATE.md):\x1b[0m");
+    const lines = content.split("\n");
+    for (const line of lines) {
+      if (line.startsWith("# ") || line.startsWith("## ") || line.startsWith("- ")) {
+        console.log("  " + line.trim());
+      } else if (line.trim()) {
+        console.log("    " + line.trim());
+      }
+    }
+  } else {
+    console.log("\n\x1b[1m\x1b[31m[-] Repository State:\x1b[0m .codebase/CURRENT_STATE.md not found.");
+  }
+
+  // 2. Active Planning & Task Tracking
+  const stateFile = path.join(packageRoot, ".planning", "STATE.md");
+  const roadmapFile = path.join(packageRoot, ".planning", "ROADMAP.md");
+  if (fs.existsSync(stateFile) || fs.existsSync(roadmapFile)) {
+    console.log("\n\x1b[1m\x1b[32m[+] FSM Active Planning & Task Tracking (.planning/):\x1b[0m");
+    if (fs.existsSync(stateFile)) {
+      console.log("  \x1b[1m- Current Execution State (.planning/STATE.md):\x1b[0m");
+      const content = fs.readFileSync(stateFile, "utf8");
+      const lines = content.split("\n");
+      for (const line of lines) {
+        if (line.includes("Current project state:") || line.includes("Current phase:") || line.includes("Current feature or bug:") || line.includes("Next task:") || line.includes("Latest verification result:")) {
+          console.log(`    ${line.replace("#", "").trim()}`);
+        }
+      }
+    }
+    if (fs.existsSync(roadmapFile)) {
+      console.log("\n  \x1b[1m- 5-Phase Roadmap Status (.planning/ROADMAP.md):\x1b[0m");
+      const content = fs.readFileSync(roadmapFile, "utf8");
+      const lines = content.split("\n");
+      for (const line of lines) {
+        if (line.match(/^-\s*\[[ x~!]\]/)) {
+          console.log(`    ${line.trim()}`);
+        }
+      }
+    }
+  } else {
+    console.log("\n\x1b[1m\x1b[33m[-] FSM Active Planning:\x1b[0m No active .planning/ session found. Run `/genesis-init` in Codex to initialize.");
+  }
+
+  // 3. Skills Inventory
+  console.log("\n\x1b[1m\x1b[32m[+] Skills Inventory Check (Exactly 21 core skills):\x1b[0m");
+  let found = 0;
+  let mismatched = 0;
+  for (const skillName of skillNames) {
+    const skillDir = path.join(sourceRoot, skillName);
+    const skillFile = path.join(skillDir, "SKILL.md");
+    if (fs.existsSync(skillFile)) {
+      found++;
+      const content = fs.readFileSync(skillFile, "utf8");
+      const nameMatch = content.match(/^name:\s*(.+)$/m);
+      const name = nameMatch ? nameMatch[1].trim() : "";
+      if (name !== skillName) {
+        mismatched++;
+        console.log(`  \x1b[31m[-] Mismatch:\x1b[0m folder '${skillName}' has frontmatter name '${name}'`);
+      }
+    } else {
+      console.log(`  \x1b[31m[-] Missing:\x1b[0m ${skillName} (SKILL.md not found)`);
+    }
+  }
+
+  if (found === skillNames.length && mismatched === 0) {
+    console.log(`  \x1b[32m✓ Success:\x1b[0m All ${skillNames.length} skill folders perfectly standard and synchronized!`);
+  } else {
+    console.log(`  \x1b[31m⚠️ Alert:\x1b[0m Found ${found}/${skillNames.length} skills. Mismatches: ${mismatched}.`);
+  }
+
+  // 4. Verification Test Run Status
+  console.log("\n\x1b[1m\x1b[32m[+] Quick Pipeline Commands:\x1b[0m");
+  console.log("  - Run structural checks:   \x1b[33m./scripts/verify.sh\x1b[0m");
+  console.log("  - Run regression tests:    \x1b[33m./scripts/run-evals.sh\x1b[0m");
+  console.log("  - Run package checks:      \x1b[33mnpm run pack:check\x1b[0m");
+
+  console.log("\n\x1b[1m\x1b[36m======================================================================\x1b[0m\n");
+}
+
+function showDocsStatus() {
+  console.log("\x1b[1m\x1b[35m======================================================================\x1b[0m");
+  console.log("\x1b[1m\x1b[35m                 GENESIS HARNESS - DOCUMENTATION REPORT               \x1b[0m");
+  console.log("\x1b[1m\x1b[35m======================================================================\x1b[0m");
+
+  // 1. Architecture Summary
+  const archFile = path.join(packageRoot, ".codebase", "ARCHITECTURE.md");
+  if (fs.existsSync(archFile)) {
+    console.log("\n\x1b[1m\x1b[32m[+] System Architecture (.codebase/ARCHITECTURE.md):\x1b[0m");
+    const content = fs.readFileSync(archFile, "utf8");
+    console.log("  " + content.trim().split("\n").filter(l => l.trim() && !l.startsWith("#")).join("\n  "));
+  }
+
+  // 2. API Contracts & Specs
+  console.log("\n\x1b[1m\x1b[32m[+] API Contracts & Specs (contracts/api/):\x1b[0m");
+  const apiDir = path.join(packageRoot, "contracts", "api");
+  if (fs.existsSync(apiDir)) {
+    const endpoints = fs.readdirSync(apiDir).filter(f => fs.statSync(path.join(apiDir, f)).isDirectory());
+    if (endpoints.length > 0) {
+      for (const endpoint of endpoints) {
+        console.log(`  - \x1b[1m${endpoint}\x1b[0m`);
+        const files = ["request.json", "response.json", "schema.json", "example.json", "error.json"];
+        const found = [];
+        for (const file of files) {
+          if (fs.existsSync(path.join(apiDir, endpoint, file))) {
+            found.push(file.replace(".json", ""));
+          }
+        }
+        console.log(`    Files: \x1b[33m${found.join(", ")}\x1b[0m`);
+        
+        // Print request structure preview if request.json exists
+        const reqPath = path.join(apiDir, endpoint, "request.json");
+        if (fs.existsSync(reqPath)) {
+          try {
+            const req = JSON.parse(fs.readFileSync(reqPath, "utf8"));
+            console.log(`    Request: \x1b[90m${JSON.stringify(req).slice(0, 80)}...\x1b[0m`);
+          } catch(e) {}
+        }
+      }
+    } else {
+      console.log("  No API endpoint contracts defined under contracts/api/.");
+    }
+  } else {
+    console.log("  contracts/api/ directory not found.");
+  }
+
+  // 3. Documentation Density
+  console.log("\n\x1b[1m\x1b[32m[+] Documentation Density Stats:\x1b[0m");
+  const countMd = (dir) => {
+    let count = 0;
+    if (!fs.existsSync(dir)) return 0;
+    const walk = (d) => {
+      for (const f of fs.readdirSync(d)) {
+        const full = path.join(d, f);
+        if (fs.statSync(full).isDirectory()) {
+          walk(full);
+        } else if (f.endsWith(".md")) {
+          count++;
+        }
+      }
+    };
+    walk(dir);
+    return count;
+  };
+
+  const codebaseMd = countMd(path.join(packageRoot, ".codebase"));
+  const skillsMd = countMd(path.join(packageRoot, ".codex", "skills"));
+  console.log(`  - Memory documents (.codebase/):   \x1b[36m${codebaseMd} Markdown files\x1b[0m`);
+  console.log(`  - Skill playbooks (.codex/skills/): \x1b[36m${skillsMd} Markdown files\x1b[0m`);
+
+  // 4. Git Documentation Sync Check
+  console.log("\n\x1b[1m\x1b[32m[+] Git Documentation Sync Status:\x1b[0m");
+  try {
+    const diff = spawnSync("git", ["diff", "--name-only", "HEAD"], { encoding: "utf8" });
+    const changed = diff.stdout ? diff.stdout.trim().split("\n").filter(Boolean) : [];
+    if (changed.length > 0) {
+      const codeChanged = changed.filter(f => !f.match(/^(\.planning\/|docs\/|README|AGENTS\.md)/));
+      const docsChanged = changed.filter(f => f.match(/^(\.planning\/|docs\/|README|AGENTS\.md)/));
+      if (codeChanged.length > 0 && docsChanged.length === 0) {
+        console.log("  \x1b[31m⚠️ Warning:\x1b[0m Code files changed but no documentation/planning files updated.");
+        console.log(`    Changed code files: \x1b[90m${codeChanged.slice(0, 3).join(", ")}${codeChanged.length > 3 ? "..." : ""}\x1b[0m`);
+      } else {
+        console.log("  \x1b[32m✓ Synchronized:\x1b[0m Code and documentation changes are perfectly synchronized!");
+      }
+    } else {
+      console.log("  \x1b[32m✓ Clean:\x1b[0m No uncommitted changes. Documentation is 100% in sync.");
+    }
+  } catch(e) {
+    console.log("  Git status check unavailable.");
+  }
+
+  console.log("\n\x1b[1m\x1b[35m======================================================================\x1b[0m\n");
+}
+
+const beadsPath = path.join(packageRoot, ".codebase", "beads.json");
+
+function getGitCommit() {
+  try {
+    const git = spawnSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" });
+    if (git.status === 0 && git.stdout) {
+      return git.stdout.trim();
+    }
+  } catch (e) {}
+  return "no-git";
+}
+
+function readBeads() {
+  if (!fs.existsSync(beadsPath)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(beadsPath, "utf8")) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function writeBeads(beads) {
+  const codebaseDir = path.dirname(beadsPath);
+  if (!fs.existsSync(codebaseDir)) {
+    fs.mkdirSync(codebaseDir, { recursive: true });
+  }
+  fs.writeFileSync(beadsPath, JSON.stringify(beads, null, 2), "utf8");
+}
+
+function generateUniqueId(beads) {
+  const existing = new Set(beads.map(b => b.id));
+  while (true) {
+    const id = Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+    if (!existing.has(id)) return id;
+  }
+}
+
+function rememberFact(arg1, arg2) {
+  let category = "general";
+  let fact = "";
+
+  if (!arg1) {
+    console.error("\x1b[31mError: You must provide a fact/insight to remember.\x1b[0m");
+    console.log("Usage: genesis-harness remember [category] \"<fact>\"");
+    process.exit(1);
+  }
+
+  if (arg2) {
+    category = arg1.toLowerCase().trim();
+    fact = arg2.trim();
+  } else {
+    fact = arg1.trim();
+  }
+
+  const beads = readBeads();
+  const bead = {
+    id: generateUniqueId(beads),
+    category,
+    fact,
+    timestamp: new Date().toISOString(),
+    git_commit: getGitCommit()
+  };
+
+  beads.push(bead);
+  writeBeads(beads);
+
+  console.log(`\n\x1b[1m\x1b[32m[+] Remembered (Bead Added):\x1b[0m`);
+  console.log(`  \x1b[1mID:\x1b[0m         \x1b[33m[${bead.id}]\x1b[0m`);
+  console.log(`  \x1b[1mCategory:\x1b[0m   \x1b[36m${bead.category}\x1b[0m`);
+  console.log(`  \x1b[1mFact:\x1b[0m       ${bead.fact}`);
+  console.log(`  \x1b[1mGit Commit:\x1b[0m \x1b[90m${bead.git_commit}\x1b[0m\n`);
+}
+
+function recallFacts(query) {
+  const beads = readBeads();
+  if (beads.length === 0) {
+    console.log("\n\x1b[33m[-] No remembered facts found in database (.codebase/beads.json).\x1b[0m\n");
+    return;
+  }
+
+  let filtered = beads;
+  if (query) {
+    const q = query.toLowerCase().trim();
+    filtered = beads.filter(
+      b => b.category === q || b.fact.toLowerCase().includes(q) || b.id === q
+    );
+  }
+
+  console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+  console.log("\x1b[1m\x1b[36m                     GENESIS HARNESS - RECALLED MEMORIES              \x1b[0m");
+  console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+
+  if (filtered.length === 0) {
+    console.log(`\n  No memories found matching: \x1b[31m"${query}"\x1b[0m\n`);
+  } else {
+    console.log("");
+    for (const bead of filtered) {
+      console.log(`  • \x1b[1m\x1b[33m[${bead.id}]\x1b[0m [\x1b[36m${bead.category}\x1b[0m] ${bead.fact} \x1b[90m(${bead.git_commit})\x1b[0m`);
+    }
+    console.log("");
+  }
+  console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m\n");
+}
+
+function forgetFact(id) {
+  if (!id) {
+    console.error("\x1b[31mError: You must specify a 6-character unique ID to forget.\x1b[0m");
+    console.log("Usage: genesis-harness forget <id>");
+    process.exit(1);
+  }
+
+  const targetId = id.toLowerCase().trim();
+  const beads = readBeads();
+  const index = beads.findIndex(b => b.id === targetId);
+
+  if (index === -1) {
+    console.error(`\x1b[31mError: No remembered fact found with ID [${targetId}].\x1b[0m`);
+    process.exit(1);
+  }
+
+  const removed = beads.splice(index, 1)[0];
+  writeBeads(beads);
+
+  console.log(`\n\x1b[1m\x1b[32m[+] Forgotten (Bead Deleted):\x1b[0m`);
+  console.log(`  Successfully removed fact \x1b[33m[${removed.id}]\x1b[0m from category \x1b[36m"${removed.category}"\x1b[0m.\n`);
+}
+
+function primeContext() {
+  const out = [];
+  out.push("# 🤖 AGENT MEMORY PRIMING BOOTSTRAP");
+  out.push("");
+  out.push("This prompt initializes your active context and project memory to prevent task drift.");
+  out.push("");
+  out.push("---");
+  out.push("");
+
+  // 1. Coordinates
+  out.push("## 📍 1. Session Coordinates");
+  out.push(`- **Local Time**: ${new Date().toISOString()}`);
+  out.push(`- **Workspace Path**: \`${packageRoot}\``);
+  const gitCommit = getGitCommit();
+  out.push(`- **Git Commit**: \`${gitCommit}\``);
+  out.push("");
+
+  // 2. Active FSM State
+  out.push("## 🔄 2. Active Execution State");
+  const stateFile = path.join(packageRoot, ".planning", "STATE.md");
+  if (fs.existsSync(stateFile)) {
+    const content = fs.readFileSync(stateFile, "utf8");
+    const lines = content.split("\n");
+    for (const line of lines) {
+      if (line.includes("Current project state:") || line.includes("Current phase:") || line.includes("Current feature or bug:") || line.includes("Next task:")) {
+        out.push(`- ${line.replace("#", "").trim()}`);
+      }
+    }
+  } else {
+    // Fallback to .codebase/state.json
+    const stateJsonFile = path.join(packageRoot, ".codebase", "state.json");
+    if (fs.existsSync(stateJsonFile)) {
+      try {
+        const stateObj = JSON.parse(fs.readFileSync(stateJsonFile, "utf8"));
+        out.push(`- **Current project state**: \`${stateObj.current_state || "INIT"}\``);
+      } catch(e) {}
+    } else {
+      out.push("- *No active planning session is currently running.*");
+    }
+  }
+  out.push("");
+
+  // 3. Active Roadmap (Token-Optimized)
+  out.push("## 🗺️ 3. Active & Pending Roadmap Tasks");
+  const roadmapFile = path.join(packageRoot, ".planning", "ROADMAP.md");
+  if (fs.existsSync(roadmapFile)) {
+    const content = fs.readFileSync(roadmapFile, "utf8");
+    const lines = content.split("\n");
+    let taskCount = 0;
+    for (const line of lines) {
+      if (line.match(/^-\s*\[[ ~!]\]/)) {
+        out.push(`  ${line.trim()}`);
+        taskCount++;
+      }
+    }
+    if (taskCount === 0) {
+      out.push("  - *All roadmap tasks are currently marked completed or none are active.*");
+    }
+  } else {
+    out.push("- *Roadmap file (.planning/ROADMAP.md) not found.*");
+  }
+  out.push("");
+
+  // 4. Memory Beads / Persistent Insights
+  out.push("## 🧬 4. Memory Beads (Stored Core Insights)");
+  const beads = readBeads();
+  if (beads.length > 0) {
+    for (const bead of beads) {
+      out.push(`- **[${bead.id}]** [${bead.category}]: ${bead.fact} *(${bead.git_commit})*`);
+    }
+  } else {
+    out.push("- *No persistent facts or insights have been registered yet.*");
+  }
+  out.push("");
+
+  // 5. API Contracts Index
+  out.push("## 🔌 5. Active API Contracts Map");
+  const apiDir = path.join(packageRoot, "contracts", "api");
+  if (fs.existsSync(apiDir)) {
+    const endpoints = fs.readdirSync(apiDir).filter(f => fs.statSync(path.join(apiDir, f)).isDirectory());
+    if (endpoints.length > 0) {
+      for (const endpoint of endpoints) {
+        out.push(`- Endpoint: \`/api/${endpoint}\``);
+      }
+    } else {
+      out.push("- *No active API endpoints registered.*");
+    }
+  } else {
+    out.push("- *No contracts/api directory found.*");
+  }
+  out.push("");
+
+  // 6. Zero-Drift Playbook Rules
+  out.push("## 🛡️ 6. Zero-Drift Playbook Rules");
+  out.push("Always adhere strictly to these operational constraints:");
+  out.push("1. **Verify first**: Run `./scripts/verify.sh` to check FSM validation and structure.");
+  out.push("2. **Update memory**: Ensure `.codebase/CURRENT_STATE.md` is updated at the end of every turn.");
+  out.push("3. **Single source**: Avoid duplicating plans across multi-line markdown logs; use `genesis-harness remember` to store critical project coordinates.");
+  out.push("4. **TDD Pattern**: Create or update failing tests in `tests/` before making changes to public behaviors.");
+  out.push("");
+  out.push("---");
+  out.push("");
+
+  console.log(out.join("\n"));
+}
+
+function openFileNatively(filePath) {
+  if (process.platform === "win32") {
+    const cp = spawnSync("cmd.exe", ["/c", "start", "", filePath], { shell: true });
+    return cp.status === 0;
+  }
+  let cmd = "open";
+  if (process.platform === "linux") {
+    cmd = "xdg-open";
+  }
+  
+  const cp = spawnSync(cmd, [filePath]);
+  return cp.status === 0;
+}
+
+function discoverMockups(rootPath = packageRoot) {
+  const mockups = [];
+  const featuresDir = path.join(rootPath, ".planning", "features");
+  const bugsDir = path.join(rootPath, ".planning", "bugs");
+
+  const scanDir = (dir, type) => {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir);
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry);
+      if (fs.statSync(fullPath).isDirectory()) {
+        const files = fs.readdirSync(fullPath);
+        for (const file of files) {
+          const ext = path.extname(file).toLowerCase();
+          if ([".png", ".jpg", ".jpeg", ".webp"].includes(ext)) {
+            mockups.push({
+              id: `${type}-${entry}-${file}`,
+              title: `${type === "feature" ? "[Feature]" : "[Bug]"} ${entry}`,
+              folder: entry,
+              fileName: file,
+              fullPath: path.join(fullPath, file)
+            });
+          }
+        }
+      }
+    }
+  };
+
+  scanDir(featuresDir, "feature");
+  scanDir(bugsDir, "bug");
+  return mockups;
+}
+
+function viewMockupsInteractive(arg) {
+  if (arg) {
+    if (fs.existsSync(arg) && fs.statSync(arg).isFile()) {
+      console.log(`\n\x1b[1m\x1b[32m[+] Opening direct file:\x1b[0m ${arg}`);
+      openFileNatively(arg);
+      return;
+    }
+
+    const mockups = discoverMockups();
+    const found = mockups.find(m => m.folder === arg || m.id === arg);
+    if (found) {
+      console.log(`\n\x1b[1m\x1b[32m[+] Opening mockup for ${found.title}:\x1b[0m ${found.fileName}`);
+      openFileNatively(found.fullPath);
+      return;
+    }
+
+    console.error(`\x1b[31mError: No mockup found matching direct path or slug "${arg}".\x1b[0m`);
+    process.exit(1);
+  }
+
+  const mockups = discoverMockups();
+  if (mockups.length === 0) {
+    console.log("\n\x1b[33m[-] No mockup images (.png, .jpg, .webp) found under .planning/features/ or .planning/bugs/.\x1b[0m\n");
+    return;
+  }
+
+  let selectedIndex = 0;
+  let currentView = "LIST"; // "LIST" or "DETAIL"
+
+  const renderMenu = () => {
+    console.clear();
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+    console.log("\x1b[1m\x1b[36m                GENESIS HARNESS - MOCKUP GALLERY VIEWER               \x1b[0m");
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m\n");
+
+    if (currentView === "LIST") {
+      console.log("  \x1b[1mUse Up/Down Arrow to navigate, Right Arrow (or Enter) to view.\x1b[0m");
+      console.log("  \x1b[90mPress Esc or Ctrl+C to exit.\x1b[0m\n");
+      console.log("  \x1b[1mDISCOVERED SCREENS / MOCKUPS:\x1b[0m");
+      console.log("  ------------------------------------------------------------------");
+
+      mockups.forEach((mockup, idx) => {
+        if (idx === selectedIndex) {
+          console.log(`  \x1b[1m\x1b[36m➔  ${mockup.title} (${mockup.fileName})\x1b[0m`);
+        } else {
+          console.log(`     \x1b[90m${mockup.title} (${mockup.fileName})\x1b[0m`);
+        }
+      });
+      console.log("  ------------------------------------------------------------------\n");
+    } else if (currentView === "DETAIL") {
+      const selected = mockups[selectedIndex];
+      console.log("  \x1b[1m\x1b[32m[+] LAUNCHED SYSTEM VIEW FOR:\x1b[0m \x1b[1m" + selected.title + "\x1b[0m\n");
+      console.log(`  - \x1b[1mMockup File:\x1b[0m  ${selected.fileName}`);
+      console.log(`  - \x1b[1mFolder Path:\x1b[0m  ${path.dirname(selected.fullPath)}`);
+      
+      let sizeText = "Unknown";
+      try {
+        const stats = fs.statSync(selected.fullPath);
+        sizeText = `${(stats.size / 1024).toFixed(1)} KB`;
+      } catch (e) {}
+      console.log(`  - \x1b[1mFile Size:\x1b[0m    ${sizeText}`);
+      console.log("");
+      console.log("  ==================================================================");
+      console.log("  \x1b[36m[OS SYSTEM PREVIEW LAUNCHED]\x1b[0m");
+      console.log("  The mockup has been opened in your system's native image viewer.");
+      console.log("  ==================================================================\n");
+      console.log("  \x1b[1m\x1b[33m← Press Left Arrow to go BACK to list.\x1b[0m");
+      console.log("  \x1b[90mPress Esc or Ctrl+C to exit.\x1b[0m\n");
+    }
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+  };
+
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+
+  const cleanExit = () => {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+    console.clear();
+    console.log("\n\x1b[32m[+] Exited Mockup Gallery Viewer.\x1b[0m\n");
+    process.exit(0);
+  };
+
+  renderMenu();
+
+  process.stdin.on("data", (key) => {
+    if (key === "\u0003" || key === "\u001b") {
+      cleanExit();
+    }
+
+    if (currentView === "LIST") {
+      if (key === "\u001b[A") {
+        selectedIndex = (selectedIndex - 1 + mockups.length) % mockups.length;
+        renderMenu();
+      }
+      else if (key === "\u001b[B") {
+        selectedIndex = (selectedIndex + 1) % mockups.length;
+        renderMenu();
+      }
+      else if (key === "\u001b[C" || key === "\r") {
+        currentView = "DETAIL";
+        const selected = mockups[selectedIndex];
+        openFileNatively(selected.fullPath);
+        renderMenu();
+      }
+    } else if (currentView === "DETAIL") {
+      if (key === "\u001b[D") {
+        currentView = "LIST";
+        renderMenu();
+      }
+    }
+  });
+}
+
 const command = process.argv[2] || "help";
 const args = process.argv.slice(3);
 
@@ -210,6 +789,27 @@ switch (command) {
         console.log(path.join(root, skillName));
       }
     }
+    break;
+  case "status":
+    showStatus();
+    break;
+  case "docs":
+    showDocsStatus();
+    break;
+  case "remember":
+    rememberFact(args[0], args[1]);
+    break;
+  case "recall":
+    recallFacts(args[0]);
+    break;
+  case "forget":
+    forgetFact(args[0]);
+    break;
+  case "prime":
+    primeContext();
+    break;
+  case "view-mockup":
+    viewMockupsInteractive(args[0]);
     break;
   case "help":
   case "--help":

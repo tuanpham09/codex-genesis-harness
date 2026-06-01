@@ -132,9 +132,9 @@ Genesis Codex Harness giới thiệu 5 phân hệ kỹ thuật mang tính đột
 
 ---
 
-## 🚀 Nâng Cấp Kỹ Nghệ Harness Thế Hệ Mới (v0.1.6)
+## 🚀 Nâng Cấp Kỹ Nghệ Harness Thế Hệ Mới (v0.1.7)
 
-Phiên bản Genesis v0.1.6 giới thiệu năm công cụ cao cấp, đột phá trong thư mục `scripts/` nhằm áp đặt an toàn kiểu dữ liệu, tự động hóa test, thiết lập sự đồng nhất giữa sơ đồ trực quan và mã nguồn, chủ động kiểm soát token và khôi phục nhanh bài học sửa lỗi của Ralph Loop:
+Phiên bản Genesis v0.1.7 giới thiệu năm công cụ cao cấp, đột phá trong thư mục `scripts/` nhằm áp đặt an toàn kiểu dữ liệu, tự động hóa test, thiết lập sự đồng nhất giữa sơ đồ trực quan và mã nguồn, chủ động kiểm soát token và khôi phục nhanh bài học sửa lỗi của Ralph Loop:
 
 1. **Đồng bộ Sơ đồ Trực quan 2 Chiều (`scripts/spec_visual_sync.js`)**: Trình biên dịch hai chiều tự động đồng bộ hóa sơ đồ cơ sở dữ liệu ERD Mermaid (`database-erd.mmd`) sang các tệp JSON API contracts (`contracts/api/`) và ngược lại, bảo vệ tính nhất quán thiết kế tuyệt đối.
 2. **Trình Tự Động Sinh Test từ Hợp Đồng (`scripts/test_generator.js`)**: Tự động biên dịch và tạo cấu trúc các bộ kiểm thử tích hợp (Node.js/Jest) hoàn chỉnh tại `tests/integration/` trực tiếp từ các file response contract JSON, hỗ trợ lập tức kịch bản TDD "RED" skeleton.
@@ -599,7 +599,7 @@ Genesis:
 
 ---
 
-## 📚 25 Skills (Tất Cả)
+## 📚 21 Skills (Tất Cả)
 
 Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 
@@ -611,17 +611,13 @@ Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 | **genesis-api-sync** | Đồng bộ hóa API contract và codebase tự động | Khi cập nhật endpoint |
 | **genesis-spec-propagation** | Tự động lan tỏa thay đổi đặc tả xuống hạ nguồn | Khi spec thay đổi |
 | **genesis-docs-automation** | Tự động hóa đồng bộ tài liệu hệ thống | Tự động chạy sau khi test pass |
-| **ui-ux-test-skill** | Thiết kế và xác thực UI flows, kịch bản test giao diện | Trước khi triển khai giao diện |
+| **genesis-ui-ux-test** | Thiết kế và xác thực UI flows, kịch bản test giao diện | Trước khi triển khai giao diện |
 | **genesis-debug-guide** | Hướng dẫn chẩn đoán và khắc phục lỗi có hệ thống | Khi code lỗi hoặc test fail |
 | **genesis-pipeline-orchestration** | Điều phối pipeline phát triển nhiều giai đoạn | Quản lý đa giai đoạn |
 | **genesis-architecture** | Thiết kế hệ thống và ghi nhận quyết định kiến trúc (ADR) | Quyết định thiết kế lớn |
-| **genesis-planning** | Lập kế hoạch phân rã công việc khoa học | Chuẩn bị feature phức tạp |
-| **genesis-mvp-planning** | Tự động lập kế hoạch và phân rã Lộ trình 5-Phase MVP | Chạy ngay sau khi khởi tạo dự án |
+| **genesis-planning** | Lập kế hoạch phân rã công việc và Lộ trình 5-Phase MVP | Chuẩn bị feature phức tạp & thiết lập lộ trình |
 | **genesis-codebase-map** | Vẽ bản đồ kiến trúc codebase | Tìm hiểu codebase lớn |
-| **genesis-docs** | Tạo tài liệu kỹ thuật chi tiết | Kết thúc giai đoạn / release |
-| **genesis-research** | Nghiên cứu công nghệ, thư viện phù hợp | Tìm kiếm best practices |
-| **genesis-release** | Quản lý quy trình phát hành phiên bản | Version control + git tag |
-| **genesis-release-orchestration** | Tự động hóa lập kế hoạch và runbook phát hành | Chuẩn bị deploy hệ thống |
+| **genesis-release** | Quản lý phiên bản, runbooks, và kế hoạch khôi phục (rollback) | Chuẩn bị phát hành & triển khai |
 | **genesis-performance-profiling** | Đo lường hiệu suất và tối ưu hóa thời gian chạy | Trước khi tối ưu hiệu năng |
 | **genesis-observability-automation** | Tự động ghi chép quyết định (ADR) và log hành vi hệ thống | Ghi chép lịch sử vận hành |
 | **genesis-ai-provider** | Theo dõi và tối ưu hóa lượng token tiêu thụ | Giám sát chi phí API |
@@ -754,10 +750,10 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 
 - ✅ **Architecture**: 10/10 (research-first + auto-debug + auto-spec-propagation + auto-docs + validation gates)
 - ✅ **Codex-Only Enforcement**: 100%
-- ✅ **25 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung lộ trình 5-Phase MVP, tự chữa lành & nén context)
+- ✅ **21 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung lộ trình 5-Phase MVP, tự chữa lành & nén context)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.6)
+- ✅ **Production Ready**: Yes (v0.1.7)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -769,7 +765,7 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 
 MIT License - Xem [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.6 | Tháng 6, 2026
+**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.7 | Tháng 6, 2026
 
 ---
 

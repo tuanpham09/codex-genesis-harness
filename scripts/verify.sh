@@ -9,25 +9,21 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
-  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract
-  ui-ux-test-skill
+  genesis-ui-ux-test
   genesis-harness-engineering
   genesis-ai-provider
   genesis-pipeline-orchestration
-  genesis-research
-  genesis-docs
-  genesis-release
   genesis-api-sync
   genesis-debug-guide
   genesis-docs-automation
   genesis-spec-propagation
-  genesis-release-orchestration
   genesis-performance-profiling
   genesis-observability-automation
   genesis-research-first
+  genesis-release
   spec-impact-engine
 )
 
@@ -195,7 +191,7 @@ verify_harness_skill() {
   grep -q 'Definition Of Done' "$skill_dir/SKILL.md" || fail "missing Definition Of Done"
   grep -q 'Quality Rubric' "$skill_dir/SKILL.md" || fail "missing Quality Rubric"
 
-  for ref in workflows.md planning-schema.md research-rubric.md quality-rubric.md; do
+  for ref in workflows.md planning-schema.md research-rubric.md quality-rubric.md state-machine.md; do
     [ -f "$skill_dir/references/$ref" ] || fail "missing reference: $ref"
     grep -q "references/$ref" "$skill_dir/SKILL.md" || fail "SKILL.md does not mention reference: $ref"
   done
@@ -268,67 +264,11 @@ verify_one() {
     genesis-new-design|genesis-upgrade-design)
       verify_design_skill "$skill_dir" "$dir_name"
       ;;
-    genesis-architecture)
-      verify_skill_metadata "$skill_dir" "architecture-skill"
+    genesis-architecture|genesis-planning|genesis-codebase-map|genesis-design-spec|genesis-api-contract|genesis-ui-ux-test|genesis-harness-engineering|genesis-ai-provider|genesis-pipeline-orchestration|genesis-api-sync)
+      verify_skill_metadata "$skill_dir" "$dir_name"
       verify_skill_protocol "$skill_dir"
       ;;
-    genesis-planning)
-      verify_skill_metadata "$skill_dir" "planning-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-mvp-planning)
-      verify_skill_metadata "$skill_dir" "genesis-mvp-planning"
-      verify_minimal_skill "$skill_dir"
-      ;;
-    genesis-codebase-map)
-      verify_skill_metadata "$skill_dir" "codebase-map-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-design-spec)
-      verify_skill_metadata "$skill_dir" "design-spec-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-api-contract)
-      verify_skill_metadata "$skill_dir" "api-contract-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    ui-ux-test-skill)
-      verify_skill_metadata "$skill_dir" "ui-ux-test-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-harness-engineering)
-      verify_skill_metadata "$skill_dir" "harness-engineering-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-ai-provider)
-      verify_skill_metadata "$skill_dir" "ai-provider-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-pipeline-orchestration)
-      verify_skill_metadata "$skill_dir" "pipeline-orchestration-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-research)
-      verify_skill_metadata "$skill_dir" "research-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-docs)
-      verify_skill_metadata "$skill_dir" "docs-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-release)
-      verify_skill_metadata "$skill_dir" "release-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-api-sync)
-      verify_skill_metadata "$skill_dir" "api-sync-skill"
-      verify_skill_protocol "$skill_dir"
-      ;;
-    genesis-debug-guide)
-      verify_skill_metadata "$skill_dir" "debug-guide-skill"
-      verify_playbook_skill "$skill_dir"
-      ;;
-    genesis-docs-automation|genesis-spec-propagation|genesis-release-orchestration|genesis-performance-profiling|genesis-observability-automation)
+    genesis-debug-guide|genesis-docs-automation|genesis-spec-propagation|genesis-performance-profiling|genesis-observability-automation|genesis-release)
       verify_skill_metadata "$skill_dir" "$dir_name"
       verify_playbook_skill "$skill_dir"
       ;;

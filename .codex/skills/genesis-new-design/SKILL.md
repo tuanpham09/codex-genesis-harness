@@ -17,7 +17,7 @@ Use when building a new web page, app screen, dashboard, tool, landing page, or 
 Do not use for redesigning existing UI without first preserving behavior; use `genesis-upgrade-design` instead.
 
 ## Inputs required
-Product intent, target users, primary workflow, stack details, route or entry point, state list, and visual constraints.
+Product intent, target users, primary workflow, stack details, route or entry point, state list, visual constraints, and the generated visual contract image `mockup.png` (which MUST be loaded via the `view_file` tool to inspect layouts, color choices, and dimensions before coding).
 
 ## Outputs required
 Implemented UI, UI contract, fixtures, responsive states, visual verification, and docs or memory updates.
@@ -55,6 +55,7 @@ If visual output fails, capture screenshot evidence, update the fixture or contr
 
 2. Define the design intent from the request:
    - Identify audience, product category, primary task, density, tone, and constraints.
+   - Proactively inspect `mockup.png` using the `view_file` tool to absorb the visual direction, color system, and placement details.
    - Choose one clear visual direction and commit to it across typography, color, spacing, surfaces, iconography, and motion.
    - For tools, dashboards, and operational apps, prioritize scanning, repeated use, compact controls, and predictable navigation over decorative hero layouts.
 

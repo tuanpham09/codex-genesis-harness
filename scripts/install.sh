@@ -8,25 +8,21 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
-  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract
-  ui-ux-test-skill
+  genesis-ui-ux-test
   genesis-harness-engineering
   genesis-ai-provider
   genesis-pipeline-orchestration
-  genesis-research
-  genesis-docs
-  genesis-release
   genesis-api-sync
   genesis-debug-guide
   genesis-docs-automation
   genesis-spec-propagation
-  genesis-release-orchestration
   genesis-performance-profiling
   genesis-observability-automation
   genesis-research-first
+  genesis-release
   spec-impact-engine
 )
 source_root="$repo_root/.codex/skills"

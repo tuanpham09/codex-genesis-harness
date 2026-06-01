@@ -18,7 +18,7 @@ Do not use for backend-only changes with no UI effect.
 UI route, audience, state list, API dependencies, fixtures, and visual references if available.
 
 ## Outputs required
-UI contract, Playwright fixture, acceptance states, and visual regression expectations.
+UI contract, a generated visual mockup image representing the screen layout (saved as `mockup.png` in the active feature/bug directory), Playwright fixture, acceptance states, and visual regression expectations.
 
 ## Required tests
 Create load, interaction, validation, API sync, and visual regression tests where applicable.
@@ -36,7 +36,7 @@ Update `.codebase/UI_ROUTES.md` and frontend summary.
 Use state tables and route maps instead of long visual prose.
 
 ## Acceptance criteria
-The UI can be implemented and tested without guessing states or API behavior.
+The UI can be implemented and tested without guessing states or API behavior. A high-fidelity visual mockup `mockup.png` must be created using the `generate_image` tool and saved in the active task directory as the visual contract.
 
 ## Common mistakes
 Designing only the happy path, skipping empty/error states, and omitting API synchronization.

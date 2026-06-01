@@ -10,25 +10,21 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
-  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract
-  ui-ux-test-skill
+  genesis-ui-ux-test
   genesis-harness-engineering
   genesis-ai-provider
   genesis-pipeline-orchestration
-  genesis-research
-  genesis-docs
-  genesis-release
   genesis-api-sync
   genesis-debug-guide
   genesis-docs-automation
   genesis-spec-propagation
-  genesis-release-orchestration
   genesis-performance-profiling
   genesis-observability-automation
   genesis-research-first
+  genesis-release
   spec-impact-engine
 )
 
@@ -59,25 +55,7 @@ done
 for skill_name in "${skill_names[@]}"; do
   assert_file "$skill_root/$skill_name/SKILL.md"
   assert_file "$skill_root/$skill_name/agents/openai.yaml"
-  
-  expected_name="$skill_name"
-  case "$skill_name" in
-    genesis-architecture) expected_name="architecture-skill" ;;
-    genesis-planning) expected_name="planning-skill" ;;
-    genesis-codebase-map) expected_name="codebase-map-skill" ;;
-    genesis-design-spec) expected_name="design-spec-skill" ;;
-    genesis-api-contract) expected_name="api-contract-skill" ;;
-    genesis-harness-engineering) expected_name="harness-engineering-skill" ;;
-    genesis-ai-provider) expected_name="ai-provider-skill" ;;
-    genesis-pipeline-orchestration) expected_name="pipeline-orchestration-skill" ;;
-    genesis-research) expected_name="research-skill" ;;
-    genesis-docs) expected_name="docs-skill" ;;
-    genesis-release) expected_name="release-skill" ;;
-    genesis-api-sync) expected_name="api-sync-skill" ;;
-    genesis-debug-guide) expected_name="debug-guide-skill" ;;
-  esac
-
-  assert_contains "$skill_root/$skill_name/SKILL.md" "name: $expected_name"
+  assert_contains "$skill_root/$skill_name/SKILL.md" "name: $skill_name"
 done
 
 assert_contains "$repo_root/scripts/install.sh" '--target agents|legacy|both'
@@ -115,5 +93,22 @@ for skill_name in "${skill_names[@]}" project-genesis-harness; do
   [ ! -e "$tmp/agents/skills/$skill_name" ] || fail "agents uninstall target remains: $skill_name"
   [ ! -e "$tmp/codex/skills/$skill_name" ] || fail "legacy uninstall target remains: $skill_name"
 done
+
+assert_contains "$repo_root/bin/genesis-harness.js" "genesis-harness remember"
+assert_contains "$repo_root/bin/genesis-harness.js" "genesis-harness recall"
+assert_contains "$repo_root/bin/genesis-harness.js" "genesis-harness forget"
+assert_contains "$repo_root/bin/genesis-harness.js" "genesis-harness prime"
+assert_contains "$repo_root/bin/genesis-harness.js" "genesis-harness view-mockup"
+
+# Test Beads Memory Commands
+node "$repo_root/bin/genesis-harness.js" remember evalsmoke "Verify that evals can store facts." >/dev/null
+node "$repo_root/bin/genesis-harness.js" recall evalsmoke | grep -q "Verify that evals" || fail "recall failed to find test fact"
+node "$repo_root/bin/genesis-harness.js" prime | grep -q "Verify that evals" || fail "prime failed to include test fact"
+
+# Find the ID of the stored fact to forget it
+bead_id=$(node "$repo_root/bin/genesis-harness.js" recall evalsmoke | grep -o "\[[0-9a-f]\{6\}\]" | head -n 1 | tr -d '[]')
+node "$repo_root/bin/genesis-harness.js" forget "$bead_id" >/dev/null
+node "$repo_root/bin/genesis-harness.js" recall evalsmoke | grep -q "Verify that evals" && fail "forget failed to delete test fact" || true
+
 
 echo "evals passed"
