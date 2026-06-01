@@ -1,5 +1,5 @@
 ---
-name: api-contract-skill
+name: genesis-api-contract
 description: Create and verify API contracts before endpoint implementation. Use for API routes, service interfaces, validation rules, error shapes, snapshots, and endpoint tests.
 ---
 

@@ -7,6 +7,7 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
+  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract

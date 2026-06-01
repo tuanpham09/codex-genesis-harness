@@ -1,5 +1,5 @@
 ---
-name: codebase-map-skill
+name: genesis-codebase-map
 description: Maintain repository memory and compressed codebase maps for token-efficient Codex operation. Use when files move, modules change, contracts change, tests change, or repository summaries need updating.
 ---
 

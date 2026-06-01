@@ -9,6 +9,7 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
+  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract
@@ -274,6 +275,10 @@ verify_one() {
     genesis-planning)
       verify_skill_metadata "$skill_dir" "planning-skill"
       verify_skill_protocol "$skill_dir"
+      ;;
+    genesis-mvp-planning)
+      verify_skill_metadata "$skill_dir" "genesis-mvp-planning"
+      verify_minimal_skill "$skill_dir"
       ;;
     genesis-codebase-map)
       verify_skill_metadata "$skill_dir" "codebase-map-skill"

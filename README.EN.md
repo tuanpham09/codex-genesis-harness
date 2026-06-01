@@ -10,13 +10,14 @@
 
 ### Core Capabilities
 
-- ✅ **Test-first development** - Write tests before code (RED → GREEN → IMPROVE)
-- ✅ **Contract-first design** - Define APIs before implementation  
-- ✅ **Repository memory** - Persistent project knowledge across sessions (no re-explaining)
-- ✅ **Token efficiency** - 40-60% token savings through intelligent caching
-- ✅ **Multi-phase orchestration** - Automatic project structure & phase management
-- ✅ **Spec propagation** - Auto-update downstream phases when specs change
-- ✅ **Quality gates** - Automatic verification: 80%+ test coverage required
+- 🗺️ **Structured 5-Phase MVP Roadmap (`genesis-mvp-planning`)** - Guarantees a decision-complete path to production by organizing project delivery across 5 standard gates, ensuring core contracts/infrastructure are validated before feature coding.
+- 🛡️ **Zero-Drift Validation Gates (`validation_gates.sh`)** - Prevents documentation decay by running automated Git diff scans on phase transitions to flag when source code has modified API, DB schema, or test files without updating matching specifications in `.codebase/`.
+- 🛑 **The Death of Context Rot** - Automatically offloads massive terminal outputs (`offload-log.sh`) and dynamically compacts codebase state (`compact-context.sh`), saving 40-60% of prompt window capacity.
+- 🔥 **Autonomous Self-Healing (Ralph Loops)** - Catch compilation or test failures and execute closed-loop verify-fix loops (`run-verify-loop.sh`) up to 5 times autonomously, writing fixes and refactoring code until tests turn green.
+- ✅ **Test-First Development & Contract-First Design** - Strictly enforces writing schemas and failing integration tests (RED) before writing minimal GREEN implementation and refining (IMPROVE).
+- 🔄 **Cascading Spec Propagation** - Automatically propagates API contract and schema updates downstream across all affected phases, fixtures, and assertions using the `/propagate-spec` engine.
+- 🧠 **Empirical, Research-First Engineering** - Auto-researches local codebase patterns and official documentation before generating plans or executing tasks.
+
 
 **Perfect for**: 
 - Teams building enterprise software with Codex
@@ -71,24 +72,76 @@ When developing with a standard AI agent (such as Claude Code in basic mode, def
 
 ---
 
-## 🧬 Technological Breakthroughs: Context Preservation & Self-Healing (Evolutionary Upgrades)
+## 🧬 Technological Breakthroughs: The Core Harness Subsystems (Evolutionary Upgrades)
 
-Genesis Codex Harness introduces three groundbreaking architectural subsystems to ensure continuous, resilient execution in large-scale production codebases without context degradation:
+The active FSM runtime surrounds Codex with robust validation, self-healing, and memory safeguards. Below is the operational workflow of the Genesis Harness:
+
+```mermaid
+graph TD
+    User([User Request / Slash Command]) --> RF[1. Research-First Engine]
+    RF --> IP[Implementation Plan & Contracts]
+    IP --> TDD[2. Test-First TDD RED State]
+    TDD --> Codex{Codex Code-Gen}
+    Codex --> VL[3. Verify-Fix Loop / Ralph Loop]
+    VL -- Test Fails <= 5 times --> Correct[Auto-Refactor & Diagnose Logs]
+    Correct --> Codex
+    VL -- Test Passes / Green --> VG[4. Zero-Drift Validation Gate]
+    VG -- Git Diff Spec Warning --> Synced[5. Auto-Docs & State Compaction]
+    Synced --> Complete([COMPLETED State])
+    
+    subgraph Harness Runtime Shell (FSM-Driven)
+        RF
+        TDD
+        VL
+        Correct
+        VG
+        Synced
+    end
+    
+    subgraph Memory & Context Safeguards
+        Compaction[(Context Compaction)] <--> Synced
+        Offload[(Tool Log Offloader)] <--> VL
+    end
+```
+
+Genesis Codex Harness introduces five groundbreaking architectural subsystems to ensure continuous, resilient execution in large-scale production codebases without context degradation or documentation drift:
 
 ### 1. Context Compaction Engine (`compact-context.sh`)
-* **The Problem**: Long developer-AI conversations accumulate hundreds of thousands of redundant tokens, diluting the prompt window and degrading response accuracy.
-* **The Solution**: Triggered automatically when the context window reaches safe capacity. The engine distills core architectural decisions, API states, and task completion metrics into `.codebase/context/`, clears ephemeral discussion trash, and re-seeds a condensed state to disk.
-* **The Benefit**: Maintains prompt sharpness and maximum precision even after 100+ turns of continuous coding.
+* **The Problem**: Long developer-AI conversations accumulate hundreds of thousands of redundant tokens, diluting the prompt window, causing model amnesia, and raising API costs.
+* **The Solution**: Automatically active. The engine compacts core architectural decisions, API states, and task completion metrics into condensed files inside `.codebase/context/`, clears redundant chat records, and re-seeds the essential prompt state from disk.
+* **The Benefit**: Maintains prompt sharpness and maximum precision even after 100+ turns of continuous coding, yielding 40-60% token savings.
 
 ### 2. Tool Call Offloading (`offload-log.sh`)
-* **The Problem**: Running test suites, builds, or directory traversals often returns tens of thousands of lines of raw terminal output, instantly flooding the prompt window.
-* **The Solution**: Automatically redirects verbose, giant command outputs to local disk log files (`.system_generated/tasks/`), returning only a compact structural summary to the Agent (Exit code, Critical errors, Test counts). The Agent can lazy-load specific line segments when needed.
-* **The Benefit**: Eliminates the risk of prompt window exhaustion from test suites and compilation logs.
+* **The Problem**: Running test suites, builds, or directory traversals returns thousands of lines of raw terminal output, instantly flooding the prompt window and diluting focus.
+* **The Solution**: Intercepts massive command outputs and redirects them to local disk logs (`.system_generated/tasks/`), returning a clean structural status summary (exit code, test counts, key compile errors) to the model.
+* **The Benefit**: Eliminates the risk of prompt window exhaustion from long build or test execution cycles.
 
 ### 3. Ralph Loops / Self-Healing Verify-Fix Loop (`run-verify-loop.sh`)
-* **The Problem**: When a test fails or a build breaks, forcing the user to act as an intermediary to command a retry is slow and inefficient.
-* **The Solution**: Implements an autonomous, closed-loop self-healing mechanism. When a verification step fails, the loop automatically inspects the disk logs, refactors the source code, and re-executes tests up to 5 times until the test suite is completely green.
-* **The Benefit**: Autonomously resolves 90% of syntax errors, import mismatches, and validation errors without human intervention.
+* **The Problem**: When a test fails or a build breaks, forcing the developer to manually copy-paste terminal errors and instruct the AI to retry is slow and repetitive.
+* **The Solution**: Implements an autonomous, closed-loop self-healing mechanism. When a build/test verification fails, the loop automatically parses disk error logs, refactors source code, and re-runs the tests up to 5 times autonomously.
+* **The Benefit**: Resolves 90% of syntax errors, import mismatches, and contract alignment bugs without developer intervention.
+
+### 4. 5-Phase MVP Roadmap Planner (`genesis-mvp-planning`)
+* **The Problem**: Basic AI agents solve tasks ad-hoc, coding features without establishing foundational APIs, databases, or auth structures first, leading to major regression.
+* **The Solution**: Runs immediately post-initialization to structure delivery across 5 standard product gates (Foundation, Auth, Features, Integrations, Production-Ready), ensuring core infrastructure is robust and verified before building advanced features.
+* **The Benefit**: Enforces architectural discipline and prevents developers from building on shaky foundational code.
+
+### 5. Zero-Drift Validation Gates (`validation_gates.sh`)
+* **The Problem**: As codebases evolve rapidly, technical documentation (specs, contracts, database schemas) drifts and becomes obsolete because developers forget to update it.
+* **The Solution**: Integrated directly into state transition gates. It automatically scans Git changes and alerts the developer if source files are modified but matching design/spec documents under `.codebase/` remain unchanged.
+* **The Benefit**: Guarantees zero documentation decay, keeping system design maps perfectly in sync with source code.
+
+---
+
+## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.6)
+
+Genesis v0.1.6 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
+
+1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
+2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
+3. **AST Contract-Code Integrity Gate (`scripts/contract_integrity_gate.js`)**: Static analysis checker that programmatically validates implementation code properties against API contract JSON schemas at FSM transition boundaries, locking state transitions if data type mismatches or missing properties are detected.
+4. **Pre-emptive Prompt Sentinel (`scripts/prompt_sentinel.js`)**: Real-time token budget monitor. Calculates token weights before calling LLM, pre-emptively halting runaway commands, and executing auto-compaction and log pruning when capacity thresholds (e.g. 20k tokens) are crossed.
+5. **Self-Healing Lessons-Learned Recall (`scripts/healing_telemetry.js`)**: Telemetry system that records compiler/test failure signatures and applied corrective code edits in `.codebase/failures/lessons_learned.md`. The self-healing loop recalls these recorded fixes on identical error signatures, bypassing iterations to achieve immediate **1-turn recovery**.
 
 ---
 
@@ -546,7 +599,7 @@ Genesis:
 
 ---
 
-## 📚 24 Skills (All Available)
+## 📚 25 Skills (All Available)
 
 Each skill follows the standard naming convention in `.codex/skills/`:
 
@@ -563,6 +616,7 @@ Each skill follows the standard naming convention in `.codex/skills/`:
 | **genesis-pipeline-orchestration** | Orchestrate multi-phase software development lifecycle | Complex multi-phase projects |
 | **genesis-architecture** | High-level system design and architecture decisions (ADRs) | Major design changes |
 | **genesis-planning** | Breakdown complex business requirements into micro-plans | Preparing large features |
+| **genesis-mvp-planning** | Automate the setup of a 5-Phase MVP Roadmap post-initialization | Runs right after initialization |
 | **genesis-codebase-map** | Build comprehensive dependency graphs and architecture maps | Navigating large codebases |
 | **genesis-docs** | Generate exhaustive technical engineering summaries | End of phase / release |
 | **genesis-research** | Search official docs, packages, and code patterns | Finding best practices |
@@ -706,12 +760,12 @@ Thank you so much for supporting the development of this project! ❤️
 
 ## 📊 Project Status
 
-- ✅ **Architecture**: 10/10 (research-first + auto-debug + auto-spec-propagation + auto-docs)
+- ✅ **Architecture**: 10/10 (research-first + auto-debug + auto-spec-propagation + auto-docs + validation gates)
 - ✅ **Codex-Only Enforcement**: 100%
-- ✅ **Skills**: 24 fully implemented & verified (added advanced self-healing and compaction engines)
+- ✅ **Skills**: 25 fully implemented & verified (added 5-Phase MVP Roadmap planner, advanced self-healing and compaction engines)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v2.4)
+- ✅ **Production Ready**: Yes (v0.1.6)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -723,7 +777,7 @@ Thank you so much for supporting the development of this project! ❤️
 
 MIT License - See [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Build production software with Codex | v2.4 | May 2026
+**Genesis Codex Harness** - Build production software with Codex | v0.1.6 | June 2026
 
 ---
 

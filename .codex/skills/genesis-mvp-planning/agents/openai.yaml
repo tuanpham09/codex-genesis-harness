@@ -1,0 +1,6 @@
+interface:
+  display_name: "Genesis MVP Planning"
+  short_description: "— Xây dựng lộ trình 5 Phase phát triển sản phẩm MVP"
+  default_prompt: "Use $genesis-mvp-planning to map out the 5 essential phases of a production-ready MVP."
+policy:
+  allow_implicit_invocation: true

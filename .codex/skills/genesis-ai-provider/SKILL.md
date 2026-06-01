@@ -1,5 +1,5 @@
 ---
-name: ai-provider-skill
+name: genesis-ai-provider
 description: Define reliable AI provider harnesses with mock providers, schemas, retries, invalid JSON recovery, persistence tests, and provider contracts. Use for LLM, image, voice, subtitle, render, and pipeline provider work.
 ---
 

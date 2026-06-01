@@ -1,5 +1,5 @@
 ---
-name: docs-skill
+name: genesis-docs
 description: Keep Codex harness docs synchronized with skills, contracts, tests, memory, and release behavior. Use after any workflow, public interface, install, verification, or package behavior change.
 ---
 

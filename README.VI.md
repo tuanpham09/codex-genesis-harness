@@ -10,13 +10,13 @@
 
 ### Các Khả Năng Chính
 
-- ✅ **Phát triển test-first** - Viết test trước code (RED → GREEN → IMPROVE)
-- ✅ **Thiết kế contract-first** - Định nghĩa API trước khi code  
-- ✅ **Memory lưu trữ dự án** - Codex nhớ tất cả giữa các phiên làm việc (không cần giải thích lại)
-- ✅ **Tiết kiệm token** - Tiết kiệm 40-60% token qua cache thông minh
-- ✅ **Quản lý đa giai đoạn** - Tự động tạo cấu trúc dự án và giai đoạn
-- ✅ **Lan tỏa thay đổi spec** - Tự động cập nhật các giai đoạn sau khi spec thay đổi
-- ✅ **Kiểm soát chất lượng** - Tự động yêu cầu 80%+ coverage
+- 🗺️ **Lộ trình 5-Phase MVP chuyên biệt (`genesis-mvp-planning`)** - Đảm bảo lộ trình phát triển rõ ràng bằng cách tổ chức dự án qua 5 cổng kiểm soát tiêu chuẩn, giúp các API core và database được kiểm chứng nghiêm ngặt trước khi code các tính năng nâng cao.
+- 🛡️ **Cổng kiểm soát Drift Tài Liệu (`validation_gates.sh`)** - Chống trôi tài liệu (Documentation Decay). Tự động chạy quét Git diff khi thay đổi trạng thái phát triển, đưa ra cảnh báo nếu mã nguồn (API, database schema, test) đã thay đổi mà tài liệu spec kỹ thuật tương ứng trong `.codebase/` chưa được cập nhật.
+- 🛑 **Triệt tiêu hoàn toàn trôi Context (Context Compaction)** - Tự động di tản log lệnh dung lượng lớn ra đĩa (`offload-log.sh`) và nén cô đọng lịch sử kiến trúc (`compact-context.sh`), giúp bảo toàn 40-60% dung lượng prompt window.
+- 🔥 **Cơ chế tự chữa lành lỗi (Ralph Loops)** - Tự động phát hiện lỗi kiểm thử hay lỗi biên dịch, kích hoạt vòng lặp **Verify-Fix Loop** (`run-verify-loop.sh`) khép kín lên tới 5 lần để tự động sửa code và test lại cho đến khi pass.
+- ✅ **Quy trình Test-First & Contract-First tuyệt đối** - Bắt buộc định nghĩa API contract trước khi code, tự động tạo các kịch bản test thất bại (RED), viết code tối thiểu để pass (GREEN), rồi mới cải tiến (IMPROVE).
+- 🔄 **Lan tỏa đặc tả tự động (Cascading Spec Propagation)** - Phát hiện thay đổi đặc tả API và tự động lan tỏa, cập nhật đồng bộ các file contract hạ nguồn, test fixtures và assertions thông qua lệnh `/propagate-spec`.
+- 🧠 **Cam kết Research-First thực chứng** - Tự động quét và nghiên cứu các mẫu thiết kế trong codebase nội bộ cùng tài liệu thư viện bên ngoài *trước* khi lập kế hoạch hay thực hiện bất kỳ thay đổi nào.
 
 **Phù hợp cho**:
 - Team xây dựng phần mềm enterprise với Codex
@@ -71,24 +71,76 @@ Khi bạn làm việc với một Agent thông thường (như Claude Code ở c
 
 ---
 
-## 🧬 Công Nghệ Đột Phá: Bảo Vệ Context & Tự Khắc Phục Lỗi (Evolutionary Upgrades)
+## 🧬 Công Nghệ Đột Phá: Các Phân Hệ Cốt Lõi Của Kiến Trúc Harness (Evolutionary Upgrades)
 
-Genesis Codex Harness giới thiệu 3 nâng cấp kỹ thuật mang tính đột phá nhằm đảm bảo Agent có thể hoạt động bền bỉ trong các dự án thực tế cực kỳ lớn mà không bao giờ bị tràn hay trôi context:
+Hệ thống FSM chủ động bao bọc quanh Codex để kiểm soát chất lượng, tự động sửa lỗi và bảo vệ context. Dưới đây là sơ đồ luồng vận hành của Genesis Harness:
+
+```mermaid
+graph TD
+    User([Yêu cầu từ Developer]) --> RF[1. Phân tích & Nghiên cứu]
+    RF --> IP[Kế hoạch & API Contracts]
+    IP --> TDD[2. Viết Test trước - RED]
+    TDD --> Codex{Codex thực thi code}
+    Codex --> VL[3. Vòng lặp tự sửa lỗi - Ralph Loop]
+    VL -- Lỗi <= 5 lần --> Correct[Tự động phân tích logs & sửa code]
+    Correct --> Codex
+    VL -- Test Pass - GREEN --> VG[4. Cổng chống trôi spec]
+    VG -- Quét Git Diff spec warning --> Synced[5. Tự động cập nhật tài liệu & Nén FSM state]
+    Synced --> Complete([Trạng thái hoàn thành - COMPLETED])
+    
+    subgraph Hệ điều phối FSM - Harness Shell
+        RF
+        TDD
+        VL
+        Correct
+        VG
+        Synced
+    end
+    
+    subgraph Bảo vệ Context & Memory
+        Compaction[(Nén context lịch sử)] <--> Synced
+        Offload[(Chuyển logs test/build ra đĩa)] <--> VL
+    end
+```
+
+Genesis Codex Harness giới thiệu 5 phân hệ kỹ thuật mang tính đột phá nhằm đảm bảo Agent có thể hoạt động bền bỉ, nhất quán trong các dự án lớn mà không bao giờ bị tràn context hay trôi tài liệu đặc tả:
 
 ### 1. Context Compaction Engine (`compact-context.sh`)
-* **Vấn đề**: Các cuộc hội thoại dài tạo ra hàng trăm nghìn token lịch sử trùng lặp, gây loãng context và làm Agent phản hồi kém chính xác.
-* **Giải pháp**: Tự động kích hoạt khi dung lượng context chạm ngưỡng giới hạn. Engine sẽ chắt lọc các quyết định cốt lõi, sơ đồ API hiện tại và cập nhật trạng thái vào `.codebase/context/`, sau đó dọn dẹp các đoạn hội thoại rác và ghi nhớ cô đọng lại ổ đĩa.
-* **Lợi ích**: Giúp Agent giữ được sự nhạy bén ban đầu suốt 100+ bước làm việc liên tục.
+* **Vấn đề**: Các cuộc hội thoại dài tạo ra hàng trăm nghìn token lịch sử dư thừa, gây loãng context, làm Agent bị "mất trí nhớ" và đẩy chi phí API lên cực cao.
+* **Giải pháp**: Hoạt động tự động khi context chạm ngưỡng giới hạn an toàn. Engine chắt lọc toàn bộ quyết định kiến trúc, sơ đồ API hiện tại, trạng thái FSM hiện có lưu vào `.codebase/context/`, xóa bỏ các đoạn hội thoại rác và nạp lại trạng thái cô đọng cốt lõi.
+* **Lợi ích**: Giúp Agent luôn sắc bén suốt hơn 100+ bước làm việc liên tục, tiết kiệm **40-60%** token.
 
 ### 2. Tool Call Offloading (`offload-log.sh`)
-* **Vấn đề**: Các công cụ quét file, chạy test hoặc build hệ thống trả về hàng chục nghìn dòng log thô. Log quá lớn sẽ lập tức lấp đầy context window của Agent.
-* **Giải pháp**: Tự động chuyển hướng toàn bộ output cực đại của tool call ra các file log tạm ở đĩa (`.system_generated/tasks/`), chỉ trả về cho Agent bản tóm tắt trạng thái (Exit code, Lỗi chính, Số lượng test pass). Agent có thể đọc chi tiết qua cơ chế lazy-load khi cần thiết.
-* **Lợi ích**: Triệt tiêu hoàn toàn rủi ro tràn context do log test/build.
+* **Vấn đề**: Việc chạy test suite, compiler hoặc quét thư mục trả về hàng chục nghìn dòng log thô. Log khổng lồ này sẽ lập tức lấp đầy và phá hủy context window của Agent.
+* **Giải pháp**: Tự động chuyển hướng toàn bộ log lệnh cồng kềnh ra đĩa cục bộ (`.system_generated/tasks/`), chỉ trả về cho Agent một bản tóm tắt trạng thái cực kỳ ngắn gọn (mã exit code, lỗi chính, số lượng test case pass/fail).
+* **Lợi ích**: Triệt tiêu 100% rủi ro tràn context do logs chạy test hay build hệ thống.
 
-### 3. Ralph Loops / Vòng lặp Verify-Fix (`run-verify-loop.sh`)
-* **Vấn đề**: Khi một test case bị lỗi hoặc code compile thất bại, việc bắt người dùng phải làm trung gian ra lệnh sửa lỗi là cực kỳ kém hiệu quả.
-* **Giải pháp**: Thiết lập vòng lặp tự phục hồi khép kín (Autonomous Self-Healing Loop). Khi lệnh verify phát hiện lỗi, script sẽ kích hoạt vòng lặp tự động đọc log lỗi, sửa code, chạy lại test liên tục lên đến 5 lần cho đến khi pass hoàn toàn.
-* **Lợi ích**: Tự động hóa 90% việc fix các bug cú pháp, import thiếu, hoặc sai lệch kiểu dữ liệu mà không cần sự can thiệp của con người.
+### 3. Ralph Loops / Vòng Lặp Tự Sửa Lỗi Verify-Fix (`run-verify-loop.sh`)
+* **Vấn đề**: Khi test bị fail hoặc biên dịch lỗi, việc bắt lập trình viên phải copy-paste log lỗi và chỉ dẫn Agent sửa code thủ công là rất mất thời gian.
+* **Giải pháp**: Thiết lập một vòng lặp tự phục hồi khép kín (Autonomous Self-Healing Loop). Khi lệnh verify phát hiện lỗi, script tự động đọc logs lỗi từ đĩa, phân tích, viết mã sửa đổi, và chạy lại bộ test liên tục lên tới 5 lần cho đến khi thành công.
+* **Lợi ích**: Tự động giải quyết hơn 90% lỗi cú pháp, import thiếu hay lệch contract mà không cần con người can thiệp.
+
+### 4. Công Cụ Lập Kế Hoạch 5-Phase MVP (`genesis-mvp-planning`)
+* **Vấn đề**: Các Agent thông thường giải quyết công việc tự phát (ad-hoc), code bừa các tính năng khi chưa xây dựng vững chắc API Core, cơ sở dữ liệu hay cổng bảo mật, dẫn đến nợ kỹ thuật nghiêm trọng.
+* **Giải pháp**: Tự động kích hoạt ngay sau khi khởi tạo dự án để cấu trúc công việc theo 5 cổng kiểm soát sản phẩm MVP (Móng API, Auth & Bảo mật, Tính năng cốt lõi, Tích hợp, Sẵn sàng Production), đảm bảo hạ tầng core được kiểm chứng trước khi viết code nghiệp vụ.
+* **Lợi ích**: Áp đặt tính kỷ luật kiến trúc nghiêm ngặt và ngăn ngừa việc xây dựng tính năng trên một nền móng lỏng lẻo.
+
+### 5. Cổng Kiểm Soát Trôi Đặc Tả Zero-Drift (`validation_gates.sh`)
+* **Vấn đề**: Do tốc độ phát triển nhanh, tài liệu thiết kế (API contracts, DB schema, specs) thường bị trôi lệch và lỗi thời so với mã nguồn thực tế vì lập trình viên quên cập nhật.
+* **Giải pháp**: Tích hợp trực tiếp vào các cổng chuyển đổi trạng thái FSM. Nó tự động quét Git changes và cảnh báo ngay lập tức nếu phát hiện file mã nguồn bị thay đổi mà tài liệu thiết kế đặc tả tương ứng trong `.codebase/` vẫn giữ nguyên.
+* **Lợi ích**: Loại bỏ hoàn toàn sự trôi lệch tài liệu thiết kế, đảm bảo sơ đồ kiến trúc luôn phản ánh chính xác 100% mã nguồn thực tế.
+
+---
+
+## 🚀 Nâng Cấp Kỹ Nghệ Harness Thế Hệ Mới (v0.1.6)
+
+Phiên bản Genesis v0.1.6 giới thiệu năm công cụ cao cấp, đột phá trong thư mục `scripts/` nhằm áp đặt an toàn kiểu dữ liệu, tự động hóa test, thiết lập sự đồng nhất giữa sơ đồ trực quan và mã nguồn, chủ động kiểm soát token và khôi phục nhanh bài học sửa lỗi của Ralph Loop:
+
+1. **Đồng bộ Sơ đồ Trực quan 2 Chiều (`scripts/spec_visual_sync.js`)**: Trình biên dịch hai chiều tự động đồng bộ hóa sơ đồ cơ sở dữ liệu ERD Mermaid (`database-erd.mmd`) sang các tệp JSON API contracts (`contracts/api/`) và ngược lại, bảo vệ tính nhất quán thiết kế tuyệt đối.
+2. **Trình Tự Động Sinh Test từ Hợp Đồng (`scripts/test_generator.js`)**: Tự động biên dịch và tạo cấu trúc các bộ kiểm thử tích hợp (Node.js/Jest) hoàn chỉnh tại `tests/integration/` trực tiếp từ các file response contract JSON, hỗ trợ lập tức kịch bản TDD "RED" skeleton.
+3. **Cổng Kiểm Soát Đồng Nhất Kiểu Dữ Liệu Tĩnh (`scripts/contract_integrity_gate.js`)**: Trình phân tích tĩnh chủ động đối chiếu mã nguồn thực tế với JSON API contract khi FSM chuyển trạng thái, khóa cứng tiến trình build/commit nếu phát hiện trường dữ liệu bị thiếu hoặc sai lệch kiểu dữ liệu.
+4. **Vệ Binh Tiền Trảm Token Chủ Động (`scripts/prompt_sentinel.js`)**: Bộ giám sát dung lượng token thời gian thực. Sentinel đo lường tải lượng token trước khi gọi LLM, chủ động tạm dừng các lệnh quá nặng và kích hoạt nén FSM/dọn logs khi dung lượng chạm ngưỡng an toàn (ví dụ: 20k tokens).
+5. **Tự Động Thu Hồi Bài Học Sửa Lỗi (`scripts/healing_telemetry.js`)**: Hệ thống ghi chép lịch sử chữ ký lỗi và mã nguồn sửa lỗi thành công vào `.codebase/failures/lessons_learned.md`. Vòng lặp Ralph Loop sẽ đối sánh và tái sử dụng trực tiếp các phương án sửa lỗi này khi gặp lỗi tương ứng, đạt hiệu suất **tự khắc phục lỗi chỉ trong đúng 1 turn**.
 
 ---
 
@@ -547,7 +599,7 @@ Genesis:
 
 ---
 
-## 📚 24 Skills (Tất Cả)
+## 📚 25 Skills (Tất Cả)
 
 Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 
@@ -564,6 +616,7 @@ Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 | **genesis-pipeline-orchestration** | Điều phối pipeline phát triển nhiều giai đoạn | Quản lý đa giai đoạn |
 | **genesis-architecture** | Thiết kế hệ thống và ghi nhận quyết định kiến trúc (ADR) | Quyết định thiết kế lớn |
 | **genesis-planning** | Lập kế hoạch phân rã công việc khoa học | Chuẩn bị feature phức tạp |
+| **genesis-mvp-planning** | Tự động lập kế hoạch và phân rã Lộ trình 5-Phase MVP | Chạy ngay sau khi khởi tạo dự án |
 | **genesis-codebase-map** | Vẽ bản đồ kiến trúc codebase | Tìm hiểu codebase lớn |
 | **genesis-docs** | Tạo tài liệu kỹ thuật chi tiết | Kết thúc giai đoạn / release |
 | **genesis-research** | Nghiên cứu công nghệ, thư viện phù hợp | Tìm kiếm best practices |
@@ -699,12 +752,12 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 
 ## 📊 Trạng Thái Dự Án
 
-- ✅ **Architecture**: 10/10 (research-first + auto-debug + auto-spec-propagation + auto-docs)
+- ✅ **Architecture**: 10/10 (research-first + auto-debug + auto-spec-propagation + auto-docs + validation gates)
 - ✅ **Codex-Only Enforcement**: 100%
-- ✅ **24 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung các nâng cấp tự phục hồi đột phá)
+- ✅ **25 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung lộ trình 5-Phase MVP, tự chữa lành & nén context)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes
+- ✅ **Production Ready**: Yes (v0.1.6)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -716,7 +769,7 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 
 MIT License - Xem [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v2.4 | Tháng 5, 2026
+**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.6 | Tháng 6, 2026
 
 ---
 

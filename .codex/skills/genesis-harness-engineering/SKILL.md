@@ -1,5 +1,5 @@
 ---
-name: harness-engineering-skill
+name: genesis-harness-engineering
 description: "Evolve the Codex harness itself: verification loops, repository memory, test-first scaffolds, resumability, observability, and autonomous workflow reliability. Use for changes to this repository's skill system or harness architecture."
 ---
 

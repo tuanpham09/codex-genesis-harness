@@ -1,5 +1,5 @@
 ---
-name: architecture-skill
+name: genesis-architecture
 description: Guide Codex through architecture analysis, boundary decisions, dependency direction, module ownership, and architecture documentation. Use before structural changes, new subsystems, cross-module work, or when architecture memory must be updated.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: pipeline-orchestration-skill
+name: genesis-pipeline-orchestration
 description: Run end-to-end Codex harness orchestration phases from repository analysis through tests, fixtures, implementation, contracts, memory, docs, and change summaries. Use for autonomous multi-phase work.
 ---
 

@@ -1,6 +1,6 @@
 interface:
   display_name: "Genesis Harness"
-  short_description: "Plan, track, verify, and review projects"
+  short_description: "— Lập kế hoạch, giám sát và kiểm thử dự án"
   brand_color: "#2563EB"
   default_prompt: "Use $genesis-harness to initialize planning and operate this repository with test-first workflows."
 

@@ -1,5 +1,5 @@
 ---
-name: design-spec-skill
+name: genesis-design-spec
 description: Define UI design specs, route contracts, visual states, accessibility expectations, and UI/API synchronization before frontend implementation. Use for new screens, redesigns, visual QA, or UI contract updates.
 ---
 

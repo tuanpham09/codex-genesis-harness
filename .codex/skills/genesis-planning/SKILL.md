@@ -1,5 +1,5 @@
 ---
-name: planning-skill
+name: genesis-planning
 description: Create decision-complete plans for Codex harness work, including tests, fixtures, contracts, memory updates, verification, and recovery. Use for new features, refactors, bug fixes, audits, or multi-phase autonomous work.
 ---
 

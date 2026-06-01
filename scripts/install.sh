@@ -8,6 +8,7 @@ skill_names=(
   genesis-upgrade-design
   genesis-architecture
   genesis-planning
+  genesis-mvp-planning
   genesis-codebase-map
   genesis-design-spec
   genesis-api-contract
@@ -79,7 +80,9 @@ install_one() {
     local target_dir="$target_root/$skill_name"
 
     if [ -e "$target_dir" ]; then
-      backup_dir="${target_dir}.backup.$(date +%Y%m%d%H%M%S)"
+      local backup_parent="$(dirname "$target_root")/backups"
+      mkdir -p "$backup_parent"
+      backup_dir="${backup_parent}/${skill_name}.backup.$(date +%Y%m%d%H%M%S)"
       mv "$target_dir" "$backup_dir"
       echo "Existing skill backed up to: $backup_dir"
     fi

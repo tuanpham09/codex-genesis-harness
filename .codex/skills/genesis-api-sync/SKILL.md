@@ -1,5 +1,5 @@
 ---
-name: api-sync-skill
+name: genesis-api-sync
 description: Automatic API contract synchronization. Detects API changes in implementation, updates API_CONTRACTS.md, regenerates test contracts, and maintains backward compatibility documentation. Use after API-related implementation or when contracts drift from actual code.
 ---
 

@@ -12,6 +12,7 @@ const skillNames = [
   "genesis-upgrade-design",
   "genesis-architecture",
   "genesis-planning",
+  "genesis-mvp-planning",
   "genesis-codebase-map",
   "genesis-design-spec",
   "genesis-api-contract",
@@ -101,7 +102,9 @@ function copySkills({ quiet = false, target = "both" } = {}) {
       const dir = path.join(root, skillName);
 
       if (fs.existsSync(dir)) {
-        const backupDir = `${dir}.backup.${timestamp()}`;
+        const backupParent = path.join(root, "..", "backups");
+        fs.mkdirSync(backupParent, { recursive: true });
+        const backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}`);
         fs.renameSync(dir, backupDir);
         if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
       }

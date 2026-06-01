@@ -31,6 +31,7 @@ Primary skills live under `.codex/skills/`:
 - `genesis-upgrade-design`
 - `architecture-skill`
 - `planning-skill`
+- `genesis-mvp-planning`
 - `codebase-map-skill`
 - `design-spec-skill`
 - `api-contract-skill`

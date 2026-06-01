@@ -1,5 +1,5 @@
 ---
-name: research-skill
+name: genesis-research
 description: Run local and external research for Codex harness decisions with source attribution, repository evidence, assumptions, and reusable research notes. Use before adopting APIs, SDKs, architecture patterns, or uncertain implementation approaches.
 ---
 

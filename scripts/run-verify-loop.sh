@@ -54,6 +54,12 @@ if [ "$CURRENT_ITERATION" -gt "$MAX_ITERATIONS" ]; then
   exit 99
 fi
 
+# Recall prior lessons learned if there was a previous failure log
+if [ -f "$FAILURE_LOG" ]; then
+  echo "==> [HEALING TELEMETRY] Analyzing previous failure logs for matching recorded lessons..."
+  node "$(dirname "$0")/healing_telemetry.js" --recall --error "$(head -n 2 "$FAILURE_LOG" | tr '\n' ' ')" || true
+fi
+
 # Execute verification command
 set +e
 "$@" > "$FAILURE_LOG" 2>&1
@@ -62,6 +68,10 @@ set -e
 
 if [ $EXIT_CODE -eq 0 ]; then
   echo "==> [VERIFY LOOP] Pass! Verification completed successfully."
+  if [ "$CURRENT_ITERATION" -gt 1 ]; then
+    echo "==> [HEALING TELEMETRY] Capturing successful self-healing fix to telemetry database..."
+    node "$(dirname "$0")/healing_telemetry.js" --record --error "Verify command failure" --file "codebase" --fix "Resolved verify check regression at iteration $CURRENT_ITERATION" || true
+  fi
   rm -f "$LOOP_COUNT_FILE"
   rm -f "$FAILURE_LOG"
 else
@@ -73,3 +83,4 @@ else
 fi
 
 exit $EXIT_CODE
+

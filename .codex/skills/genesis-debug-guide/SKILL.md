@@ -1,5 +1,5 @@
 ---
-name: debug-guide-skill
+name: genesis-debug-guide
 description: "Systematic debugging for test failures, runtime errors, and production bugs. Follows TDD debugging patterns, isolation strategies, and observability-driven root cause analysis. Auto-triggers after bug fixes to verify fix quality and prevent regressions."
 ---
 

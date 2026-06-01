@@ -1,5 +1,5 @@
 ---
-name: release-skill
+name: genesis-release
 description: Prepare Codex harness package releases with version checks, package dry-runs, npm publish readiness, release notes, verification evidence, and rollback notes. Use before publishing or tagging releases.
 ---
 
