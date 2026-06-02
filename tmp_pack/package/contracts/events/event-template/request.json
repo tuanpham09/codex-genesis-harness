@@ -1,0 +1,6 @@
+{
+  "event": "example.created",
+  "payload": {
+    "id": "example-id"
+  }
+}

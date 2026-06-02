@@ -27,7 +27,11 @@ const skillNames = [
   "genesis-observability-automation",
   "genesis-research-first",
   "genesis-release",
-  "spec-impact-engine"
+  "spec-impact-engine",
+  "genesis-executing-plans",
+  "genesis-test-driven-development",
+  "genesis-verification-before-completion",
+  "genesis-using-git-worktrees"
 ];
 const legacySkillNames = ["project-genesis-harness"];
 const sourceRoot = path.join(packageRoot, ".codex", "skills");
@@ -52,6 +56,10 @@ Usage:
   genesis-harness forget <id>            Forget/delete a fact by its unique 6-char ID
   genesis-harness prime                  Generate the token-minimized Agent Priming Prompt
   genesis-harness view-mockup [slug]      Interactive console UI to search & view mockups
+  genesis-harness mcp                    Interactive MCP installer
+  genesis-harness sync                   Compress and sync codebase context (AST/Regex)
+  genesis-harness setup-hooks            Install auto-sync git pre-commit hook
+  genesis-harness heal <command>         Run test & print agent directive on failure
 
 Environment:
   CODEX_HOME=/custom/.codex  Override Codex home
@@ -240,7 +248,7 @@ function showStatus() {
   }
 
   // 3. Skills Inventory
-  console.log("\n\x1b[1m\x1b[32m[+] Skills Inventory Check (Exactly 21 core skills):\x1b[0m");
+  console.log("\n\x1b[1m\x1b[32m[+] Skills Inventory Check (Exactly 25 core skills):\x1b[0m");
   let found = 0;
   let mismatched = 0;
   for (const skillName of skillNames) {
@@ -304,7 +312,7 @@ function showDocsStatus() {
           }
         }
         console.log(`    Files: \x1b[33m${found.join(", ")}\x1b[0m`);
-        
+
         // Print request structure preview if request.json exists
         const reqPath = path.join(apiDir, endpoint, "request.json");
         if (fs.existsSync(reqPath)) {
@@ -611,7 +619,7 @@ function openFileNatively(filePath) {
   if (process.platform === "linux") {
     cmd = "xdg-open";
   }
-  
+
   const cp = spawnSync(cmd, [filePath]);
   return cp.status === 0;
 }
@@ -703,7 +711,7 @@ function viewMockupsInteractive(arg) {
       console.log("  \x1b[1m\x1b[32m[+] LAUNCHED SYSTEM VIEW FOR:\x1b[0m \x1b[1m" + selected.title + "\x1b[0m\n");
       console.log(`  - \x1b[1mMockup File:\x1b[0m  ${selected.fileName}`);
       console.log(`  - \x1b[1mFolder Path:\x1b[0m  ${path.dirname(selected.fullPath)}`);
-      
+
       let sizeText = "Unknown";
       try {
         const stats = fs.statSync(selected.fullPath);
@@ -764,18 +772,389 @@ function viewMockupsInteractive(arg) {
   });
 }
 
+function syncContext() {
+  const srcDirs = ['src', 'lib', 'tests', 'bin'];
+  const codebaseDir = path.join(process.cwd(), '.codebase');
+  const contextFile = path.join(codebaseDir, 'COMPRESSED_CONTEXT.md');
+  const visualFile = path.join(codebaseDir, 'VISUAL_GRAPH.md');
+
+  if (!fs.existsSync(codebaseDir)) {
+    fs.mkdirSync(codebaseDir, { recursive: true });
+  }
+
+  let output = '# Compressed Context & Dependency Graph\n\n';
+  let visualOutput = '# Visual Project Graph\n\n';
+  const depEdges = [];
+
+  let parser, traverse;
+  try {
+    parser = require('@babel/parser');
+    traverse = require('@babel/traverse').default;
+  } catch (e) {
+    console.error('[genesis-harness] AST parser dependencies missing. Run: npm install');
+    process.exit(1);
+  }
+
+  function walk(dir) {
+    if (!fs.existsSync(dir)) return;
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory() && file !== 'node_modules') {
+        walk(fullPath);
+      } else if (file.endsWith('.js') || file.endsWith('.ts')) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const exportsList = [];
+        const importsList = [];
+        const relativePath = fullPath.replace(process.cwd() + '/', '');
+        const featuresList = [];
+
+        try {
+          const ast = parser.parse(content, {
+            sourceType: 'module',
+            plugins: ['typescript', 'jsx']
+          });
+
+          if (ast.comments) {
+            ast.comments.forEach(comment => {
+              const match = comment.value.match(/@feature:\s*(.+)/i);
+              if (match) {
+                featuresList.push(match[1].trim());
+              }
+            });
+          }
+
+          traverse(ast, {
+            ExportNamedDeclaration(path) {
+              const decl = path.node.declaration;
+              if (decl) {
+                if (decl.type === 'ClassDeclaration' && decl.id) {
+                  exportsList.push('class ' + decl.id.name);
+                } else if (decl.type === 'FunctionDeclaration' && decl.id) {
+                  exportsList.push('function ' + decl.id.name);
+                } else if (decl.type === 'VariableDeclaration') {
+                  decl.declarations.forEach(d => {
+                    if (d.id) exportsList.push('const ' + d.id.name);
+                  });
+                }
+              }
+            },
+            ImportDeclaration(path) {
+              importsList.push(path.node.source.value);
+              depEdges.push(`  "${relativePath}" --> "${path.node.source.value}"`);
+            },
+            CallExpression(path) {
+              if (path.node.callee.name === 'require' && path.node.arguments.length > 0) {
+                if (path.node.arguments[0].type === 'StringLiteral') {
+                  importsList.push(path.node.arguments[0].value);
+                  depEdges.push(`  "${relativePath}" --> "${path.node.arguments[0].value}"`);
+                }
+              }
+            }
+          });
+        } catch (err) {
+          exportsList.push('// AST Parse Error: ' + err.message);
+        }
+
+        if (exportsList.length > 0 || importsList.length > 0 || featuresList.length > 0) {
+          output += '## ' + relativePath + '\n';
+          if (featuresList.length > 0) {
+            output += '### Implements Features\n';
+            featuresList.forEach(f => output += '- `' + f + '`\n');
+          }
+          if (exportsList.length > 0) {
+            output += '### Exports\n';
+            exportsList.forEach(sig => output += '- `' + sig + '`\n');
+          }
+          if (importsList.length > 0) {
+            output += '### Dependencies\n';
+            importsList.forEach(imp => output += '- `' + imp + '`\n');
+          }
+          output += '\n';
+        }
+      }
+    }
+  }
+
+  srcDirs.forEach(dir => walk(path.join(process.cwd(), dir)));
+  // Generate Visual Graph
+  visualOutput += '## Code Architecture (Dependency Graph)\n\n```mermaid\ngraph TD\n';
+  if (depEdges.length > 0) {
+    visualOutput += depEdges.join('\n') + '\n';
+  } else {
+    visualOutput += '  Root["No dependencies found"]\n';
+  }
+  visualOutput += '```\n\n';
+
+  // Parse Roadmap for features and roles
+  const roadmapFile = path.join(process.cwd(), '.planning', 'ROADMAP.md');
+  if (fs.existsSync(roadmapFile)) {
+    visualOutput += '## Project Roadmap & Features\n\n```mermaid\ngraph TD\n';
+    visualOutput += '  classDef completed fill:#d4edda,stroke:#28a745,stroke-width:2px;\n';
+    visualOutput += '  classDef inprogress fill:#fff3cd,stroke:#ffc107,stroke-width:2px;\n';
+    visualOutput += '  classDef pending fill:#e2e3e5,stroke:#6c757d,stroke-width:2px;\n';
+
+    const rmContent = fs.readFileSync(roadmapFile, 'utf8').split('\n');
+    const roles = [];
+    let currentRoleObj = { title: 'General', tasks: [] };
+
+    let taskIdCounter = 0;
+    const allTasksMap = new Map();
+
+    rmContent.forEach(line => {
+      if (line.match(/^#+\s+(.+)/)) {
+        const title = line.match(/^#+\s+(.+)/)[1].trim();
+        // If switching roles, push the current one if it has tasks
+        if (currentRoleObj.tasks.length > 0) {
+          roles.push(currentRoleObj);
+        }
+        currentRoleObj = { title: title, tasks: [] };
+      } else if (line.match(/^-\s*\[([ xX~!\/])\]\s+(.+)/)) {
+        const match = line.match(/^-\s*\[([ xX~!\/])\]\s+(.+)/);
+        const statusChar = match[1].toLowerCase();
+        let rawName = match[2].trim();
+        let dependsOn = [];
+        let mappedFiles = [];
+
+        const depMatch = rawName.match(/\(depends_on:\s*(.+?)\)/i);
+        if (depMatch) {
+          dependsOn = depMatch[1].split(',').map(s => s.trim());
+          rawName = rawName.replace(/\(depends_on:\s*.+?\)/i, '').trim();
+        }
+
+        const filesMatch = rawName.match(/\(files:\s*(.+?)\)/i);
+        if (filesMatch) {
+          mappedFiles = filesMatch[1].split(',').map(s => s.trim());
+          rawName = rawName.replace(/\(files:\s*.+?\)/i, '').trim();
+        }
+
+        rawName = rawName.replace(/"/g, "'");
+        const taskId = `Task${taskIdCounter++}`;
+        allTasksMap.set(rawName.toLowerCase(), taskId);
+
+        currentRoleObj.tasks.push({
+          id: taskId,
+          statusChar: statusChar,
+          name: rawName,
+          dependsOn: dependsOn,
+          mappedFiles: mappedFiles
+        });
+      }
+    });
+    if (currentRoleObj.tasks.length > 0) {
+      roles.push(currentRoleObj);
+    }
+
+    if (roles.length === 0) {
+      visualOutput += '  Project["Project Roadmap"] --> NoTasks["No tasks found"]\n';
+    } else {
+      roles.forEach((r, idx) => {
+        visualOutput += `  subgraph Role_${idx} ["${r.title}"]\n`;
+        r.tasks.forEach(t => {
+          let label = t.name;
+          if (t.mappedFiles && t.mappedFiles.length > 0) {
+            label += `<br><i>(${t.mappedFiles.join(', ')})</i>`;
+          }
+          visualOutput += `    ${t.id}["${label}"]\n`;
+          if (t.statusChar === 'x') {
+            visualOutput += `    class ${t.id} completed;\n`;
+          } else if (t.statusChar === '/' || t.statusChar === '~' || t.statusChar === '!') {
+            visualOutput += `    class ${t.id} inprogress;\n`;
+          } else {
+            visualOutput += `    class ${t.id} pending;\n`;
+          }
+        });
+        visualOutput += `  end\n`;
+      });
+
+      // Draw dependencies
+      roles.forEach(r => {
+        r.tasks.forEach(t => {
+          if (t.dependsOn.length > 0) {
+            t.dependsOn.forEach(depName => {
+              const depId = allTasksMap.get(depName.toLowerCase());
+              if (depId) {
+                visualOutput += `  ${depId} --> ${t.id}\n`;
+              }
+            });
+          }
+        });
+      });
+    }
+    visualOutput += '```\n\n';
+
+    // Đưa Roadmap vào COMPRESSED_CONTEXT.md cho AI đọc (Dạng text thuần)
+    output += '\n## Project Planning & Roadmap\n';
+    output += rmContent.join('\n') + '\n';
+  }
+
+  fs.writeFileSync(contextFile, output);
+  fs.writeFileSync(visualFile, visualOutput);
+  console.log('[genesis-harness] Context compressed and saved to ' + contextFile);
+  console.log('[genesis-harness] Visual Graph saved to ' + visualFile);
+}
+
+function setupHooks() {
+  const hooksDir = path.join(process.cwd(), '.git', 'hooks');
+  const preCommitFile = path.join(hooksDir, 'pre-commit');
+
+  if (!fs.existsSync(hooksDir)) {
+    console.log('[genesis-harness] Not a git repository, skipping hooks setup.');
+    return;
+  }
+
+  const hookContent = `#!/bin/sh
+# genesis-harness auto-sync
+echo "[genesis-harness] Syncing compressed context before commit..."
+npx genesis-harness sync
+git add .codebase/COMPRESSED_CONTEXT.md
+`;
+
+  if (fs.existsSync(preCommitFile)) {
+    const existingContent = fs.readFileSync(preCommitFile, 'utf8');
+    if (existingContent !== hookContent) {
+      const backupPath = preCommitFile + '.backup.' + Date.now();
+      fs.renameSync(preCommitFile, backupPath);
+      console.log('[genesis-harness] Existing pre-commit hook backed up to ' + backupPath);
+    } else {
+      console.log('[genesis-harness] Git hooks already up to date.');
+      return;
+    }
+  }
+
+  fs.writeFileSync(preCommitFile, hookContent);
+  fs.chmodSync(preCommitFile, '755');
+  console.log('[genesis-harness] Git pre-commit hook installed successfully.');
+}
+
+function healTest(testCommand) {
+  if (!testCommand) {
+    console.error('[genesis-harness] Missing test command. Usage: genesis-harness heal "npm test"');
+    process.exit(1);
+  }
+
+  const { execSync } = require('child_process');
+  try {
+    console.log(`[genesis-harness] Running test: ${testCommand}`);
+    execSync(testCommand, { stdio: 'inherit' });
+    console.log('[genesis-harness] Tests passed! No healing required.');
+  } catch (error) {
+    const errorLog = error.stdout ? error.stdout.toString() : error.message;
+    const planningDir = path.join(process.cwd(), '.planning');
+    if (!fs.existsSync(planningDir)) {
+      fs.mkdirSync(planningDir, { recursive: true });
+    }
+    const logFile = path.join(planningDir, 'LAST_ERROR.log');
+    fs.writeFileSync(logFile, errorLog);
+
+    console.log('\\n\\x1b[31m\\x1b[1m[AGENT_DIRECTIVE] TESTS FAILED. READ .planning/LAST_ERROR.log AND IMMEDIATELY EXECUTE genesis-debug-guide TO FIX THE CODE. DO NOT STOP UNTIL TESTS PASS.\\x1b[0m\\n');
+    process.exit(1);
+  }
+}
+
+function mcpSetupInteractive() {
+  const options = [
+    { name: "@modelcontextprotocol/server-puppeteer", desc: "Browser UI Testing", selected: true },
+    { name: "@modelcontextprotocol/server-fetch", desc: "URL Markdown Reader", selected: true },
+    { name: "@modelcontextprotocol/server-github", desc: "Repo & PR management", selected: false },
+    { name: "@modelcontextprotocol/server-memory", desc: "Knowledge Graph Memory", selected: true },
+    { name: "@modelcontextprotocol/server-sqlite", desc: "Vector Memory DB", selected: false }
+  ];
+
+  let selectedIndex = 0;
+
+  const renderMenu = () => {
+    console.clear();
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+    console.log("\x1b[1m\x1b[36m                GENESIS HARNESS - MCP INSTALLER                       \x1b[0m");
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m\n");
+    console.log("  \x1b[1mSelect which MCP Servers you want to install globally.\x1b[0m");
+    console.log("  Use \x1b[33mUp/Down Arrow\x1b[0m to navigate.");
+    console.log("  Use \x1b[33mSpace\x1b[0m to toggle selection.");
+    console.log("  Press \x1b[32mEnter\x1b[0m to confirm and install.");
+    console.log("  Press \x1b[90mEsc or Ctrl+C\x1b[0m to cancel.\n");
+
+    options.forEach((opt, idx) => {
+      const checkbox = opt.selected ? "\x1b[32m[x]\x1b[0m" : "[ ]";
+      const cursor = idx === selectedIndex ? "\x1b[1m\x1b[36m➔\x1b[0m " : "  ";
+      const name = idx === selectedIndex ? `\x1b[1m${opt.name}\x1b[0m` : opt.name;
+      console.log(`  ${cursor} ${checkbox} ${name.padEnd(50)} \x1b[90m(${opt.desc})\x1b[0m`);
+    });
+    console.log("\n\x1b[1m\x1b[36m======================================================================\x1b[0m");
+  };
+
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+
+  const cleanExit = () => {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+    console.clear();
+    console.log("\n\x1b[33m[-] MCP Setup Cancelled.\x1b[0m\n");
+    process.exit(0);
+  };
+
+  const executeInstall = () => {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+    console.clear();
+    const toInstall = options.filter(o => o.selected).map(o => o.name);
+
+    if (toInstall.length === 0) {
+      console.log("\n\x1b[33m[-] No MCP servers selected. Exiting.\x1b[0m\n");
+      process.exit(0);
+    }
+
+    console.log(`\n\x1b[1m\x1b[32m[+] Installing selected MCP servers globally...\x1b[0m\n`);
+    const args = ["install", "-g", ...toInstall];
+    const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+
+    const result = spawnSync(npmCmd, args, { stdio: "inherit", env: process.env });
+    if (result.status === 0) {
+      console.log(`\n\x1b[1m\x1b[32m✓ Successfully installed MCP servers.\x1b[0m`);
+      console.log(`You can now configure your Agent Client to use them. See mcp.example.json.\n`);
+    } else {
+      console.error(`\n\x1b[1m\x1b[31m[-] Installation failed with status ${result.status}\x1b[0m\n`);
+    }
+    process.exit(result.status || 0);
+  };
+
+  renderMenu();
+
+  process.stdin.on("data", (key) => {
+    if (key === "\u0003" || key === "\u001b") { // Ctrl+C or Esc
+      cleanExit();
+    } else if (key === "\u001b[A") { // Up arrow
+      selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+      renderMenu();
+    } else if (key === "\u001b[B") { // Down arrow
+      selectedIndex = (selectedIndex + 1) % options.length;
+      renderMenu();
+    } else if (key === " ") { // Space
+      options[selectedIndex].selected = !options[selectedIndex].selected;
+      renderMenu();
+    } else if (key === "\r") { // Enter
+      executeInstall();
+    }
+  });
+}
+
 const command = process.argv[2] || "help";
 const args = process.argv.slice(3);
 
 switch (command) {
   case "install":
     copySkills({ target: parseTarget(args, "both") });
+    setupHooks();
     break;
   case "postinstall":
     if (process.env.GENESIS_HARNESS_SKIP_POSTINSTALL === "1") {
       process.exit(0);
     }
     copySkills({ quiet: true, target: "both" });
+    setupHooks();
     break;
   case "verify":
     verifySkill(parseTarget(args, "both"));
@@ -810,6 +1189,18 @@ switch (command) {
     break;
   case "view-mockup":
     viewMockupsInteractive(args[0]);
+    break;
+  case "mcp":
+    mcpSetupInteractive();
+    break;
+  case "sync":
+    syncContext();
+    break;
+  case "setup-hooks":
+    setupHooks();
+    break;
+  case "heal":
+    healTest(args.join(" "));
     break;
   case "help":
   case "--help":

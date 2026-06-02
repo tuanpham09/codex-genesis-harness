@@ -1,6 +1,6 @@
 # Genesis Skills Index
 
-Complete reference for all 21 skills in the Genesis Harness system. Each skill provides specialized capabilities for specific development tasks.
+Complete reference for all 25 skills in the Genesis Harness system. Each skill provides specialized capabilities for specific development tasks.
 
 ## NEW IMPROVEMENTS (v2026-05-30 Phase 2)
 
@@ -867,6 +867,28 @@ skill-name/
 4. **For complex work** use `genesis-planning` → `genesis-architecture`
 5. **For testing** use `genesis-harness-engineering` throughout
 6. **Before release** use `genesis-release` → `genesis-docs-automation`
+
+---
+
+## The New TDD & Execution Loop Skills (v0.1.7)
+
+### genesis-executing-plans (Skill #22)
+**Location**: `.codex/skills/genesis-executing-plans/`
+- Enforces strict adherence to implementation plans and `task.md`.
+- Prevents autonomous scope creep.
+
+### genesis-test-driven-development (Skill #23)
+**Location**: `.codex/skills/genesis-test-driven-development/`
+- Enforces the Red -> Green -> Refactor cycle.
+- Demands failing tests before code modification.
+
+### genesis-verification-before-completion (Skill #24)
+**Location**: `.codex/skills/genesis-verification-before-completion/`
+- Demands evidence and test script execution before claiming a task is done.
+
+### genesis-using-git-worktrees (Skill #25)
+**Location**: `.codex/skills/genesis-using-git-worktrees/`
+- Creates safe isolated worktrees for risky structural changes.
 
 ---
 

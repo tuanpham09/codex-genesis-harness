@@ -3,4 +3,4 @@ interface:
   short_description: "Automate performance baseline, profiling, and load testing"
   default_prompt: "Use $genesis-performance-profiling to establish baseline and identify bottlenecks."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+interface:
+  display_name: "UI UX Test Skill"
+  short_description: "Create UI and visual regression tests"
+  default_prompt: "Use $ui-ux-test-skill to create Playwright tests before UI changes."
+policy:
+  allow_implicit_invocation: true
+

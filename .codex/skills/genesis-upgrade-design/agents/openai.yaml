@@ -2,3 +2,5 @@ interface:
   display_name: "Genesis Upgrade Design"
   short_description: "— Nâng cấp UI/UX của giao diện Web có sẵn"
   default_prompt: "Use $genesis-upgrade-design to improve the existing frontend UI without changing behavior."
+policy:
+  allow_implicit_invocation: true

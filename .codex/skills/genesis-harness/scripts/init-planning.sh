@@ -3,6 +3,7 @@ set -euo pipefail
 
 confirmed="${PROJECT_BRIEF_CONFIRMED:-0}"
 root="."
+script_source="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -741,7 +742,6 @@ EOF
 done
 
 mkdir -p .planning/scripts
-script_source="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for script in "$script_source"/*.sh; do
   cp "$script" ".planning/scripts/$(basename "$script")"
   chmod +x ".planning/scripts/$(basename "$script")"

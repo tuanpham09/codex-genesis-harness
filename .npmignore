@@ -1,0 +1,6 @@
+scripts/scratch_parser.js
+src/
+scratch/
+node_modules/
+.DS_Store
+*.tgz

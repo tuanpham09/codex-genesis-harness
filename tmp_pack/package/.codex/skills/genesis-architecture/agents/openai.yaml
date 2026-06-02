@@ -1,0 +1,7 @@
+interface:
+  display_name: "Architecture Skill"
+  short_description: "Plan and verify architecture boundaries"
+  default_prompt: "Use $architecture-skill to evaluate architecture impact and update repository memory."
+policy:
+  allow_implicit_invocation: true
+

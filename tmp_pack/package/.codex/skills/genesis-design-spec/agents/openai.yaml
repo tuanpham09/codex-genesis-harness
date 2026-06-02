@@ -1,0 +1,7 @@
+interface:
+  display_name: "Design Spec Skill"
+  short_description: "Create UI design and route contracts"
+  default_prompt: "Use $design-spec-skill to define UI states and tests before implementation."
+policy:
+  allow_implicit_invocation: true
+

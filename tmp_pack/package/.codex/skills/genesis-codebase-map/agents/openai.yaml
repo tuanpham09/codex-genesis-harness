@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codebase Map Skill"
+  short_description: "Maintain compressed repository memory"
+  default_prompt: "Use $codebase-map-skill to update repository memory after this change."
+policy:
+  allow_implicit_invocation: true
+

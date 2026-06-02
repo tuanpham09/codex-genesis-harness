@@ -1,0 +1,6 @@
+interface:
+  display_name: "Genesis Git Worktrees"
+  short_description: "Làm việc an toàn qua worktree"
+  default_prompt: "Tạo và sử dụng git worktrees để cách ly rủi ro khi thực hiện các thay đổi kiến trúc lớn."
+policy:
+  allow_implicit_invocation: true
