@@ -94,15 +94,16 @@ Genesis is built on five core, state-of-the-art technological breakthroughs that
 
 ---
 
-## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.7)
+## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.8)
 
-Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
+Genesis v0.1.8 introduces six advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, enable self-healing loop memory recall, and provide agile UI iteration:
 
 1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
 2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
 3. **AST Contract-Code Integrity Gate (`scripts/contract_integrity_gate.js`)**: Static analysis checker that programmatically validates implementation code properties against API contract JSON schemas at FSM transition boundaries, locking state transitions if data type mismatches or missing properties are detected.
 4. **Pre-emptive Prompt Sentinel (`scripts/prompt_sentinel.js`)**: Real-time token budget monitor. Calculates token weights before calling LLM, pre-emptively halting runaway commands, and executing auto-compaction and log pruning when capacity thresholds (e.g. 20k tokens) are crossed.
 5. **Self-Healing Lessons-Learned Recall (`scripts/healing_telemetry.js`)**: Telemetry system that records compiler/test failure signatures and applied corrective code edits in `.codebase/failures/lessons_learned.md`. The self-healing loop recalls these recorded fixes on identical error signatures, bypassing iterations to achieve immediate **1-turn recovery**.
+6. **Aesthetic Vibe Mode (`VIBE_MODE=1`)**: A dynamic Triage engine that allows the AI to bypass strict PEV loops and TDD blockers exclusively for pure UI/CSS aesthetic changes. Bypassed failures are seamlessly routed to `.codebase/TECH_DEBT.md` for later reconciliation.
 
 ### LeanCTX + Optional Local Wrappers
 
@@ -190,7 +191,7 @@ If you prefer not to install them globally, you can configure your Agent Client 
 - ✅ **Codex-Only Enforcement**: `100%`
 - ✅ **Skills Matrix**: 25 fully implemented, structured, and verified skills
 - ✅ **Token Caching Savings**: `40% to 60%` verified per enterprise project
-- ✅ **Stability & Readiness**: Production Ready (`v0.1.7` - June 2026)
+- ✅ **Stability & Readiness**: Production Ready (`v0.1.8` - June 2026)
 
 ---
 
@@ -200,5 +201,5 @@ Licensed under the [MIT License](LICENSE). Contributions, bug reports, and featu
 
 ---
 
-**Genesis Codex Harness** v0.1.7 | June 2026
+**Genesis Codex Harness** v0.1.8 | June 2026
 👉 **[Full English Guide](README.EN.md) | [Tiếng Việt Hướng Dẫn](README.VI.md)**

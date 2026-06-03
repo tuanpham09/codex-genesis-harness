@@ -2,7 +2,7 @@
 
 /**
  * Spec Visual Sync - Bi-directional AST Sync between Mermaid ERD and JSON Contracts
- * Part of Genesis Codex Harness v0.1.7
+ * Part of Genesis Codex Harness v0.1.8
  */
 
 const fs = require('fs');

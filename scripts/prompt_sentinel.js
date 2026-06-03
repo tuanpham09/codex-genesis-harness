@@ -2,7 +2,7 @@
 
 /**
  * Pre-emptive Prompt Sentinel
- * Part of Genesis Codex Harness v0.1.7
+ * Part of Genesis Codex Harness v0.1.8
  */
 
 const fs = require('fs');

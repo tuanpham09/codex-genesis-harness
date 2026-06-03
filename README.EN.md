@@ -133,9 +133,9 @@ Genesis Codex Harness introduces five groundbreaking architectural subsystems to
 
 ---
 
-## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.7)
+## 🚀 Next-Gen Harness Engineering Upgrades (v0.1.8)
 
-Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
+Genesis v0.1.8 introduces five advanced, state-of-the-art tools under `scripts/` to enforce type-safety, automate tests, establish visual-code integrity, protect token consumption, and enable self-healing loop memory recall:
 
 1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
 2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
@@ -776,7 +776,7 @@ Thank you so much for supporting the development of this project! ❤️
 - ✅ **Skills**: 25 fully implemented & verified (added 5-Phase MVP Roadmap planner, advanced self-healing and compaction engines)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.7)
+- ✅ **Production Ready**: Yes (v0.1.8)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -788,7 +788,7 @@ Thank you so much for supporting the development of this project! ❤️
 
 MIT License - See [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Build production software with Codex | v0.1.7 | June 2026
+**Genesis Codex Harness** - Build production software with Codex | v0.1.8 | June 2026
 
 ---
 

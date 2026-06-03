@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-## [0.1.7] - 2026-06-01
+## [0.1.8] - 2026-06-01
 
 ### Added
 - **4 New Genesis Skills for TDD and Workflows**: Added `genesis-executing-plans`, `genesis-test-driven-development`, `genesis-verification-before-completion`, and `genesis-using-git-worktrees` to enforce strict TDD, verification, and isolation principles.

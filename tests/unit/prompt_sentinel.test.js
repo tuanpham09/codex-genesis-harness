@@ -1,6 +1,6 @@
 /**
  * Unit Test for prompt_sentinel.js
- * Part of Genesis Codex Harness v0.1.7
+ * Part of Genesis Codex Harness v0.1.8
  */
 
 const assert = require('assert');

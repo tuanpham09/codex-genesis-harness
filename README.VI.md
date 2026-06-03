@@ -132,15 +132,16 @@ Genesis Codex Harness giới thiệu 5 phân hệ kỹ thuật mang tính đột
 
 ---
 
-## 🚀 Nâng Cấp Kỹ Nghệ Harness Thế Hệ Mới (v0.1.7)
+## 🚀 Nâng Cấp Kỹ Nghệ Harness Thế Hệ Mới (v0.1.8)
 
-Phiên bản Genesis v0.1.7 giới thiệu năm công cụ cao cấp, đột phá trong thư mục `scripts/` nhằm áp đặt an toàn kiểu dữ liệu, tự động hóa test, thiết lập sự đồng nhất giữa sơ đồ trực quan và mã nguồn, chủ động kiểm soát token và khôi phục nhanh bài học sửa lỗi của Ralph Loop:
+Phiên bản Genesis v0.1.8 giới thiệu sáu công cụ cao cấp, đột phá trong thư mục `scripts/` nhằm áp đặt an toàn kiểu dữ liệu, tự động hóa test, thiết lập sự đồng nhất giữa sơ đồ trực quan và mã nguồn, chủ động kiểm soát token, khôi phục nhanh bài học sửa lỗi và hỗ trợ lập trình UI thần tốc:
 
 1. **Đồng bộ Sơ đồ Trực quan 2 Chiều (`scripts/spec_visual_sync.js`)**: Trình biên dịch hai chiều tự động đồng bộ hóa sơ đồ cơ sở dữ liệu ERD Mermaid (`database-erd.mmd`) sang các tệp JSON API contracts (`contracts/api/`) và ngược lại, bảo vệ tính nhất quán thiết kế tuyệt đối.
 2. **Trình Tự Động Sinh Test từ Hợp Đồng (`scripts/test_generator.js`)**: Tự động biên dịch và tạo cấu trúc các bộ kiểm thử tích hợp (Node.js/Jest) hoàn chỉnh tại `tests/integration/` trực tiếp từ các file response contract JSON, hỗ trợ lập tức kịch bản TDD "RED" skeleton.
 3. **Cổng Kiểm Soát Đồng Nhất Kiểu Dữ Liệu Tĩnh (`scripts/contract_integrity_gate.js`)**: Trình phân tích tĩnh chủ động đối chiếu mã nguồn thực tế với JSON API contract khi FSM chuyển trạng thái, khóa cứng tiến trình build/commit nếu phát hiện trường dữ liệu bị thiếu hoặc sai lệch kiểu dữ liệu.
 4. **Vệ Binh Tiền Trảm Token Chủ Động (`scripts/prompt_sentinel.js`)**: Bộ giám sát dung lượng token thời gian thực. Sentinel đo lường tải lượng token trước khi gọi LLM, chủ động tạm dừng các lệnh quá nặng và kích hoạt nén FSM/dọn logs khi dung lượng chạm ngưỡng LeanCTX trong `.codebase/context-policy.json`.
 5. **Tự Động Thu Hồi Bài Học Sửa Lỗi (`scripts/healing_telemetry.js`)**: Hệ thống ghi chép lịch sử chữ ký lỗi và mã nguồn sửa lỗi thành công vào `.codebase/failures/lessons_learned.md`. Vòng lặp Ralph Loop sẽ đối sánh và tái sử dụng trực tiếp các phương án sửa lỗi này khi gặp lỗi tương ứng, đạt hiệu suất **tự khắc phục lỗi chỉ trong đúng 1 turn**.
+6. **Aesthetic Vibe Mode (`VIBE_MODE=1`)**: Một hệ thống Triage linh hoạt cho phép AI tự động bỏ qua các bài test nghiêm ngặt (TDD/Contract) khi người dùng chỉ muốn chỉnh sửa giao diện thẩm mỹ (CSS/UI). Mọi vi phạm lách luật đều được ghi chép ngầm vào `.codebase/TECH_DEBT.md` để xử lý sau.
 
 ### LeanCTX + wrapper local tùy chọn
 
@@ -768,7 +769,7 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 - ✅ **25 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung lộ trình 5-Phase MVP, tự chữa lành & nén context)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.7)
+- ✅ **Production Ready**: Yes (v0.1.8)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -780,7 +781,7 @@ Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển c�
 
 MIT License - Xem [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.7 | Tháng 6, 2026
+**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.8 | Tháng 6, 2026
 
 ---
 

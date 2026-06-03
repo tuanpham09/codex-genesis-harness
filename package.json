@@ -1,6 +1,6 @@
 {
   "name": "codex-genesis-harness",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Hệ thống quản trị (Harness) dành cho AI Agent (Codex) với cơ chế FSM State Persistence, Validation Gates và Test-First Workflow. Đảm bảo agent không bị trôi context.",
   "license": "MIT",
   "bin": {
