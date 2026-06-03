@@ -11,8 +11,9 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 changed="$(git diff --name-only HEAD 2>/dev/null || git diff --name-only)"
-docs_changed="$(printf '%s\n' "$changed" | grep -E '^(\.planning/|docs/|README\.md|AGENTS\.md)' || true)"
-code_changed="$(printf '%s\n' "$changed" | grep -Ev '^(\.planning/|docs/|README\.md|AGENTS\.md)$' || true)"
+docs_pattern='^(\.planning/|\.codebase/|\.codex/SKILLS_INDEX\.md|docs/|README(\.[A-Z]{2})?\.md|AGENTS\.md|CHANGELOG\.md)'
+docs_changed="$(printf '%s\n' "$changed" | grep -E "$docs_pattern" || true)"
+code_changed="$(printf '%s\n' "$changed" | grep -Ev "$docs_pattern" || true)"
 
 if [ -n "$code_changed" ] && [ -z "$docs_changed" ]; then
   echo "Code changed but no planning/docs files changed."
@@ -21,4 +22,3 @@ if [ -n "$code_changed" ] && [ -z "$docs_changed" ]; then
 fi
 
 echo "Docs sync check passed or no code changes detected."
-

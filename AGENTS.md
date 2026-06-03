@@ -92,6 +92,22 @@ Keep this file a map. Put durable detail in `.codebase/`, contracts, fixtures, s
 
 Do not claim completion without verification evidence.
 
+## Aesthetic Vibe Mode (Soft-Enforcement)
+
+Genesis Harness supports an "Aesthetic Vibe Mode" to reduce friction during rapid UI prototyping or styling hotfixes. However, it must be strictly bounded to prevent architectural collapse.
+
+As an AI Agent, **YOU MUST ASSESS THE USER'S INTENT** before executing harness scripts. You must act as a Triage engine:
+
+**🟢 WHEN TO USE `VIBE_MODE=1` (Aesthetic Fast-Track):**
+- **Strictly for purely aesthetic changes:** e.g., modifying CSS/Tailwind colors, adjusting padding/margins, fixing layout alignments, or correcting static text typos.
+- **Action:** Prepend `VIBE_MODE=1` to all harness commands (e.g., `VIBE_MODE=1 bash scripts/verify.sh`). This converts fatal structural blockers (`exit 1`) into warnings and logs them to `.codebase/TECH_DEBT.md`, allowing rapid UI iteration without writing TDD tests or UI contracts.
+
+**🔴 WHEN TO STRICTLY AVOID `VIBE_MODE` (Hard Enforcement):**
+- **New Features:** Adding components with logic, API calls, or state (e.g., "Add a chat button"). Requires PEV Loop (Mockups, Contracts).
+- **Logic / Data Bugs:** Fixing application crashes, incorrect data flow, or state errors. Requires TDD (Red -> Green -> Refactor).
+- **Releases:** Preparing a build or deployment. Requires passing `verify-gate` without bypasses.
+- **Action:** Run scripts normally without the `VIBE_MODE` flag. Failures must block execution until fixed.
+
 ## External Integrations & MCPs
 
 To prevent reinventing the wheel and to optimize token usage, the agent must leverage external tools and MCP servers for specific domain tasks:

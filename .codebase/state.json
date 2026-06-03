@@ -1,37 +1,58 @@
 {
   "current_state": "COMPLETED",
+  "completed_at": "2026-06-03T02:42:00Z",
+  "active_work": "Full Score Harness Fix — L02-L12",
+  "session_id": "2026-06-03-full-score-fix",
+  "session_started_at": "2026-06-03T02:35:00Z",
+  "ttfv_seconds": 180,
+  "_comment_ttfv": "Time-to-First-Verification: seconds from session start to first passing test (L06 KPI). 180s = 3min for this session.",
+  "latest_handoff": ".codebase/IMPLEMENTATION_HANDOFF.md",
+  "latest_recovery_point": "Full Score Harness Fix — feature registry + observability",
+  "required_verification": [
+    "npm run verify",
+    "npm run eval",
+    "npm run pack:check",
+    "node tests/unit/feature_registry.test.js",
+    "node scripts/cold-start-check.js",
+    "node bin/genesis-harness.js docs-gate",
+    "node bin/genesis-harness.js leanctx"
+  ],
   "history": [
     {
-      "from": "INIT",
-      "to": "REQUIREMENTS_GATHERING",
-      "reason": "Started Gathering",
-      "timestamp": "2026-05-31T05:39:53.706Z"
-    },
-    {
-      "from": "REQUIREMENTS_GATHERING",
-      "to": "PLANNING",
-      "reason": "p",
-      "timestamp": "2026-05-31T05:51:07.765Z"
-    },
-    {
-      "from": "PLANNING",
-      "to": "IMPLEMENTATION",
-      "reason": "i",
-      "timestamp": "2026-05-31T05:51:07.883Z"
-    },
-    {
-      "from": "IMPLEMENTATION",
-      "to": "VERIFICATION",
-      "reason": "v",
-      "timestamp": "2026-05-31T05:51:08.001Z"
+      "from": "VERIFICATION",
+      "to": "COMPLETED",
+      "reason": "Harness drift gate hardening completed with source-of-truth, handoff, state, and CLI smoke verification gates.",
+      "timestamp": "2026-06-03T08:31:59+07:00",
+      "session_id": "2026-06-03-drift-gate"
     },
     {
       "from": "VERIFICATION",
       "to": "COMPLETED",
-      "reason": "testing complete transition",
-      "timestamp": "2026-05-31T05:53:47.517Z"
+      "reason": "LeanCTX policy, CLI reporting, prompt sentinel thresholds, and portable npm-user command guidance added.",
+      "timestamp": "2026-06-03T09:06:31+07:00",
+      "session_id": "2026-06-03-leanctx"
+    },
+    {
+      "from": "VERIFICATION",
+      "to": "COMPLETED",
+      "reason": "LeanCTX policy auto-seeding added for install and npm postinstall without overwriting project custom policy.",
+      "timestamp": "2026-06-03T09:28:41+07:00",
+      "session_id": "2026-06-03-leanctx-seed"
+    },
+    {
+      "from": "COMPLETED",
+      "to": "EXECUTE",
+      "reason": "Started full harness evaluation and score fix: L08 feature registry, L11 observability live, L04 instruction size, L03 cold-start, L05 session boundary, L07 scope, L09 victory blocker, L12 known problems.",
+      "timestamp": "2026-06-03T02:35:00Z",
+      "session_id": "2026-06-03-full-score-fix"
     }
   ],
-  "context": {},
+  "context": {
+    "score_target": "110/110",
+    "package_version": "0.1.7",
+    "verification_owner": "scripts/run-evals.sh",
+    "context_policy": ".codebase/context-policy.json",
+    "evaluation_report": ".codebase/../artifacts/harness_evaluation_report.md"
+  },
   "pending_tasks": []
 }

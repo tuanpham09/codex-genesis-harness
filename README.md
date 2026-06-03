@@ -104,6 +104,17 @@ Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/`
 4. **Pre-emptive Prompt Sentinel (`scripts/prompt_sentinel.js`)**: Real-time token budget monitor. Calculates token weights before calling LLM, pre-emptively halting runaway commands, and executing auto-compaction and log pruning when capacity thresholds (e.g. 20k tokens) are crossed.
 5. **Self-Healing Lessons-Learned Recall (`scripts/healing_telemetry.js`)**: Telemetry system that records compiler/test failure signatures and applied corrective code edits in `.codebase/failures/lessons_learned.md`. The self-healing loop recalls these recorded fixes on identical error signatures, bypassing iterations to achieve immediate **1-turn recovery**.
 
+### LeanCTX + Optional Local Wrappers
+
+Genesis ships a portable LeanCTX policy at `.codebase/context-policy.json` and exposes it through:
+
+```bash
+genesis-harness leanctx
+genesis-harness prime
+```
+
+`npm install` / `genesis-harness install` seeds the policy into the current project when a project root is detected, and never overwrites an existing custom policy. The `leanctx` command is only for inspection. Public npm usage and CI commands stay portable (`genesis-harness sync`, `genesis-harness docs-gate`, `npm run verify`). If `rtk` is installed locally, Genesis reports it as an optional wrapper for developer machines only; it is not required for npm users.
+
 ---
 
 ## 📦 Quick Start & Usage

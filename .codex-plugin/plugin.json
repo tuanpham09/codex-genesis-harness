@@ -28,10 +28,9 @@
     ],
     "defaultPrompt": [
       "Use $genesis-harness and run /genesis-init.",
-      "Use $pipeline-orchestration-skill to run the full test-first harness workflow.",
-      "Use $api-contract-skill to create endpoint contracts and tests before implementation."
+      "Use $genesis-pipeline-orchestration to run the full test-first harness workflow.",
+      "Use $genesis-api-contract to create endpoint contracts and tests before implementation."
     ],
     "brandColor": "#2563EB"
   }
 }
-

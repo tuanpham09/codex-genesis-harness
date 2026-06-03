@@ -1,0 +1,43 @@
+{
+  "contract_id": "UI-AUTH-LOGIN",
+  "version": "1.0.0",
+  "description": "Concrete example of a UI contract for the demo login feature. Defines inputs, visual states, and outputs.",
+  "inputs": {
+    "data": [
+      {
+        "name": "email",
+        "type": "string",
+        "validation": "Valid email format",
+        "required": true
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "validation": "Minimum 8 characters",
+        "required": true
+      }
+    ]
+  },
+  "states": {
+    "initial": "Empty fields, disabled submit button.",
+    "valid": "Both fields pass validation, submit button enabled with cyan neon glow.",
+    "loading": "Submit button shows spinner, fields disabled.",
+    "error": "Error message displayed below fields, fields have red error outline."
+  },
+  "outputs": {
+    "events": [
+      {
+        "name": "onLoginSubmit",
+        "payload": {
+          "email": "string",
+          "passwordHash": "string"
+        }
+      },
+      {
+        "name": "onGoogleSignIn",
+        "payload": null
+      }
+    ]
+  },
+  "mockup_reference": ".planning/features/auth/mockup-login.png"
+}

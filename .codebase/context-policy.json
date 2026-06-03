@@ -1,0 +1,68 @@
+{
+  "name": "leanctx-default",
+  "token_budget": 12000,
+  "_comment_token_budget": "Default conservative budget. Override in project .codebase/context-policy.json. For 128k-context models, set to 40000.",
+  "auto_scale": {
+    "enabled": false,
+    "note": "Set enabled=true and provide model_context_window to auto-calculate budgets. Formula: token_budget = model_context_window * 0.09 (9% for harness context leaves 91% for generation).",
+    "model_context_window": null,
+    "scale_factor": 0.09
+  },
+  "warn_at": 0.6,
+  "compact_at": 0.7,
+  "hard_stop_at": 0.85,
+  "layers": [
+    {
+      "name": "core",
+      "max_tokens": 2500,
+      "include": [
+        "AGENTS.md",
+        ".codex/SOUL.md",
+        ".codebase/CURRENT_STATE.md",
+        ".codebase/MODULE_INDEX.md",
+        ".codebase/TEST_MATRIX.md"
+      ]
+    },
+    {
+      "name": "active_context",
+      "max_tokens": 6500,
+      "include": [
+        ".codebase/COMPRESSED_CONTEXT.md",
+        ".codebase/VISUAL_GRAPH.md",
+        ".planning/STATE.md",
+        ".planning/ROADMAP.md",
+        "contracts/",
+        "fixtures/"
+      ]
+    },
+    {
+      "name": "deferred_reference",
+      "max_tokens": 3000,
+      "include": [
+        ".codex/skills/*/references/",
+        ".codex/skills/*/playbooks/",
+        ".codex/skills/*/checklists/",
+        "README*.md"
+      ]
+    }
+  ],
+  "defer_patterns": [
+    ".codex/skills/*/templates/**",
+    ".codex/skills/*/examples/**",
+    "playwright/**",
+    "observability/**",
+    "node_modules/**",
+    "dist/**",
+    "coverage/**"
+  ],
+  "portable_commands": [
+    "genesis-harness leanctx",
+    "genesis-harness sync",
+    "genesis-harness docs-gate",
+    "genesis-harness verify-gate",
+    "npm run verify",
+    "npm run eval",
+    "node scripts/cold-start-check.js"
+  ],
+  "wrapper_policy": "rtk optional when installed locally; public docs and CI must use portable commands."
+}

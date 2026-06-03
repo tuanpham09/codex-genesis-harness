@@ -121,7 +121,14 @@ required_scripts=(
   run-verify-loop.sh
 )
 
+max_skill_lines=500
+
 fail() {
+  if [ "${VIBE_MODE:-0}" = "1" ]; then
+    echo "verify WARN (VIBE_MODE): $*" >&2
+    echo "- [$(date -u +"%Y-%m-%dT%H:%M:%SZ")] VIBE_MODE Bypass: Verify check failed - $*" >> "$repo_root/.codebase/TECH_DEBT.md"
+    return 0
+  fi
   echo "verify failed: $*" >&2
   exit 1
 }
@@ -176,9 +183,12 @@ verify_repository_harness
 verify_skill_metadata() {
   local skill_dir="$1"
   local expected_name="$2"
+  local skill_lines
 
   [ -f "$skill_dir/SKILL.md" ] || fail "missing SKILL.md: $skill_dir"
   [ -f "$skill_dir/agents/openai.yaml" ] || fail "missing agents/openai.yaml: $skill_dir"
+  skill_lines="$(wc -l < "$skill_dir/SKILL.md" | tr -d ' ')"
+  [ "$skill_lines" -le "$max_skill_lines" ] || fail "SKILL.md exceeds ${max_skill_lines} lines ($skill_lines): $skill_dir"
   grep -q "^name: $expected_name[[:space:]]*$" "$skill_dir/SKILL.md" || fail "invalid skill name frontmatter (expected 'name: $expected_name'): $skill_dir"
   grep -q '^description:' "$skill_dir/SKILL.md" || fail "missing description frontmatter: $skill_dir"
   grep -q 'default_prompt:' "$skill_dir/agents/openai.yaml" || fail "missing default_prompt: $skill_dir"
@@ -250,6 +260,7 @@ verify_minimal_skill() {
   local skill_dir="$1"
 
   [ -d "$skill_dir/templates" ] || fail "missing templates/: $skill_dir"
+  [ -d "$skill_dir/checklists" ] || fail "missing checklists/: $skill_dir"
   [ -d "$skill_dir/examples" ] || fail "missing examples/: $skill_dir"
 }
 

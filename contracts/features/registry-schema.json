@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "description": "Schema for features/REGISTRY.md — the canonical machine-readable feature list primitive (L08 Harness Engineering)",
+  "changed_at": "2026-06-03T02:37:00Z",
+  "required_columns": ["id", "status", "title", "verify_cmd", "skill"],
+  "valid_statuses": ["planned", "in-progress", "done", "verified", "deprecated"],
+  "notes": "Every feature MUST have a verify_cmd. 'verified' status requires evidence from the last CI run.",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-03",
+      "change": "Initial schema — establishes feature list as harness primitive per L08"
+    }
+  ]
+}

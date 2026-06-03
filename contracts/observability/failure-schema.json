@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "description": "Schema for observability/failures/*.json — records agent failures for post-mortem analysis (L11 Harness Engineering)",
+  "changed_at": "2026-06-03T02:37:00Z",
+  "required_fields": [
+    "failure_id",
+    "timestamp",
+    "skill",
+    "phase",
+    "error_type",
+    "error_message",
+    "recovery_action"
+  ],
+  "field_types": {
+    "failure_id": "string — unique id for the failure event",
+    "timestamp": "ISO 8601 string",
+    "skill": "string — skill that was active when failure occurred",
+    "phase": "string — one of: init, plan, execute, verify, handoff",
+    "error_type": "string — one of: assertion, timeout, permission, contract_violation, scope_overreach, under_finish",
+    "error_message": "string — exact CLI error output or description",
+    "recovery_action": "string — what was done to recover (e.g. 'reverted via git checkout', 'resumed from RECOVERY_POINTS.md')"
+  },
+  "optional_fields": {
+    "session_id": "string — cross-reference to agent-runs/ entry",
+    "root_cause": "string — 5-why analysis result",
+    "prevention": "string — what harness change prevents recurrence"
+  },
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-06-03",
+      "change": "Initial schema — failure observability as harness primitive"
+    }
+  ]
+}

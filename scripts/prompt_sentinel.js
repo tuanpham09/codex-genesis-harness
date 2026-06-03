@@ -9,6 +9,31 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    return null;
+  }
+}
+
+function loadContextPolicy() {
+  const defaultPolicy = {
+    token_budget: 12000,
+    compact_at: 0.7,
+    hard_stop_at: 0.85
+  };
+  const packageRoot = path.resolve(__dirname, '..');
+  const packagedPolicy = readJsonIfExists(path.join(packageRoot, '.codebase', 'context-policy.json'));
+  const projectPolicy = readJsonIfExists(path.resolve(process.cwd(), '.codebase', 'context-policy.json'));
+  return {
+    ...defaultPolicy,
+    ...(packagedPolicy || {}),
+    ...(projectPolicy || {})
+  };
+}
+
 function printUsage() {
   console.log('Usage:');
   console.log('  node scripts/prompt_sentinel.js --check <file-or-log-path> [--threshold <tokens>]');
@@ -21,7 +46,8 @@ if (args.length < 2 || args[0] !== '--check') {
 }
 
 const targetPath = path.resolve(process.cwd(), args[1]);
-let threshold = 20000; // Default safety threshold is 20k tokens
+const policy = loadContextPolicy();
+let threshold = Math.round(Number(policy.token_budget || 12000) * Number(policy.compact_at || 0.7));
 
 const thresholdIndex = args.indexOf('--threshold');
 if (thresholdIndex !== -1 && args[thresholdIndex + 1]) {
@@ -40,6 +66,7 @@ const estimatedTokens = Math.ceil(fileSizeChars / 4);
 console.log(`[Prompt Sentinel] Evaluating token load for: ${path.basename(targetPath)}`);
 console.log(`  - File size: ${fileSizeChars} characters`);
 console.log(`  - Estimated token payload: ${estimatedTokens} tokens (Safety threshold: ${threshold})`);
+console.log(`  - LeanCTX policy budget: ${policy.token_budget || 12000} tokens`);
 
 if (estimatedTokens > threshold) {
   console.warn(`\n[WARNING] [PROMPT SENTINEL] Payload of ${estimatedTokens} tokens exceeds the safety threshold of ${threshold}!`);
@@ -47,8 +74,12 @@ if (estimatedTokens > threshold) {
   console.warn(`[ACTION] Automatically triggering context compaction and log optimization...\n`);
 
   // Trigger compact-context script if it exists
-  const compactionScript = path.resolve(process.cwd(), 'scripts/compact-context.sh');
-  if (fs.existsSync(compactionScript)) {
+  const compactionScriptCandidates = [
+    path.resolve(process.cwd(), 'scripts/compact-context.sh'),
+    path.resolve(__dirname, '..', '.codex', 'skills', 'genesis-harness', 'scripts', 'compact-context.sh')
+  ];
+  const compactionScript = compactionScriptCandidates.find(candidate => fs.existsSync(candidate));
+  if (compactionScript) {
     try {
       console.log(`Executing: ${compactionScript}`);
       const output = execSync(`bash "${compactionScript}"`, { encoding: 'utf8' });

@@ -139,8 +139,19 @@ Phiên bản Genesis v0.1.7 giới thiệu năm công cụ cao cấp, đột ph�
 1. **Đồng bộ Sơ đồ Trực quan 2 Chiều (`scripts/spec_visual_sync.js`)**: Trình biên dịch hai chiều tự động đồng bộ hóa sơ đồ cơ sở dữ liệu ERD Mermaid (`database-erd.mmd`) sang các tệp JSON API contracts (`contracts/api/`) và ngược lại, bảo vệ tính nhất quán thiết kế tuyệt đối.
 2. **Trình Tự Động Sinh Test từ Hợp Đồng (`scripts/test_generator.js`)**: Tự động biên dịch và tạo cấu trúc các bộ kiểm thử tích hợp (Node.js/Jest) hoàn chỉnh tại `tests/integration/` trực tiếp từ các file response contract JSON, hỗ trợ lập tức kịch bản TDD "RED" skeleton.
 3. **Cổng Kiểm Soát Đồng Nhất Kiểu Dữ Liệu Tĩnh (`scripts/contract_integrity_gate.js`)**: Trình phân tích tĩnh chủ động đối chiếu mã nguồn thực tế với JSON API contract khi FSM chuyển trạng thái, khóa cứng tiến trình build/commit nếu phát hiện trường dữ liệu bị thiếu hoặc sai lệch kiểu dữ liệu.
-4. **Vệ Binh Tiền Trảm Token Chủ Động (`scripts/prompt_sentinel.js`)**: Bộ giám sát dung lượng token thời gian thực. Sentinel đo lường tải lượng token trước khi gọi LLM, chủ động tạm dừng các lệnh quá nặng và kích hoạt nén FSM/dọn logs khi dung lượng chạm ngưỡng an toàn (ví dụ: 20k tokens).
+4. **Vệ Binh Tiền Trảm Token Chủ Động (`scripts/prompt_sentinel.js`)**: Bộ giám sát dung lượng token thời gian thực. Sentinel đo lường tải lượng token trước khi gọi LLM, chủ động tạm dừng các lệnh quá nặng và kích hoạt nén FSM/dọn logs khi dung lượng chạm ngưỡng LeanCTX trong `.codebase/context-policy.json`.
 5. **Tự Động Thu Hồi Bài Học Sửa Lỗi (`scripts/healing_telemetry.js`)**: Hệ thống ghi chép lịch sử chữ ký lỗi và mã nguồn sửa lỗi thành công vào `.codebase/failures/lessons_learned.md`. Vòng lặp Ralph Loop sẽ đối sánh và tái sử dụng trực tiếp các phương án sửa lỗi này khi gặp lỗi tương ứng, đạt hiệu suất **tự khắc phục lỗi chỉ trong đúng 1 turn**.
+
+### LeanCTX + wrapper local tùy chọn
+
+Genesis cài kèm policy LeanCTX portable tại `.codebase/context-policy.json` và cung cấp:
+
+```bash
+genesis-harness leanctx
+genesis-harness prime
+```
+
+`npm install` / `genesis-harness install` sẽ tự seed policy vào project hiện tại khi phát hiện project root, và không ghi đè policy đã custom. Lệnh `leanctx` chỉ để xem/kiểm tra policy. Người dùng cài từ npm vẫn dùng lệnh chuẩn như `genesis-harness sync`, `genesis-harness docs-gate`, `npm run verify`. Nếu máy dev có `rtk`, Genesis chỉ tự nhận diện và hiển thị như wrapper local tùy chọn; `rtk` không phải dependency công khai.
 
 ---
 
@@ -638,7 +649,7 @@ Mỗi skill tuân theo naming quy chuẩn trong thư mục `.codex/skills/`:
 | Tài Liệu | Mục Đích | Thời Gian |
 |----------|---------|----------|
 | [MODEL_ALLOCATION.md](.codex/MODEL_ALLOCATION.md) | Tại sao Codex là primary | 5 phút |
-| [SKILLS_INDEX.md](.codex/SKILLS_INDEX.md) | Chi tiết 19 skills | 20 phút |
+| [SKILLS_INDEX.md](.codex/SKILLS_INDEX.md) | Chi tiết 25 skills | 20 phút |
 | [SKILLS_NAMING_GUIDE.md](.codex/SKILLS_NAMING_GUIDE.md) | Convention naming | 5 phút |
 | [FILE_NAMING_CLARIFICATION.md](.codebase/FILE_NAMING_CLARIFICATION.md) | Giải thích file naming | 5 phút |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Cách đóng góp | 10 phút |

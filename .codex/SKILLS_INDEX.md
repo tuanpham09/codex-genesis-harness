@@ -44,6 +44,7 @@ See each skill below for updated workflows using these new tools.
 **Purpose**: Main entry point and project orchestration
 
 **Commands**:
+- `/genesis-init` - Initialize project planning harness
 - `/init` - Initialize project planning harness
 - `/new-feature <description>` - Start a new feature (run new-feature-qa.md first)
 - `/fix-bug <description>` - Start a bug fix (run bug-fix-qa.md first)
@@ -51,6 +52,7 @@ See each skill below for updated workflows using these new tools.
 - `/audit` - Audit codebase health
 - `/review` - Review completed work
 - `/status` - Show project status
+- `genesis-harness leanctx` - Show LeanCTX token budget policy and optional local wrapper guidance
 
 **When to use**: First interaction, planning new work, status checks
 
@@ -67,7 +69,7 @@ See each skill below for updated workflows using these new tools.
 - Create `.codebase/IMPLEMENTATION_HANDOFF.md` to document what was built
 - Create `.codebase/RECOVERY_POINTS.md` to enable safe work resumption
 
-**Important Note on `/init`**:
+**Important Note on `/genesis-init` / `/init`**:
 - Creates `.planning/` structure with 22+ documentation files
 - Detects existing project info from README, package.json, code structure
 - Asks for product brief confirmation before creating structure

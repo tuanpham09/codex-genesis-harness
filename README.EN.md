@@ -140,8 +140,19 @@ Genesis v0.1.7 introduces five advanced, state-of-the-art tools under `scripts/`
 1. **Visual Architecture AST Sync (`scripts/spec_visual_sync.js`)**: Bidirectional compiler that syncs Mermaid ERD database diagrams (`database-erd.mmd`) to API contracts JSON schemas (`contracts/api/`) and vice-versa, establishing absolute visual-to-code design integrity.
 2. **Contract-Driven Test Auto-Generator (`scripts/test_generator.js`)**: Automatically compiles fully executable Mocha/Jest integration test suites in `tests/integration/` directly from your API contracts JSON response schemas, providing instant TDD "RED" skeletons.
 3. **AST Contract-Code Integrity Gate (`scripts/contract_integrity_gate.js`)**: Static analysis checker that programmatically validates implementation code properties against API contract JSON schemas at FSM transition boundaries, locking state transitions if data type mismatches or missing properties are detected.
-4. **Pre-emptive Prompt Sentinel (`scripts/prompt_sentinel.js`)**: Real-time token budget monitor. Calculates token weights before calling LLM, pre-emptively halting runaway commands, and executing auto-compaction and log pruning when capacity thresholds (e.g. 20k tokens) are crossed.
+4. **Pre-emptive Prompt Sentinel (`scripts/prompt_sentinel.js`)**: Real-time token budget monitor. Calculates token weights before calling LLM, pre-emptively halting runaway commands, and executing auto-compaction and log pruning when the LeanCTX threshold in `.codebase/context-policy.json` is crossed.
 5. **Self-Healing Lessons-Learned Recall (`scripts/healing_telemetry.js`)**: Telemetry system that records compiler/test failure signatures and applied corrective code edits in `.codebase/failures/lessons_learned.md`. The self-healing loop recalls these recorded fixes on identical error signatures, bypassing iterations to achieve immediate **1-turn recovery**.
+
+### LeanCTX + Optional Local Wrappers
+
+Genesis ships a portable LeanCTX policy at `.codebase/context-policy.json` and exposes it through:
+
+```bash
+genesis-harness leanctx
+genesis-harness prime
+```
+
+`npm install` / `genesis-harness install` seeds the policy into the current project when a project root is detected, and never overwrites an existing custom policy. The `leanctx` command is only for inspection. Npm users keep using portable commands such as `genesis-harness sync`, `genesis-harness docs-gate`, and `npm run verify`. When `rtk` exists on a developer machine, Genesis reports it as an optional local wrapper only; it is not a public dependency.
 
 ---
 

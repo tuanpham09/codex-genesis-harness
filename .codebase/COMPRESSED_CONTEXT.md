@@ -5,6 +5,14 @@
 - `Đăng nhập`
 - `Cập nhật Profile`
 
+## tests/integration/cli-smoke.test.js
+### Dependencies
+- `assert`
+- `fs`
+- `os`
+- `path`
+- `child_process`
+
 ## tests/unit/contract_integrity_gate.test.js
 ### Dependencies
 - `assert`

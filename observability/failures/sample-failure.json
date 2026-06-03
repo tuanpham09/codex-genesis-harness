@@ -1,0 +1,12 @@
+{
+  "failure_id": "2026-06-03-pre-fix-L08-missing-registry",
+  "timestamp": "2026-06-03T02:36:50Z",
+  "skill": "genesis-harness-engineering",
+  "phase": "verify",
+  "error_type": "assertion",
+  "error_message": "AssertionError: L08: features/REGISTRY.md must exist as machine-readable feature primitive",
+  "recovery_action": "Created features/REGISTRY.md + contracts/features/registry-schema.json + observability schemas as implementation fix",
+  "session_id": "2026-06-03-harness-engineering-L08-L11",
+  "root_cause": "Feature list existed only as human-readable prose in ROADMAP.md. No machine-readable canonical source of truth for feature status existed (violates L08 principle).",
+  "prevention": "Added verify gate in run-evals.sh that checks REGISTRY.md presence + schema validity. Test now in tests/unit/feature_registry.test.js ensures regression cannot re-occur."
+}

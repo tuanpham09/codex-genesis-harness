@@ -486,25 +486,4 @@ Default thresholds:
 
 **Goal**: Produce a prioritized, actionable list of optimizations ranked by expected impact vs implementation effort.
 
-**Recommendation template:**
-
-```markdown
-### [BOTTLENECK-001] Slow database query on /api/users (N+1 pattern)
-
-**Evidence**: EXPLAIN ANALYZE shows sequential scan on `users` table (150,000 rows).
-DB query time = 145 ms (81% of total response time).
-Identified via: slow query log + pg_stat_statements.
-
-**Recommended fix**: Add composite index on (tenant_id, status, created_at).
-Fix N+1 ORM query pattern: use eager loading (`include: ['profile']`).
-
-**Estimated impact**: HIGH — Expected p95 improvement: 100–140 ms (55–78% reduction).
-
-**Implementation complexity**: EASY — Index creation: 1 migration file.
-ORM fix: 3 lines of code change.
-
-**Validation method**: Re-run baseline after migration. Confirm p95 ≤ 80 ms.
-Run regression-detection phase against new baseline.
-
-**Risk**: Index creation on large table requires `CREATE INDEX CONCURRENTLY` to avoid table lock.
-```
+Use `templates/performance-report-template.md` for recommendation shape and include evidence, fix, impact, complexity, validation, and risk for each bottleneck.

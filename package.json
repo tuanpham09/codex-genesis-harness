@@ -23,6 +23,7 @@
     ".codex/skills",
     ".codebase",
     "contracts",
+    "features",
     "fixtures",
     "tests",
     "playwright",

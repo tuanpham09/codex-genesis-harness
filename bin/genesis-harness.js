@@ -51,10 +51,14 @@ Usage:
   genesis-harness path
   genesis-harness status                 Show implementation status & skills inventory
   genesis-harness docs                   Show API contracts & documentation sync report
+  genesis-harness docs-gate              Run pre-commit documentation drift checks
+  genesis-harness verify-gate            Run ALL verification gates before claiming done (L09 blocker)
+  genesis-harness cold-start             Run automated cold-start L03 checklist
   genesis-harness remember [cat] "<msg>" Remember a persistent project fact/insight (Bead)
   genesis-harness recall [query]         Recall and search remembered project facts
   genesis-harness forget <id>            Forget/delete a fact by its unique 6-char ID
   genesis-harness prime                  Generate the token-minimized Agent Priming Prompt
+  genesis-harness leanctx                Show token budget policy and portable command guidance
   genesis-harness view-mockup [slug]      Interactive console UI to search & view mockups
   genesis-harness mcp                    Interactive MCP installer
   genesis-harness sync                   Compress and sync codebase context (AST/Regex)
@@ -65,6 +69,8 @@ Environment:
   CODEX_HOME=/custom/.codex  Override Codex home
   GENESIS_HARNESS_HOME=/custom/.agents  Override modern skills home
   GENESIS_HARNESS_SKIP_POSTINSTALL=1  Skip npm postinstall auto-install
+  GENESIS_HARNESS_COMMAND_WRAPPER=rtk  Optional local command wrapper override
+  GENESIS_HARNESS_DISABLE_RTK=1  Disable automatic rtk detection
 `;
   console.log(text.trim());
   process.exit(exitCode);
@@ -130,6 +136,49 @@ function copySkills({ quiet = false, target = "both" } = {}) {
   if (!quiet) console.log("Restart Codex, then invoke: Use $genesis-harness");
 }
 
+function shouldSeedProjectRoot(rootPath) {
+  if (!rootPath) return false;
+  const resolvedRoot = path.resolve(rootPath);
+  if (resolvedRoot === packageRoot) return false;
+  const markers = [
+    "package.json",
+    "AGENTS.md",
+    "pyproject.toml",
+    "Cargo.toml",
+    "go.mod",
+    ".git",
+    ".codebase"
+  ];
+  return markers.some(marker => fs.existsSync(path.join(resolvedRoot, marker)));
+}
+
+function seedLeanCtxPolicy(rootPath = process.cwd(), { quiet = false } = {}) {
+  if (!shouldSeedProjectRoot(rootPath)) return false;
+
+  const sourcePolicy = path.join(packageRoot, ".codebase", "context-policy.json");
+  if (!fs.existsSync(sourcePolicy)) return false;
+
+  const codebaseDir = path.join(rootPath, ".codebase");
+  const targetPolicy = path.join(codebaseDir, "context-policy.json");
+  fs.mkdirSync(codebaseDir, { recursive: true });
+
+  if (fs.existsSync(targetPolicy)) {
+    if (!quiet) console.log(`[genesis-harness] LeanCTX policy already exists: ${targetPolicy}`);
+    return false;
+  }
+
+  fs.copyFileSync(sourcePolicy, targetPolicy);
+  if (!quiet) console.log(`[genesis-harness] LeanCTX policy installed: ${targetPolicy}`);
+  return true;
+}
+
+function resolvePostinstallProjectRoot() {
+  const initCwd = process.env.INIT_CWD;
+  if (shouldSeedProjectRoot(initCwd)) return initCwd;
+  if (shouldSeedProjectRoot(process.cwd())) return process.cwd();
+  return null;
+}
+
 function uninstallSkills(target = "both") {
   for (const root of targetRoots(target)) {
     for (const skillName of [...skillNames, ...legacySkillNames]) {
@@ -171,6 +220,119 @@ function resolveBash() {
     }
   }
   return "bash";
+}
+
+function commandExists(commandName) {
+  if (!/^[A-Za-z0-9._-]+$/.test(commandName)) return false;
+  const result = process.platform === "win32"
+    ? spawnSync("where", [commandName], { stdio: "ignore" })
+    : spawnSync("sh", ["-c", `command -v ${commandName}`], { stdio: "ignore" });
+  return result.status === 0;
+}
+
+function detectCommandWrapper() {
+  if (process.env.GENESIS_HARNESS_COMMAND_WRAPPER) {
+    return {
+      command: process.env.GENESIS_HARNESS_COMMAND_WRAPPER,
+      source: "GENESIS_HARNESS_COMMAND_WRAPPER"
+    };
+  }
+
+  if (process.env.GENESIS_HARNESS_DISABLE_RTK === "1") {
+    return { command: null, source: "disabled" };
+  }
+
+  if (commandExists("rtk")) {
+    return { command: "rtk", source: "auto-detected" };
+  }
+
+  return { command: null, source: "not detected" };
+}
+
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (error) {
+    return null;
+  }
+}
+
+function defaultContextPolicy() {
+  return {
+    name: "leanctx-default",
+    token_budget: 12000,
+    warn_at: 0.6,
+    compact_at: 0.7,
+    hard_stop_at: 0.85,
+    portable_commands: [
+      "genesis-harness leanctx",
+      "genesis-harness sync",
+      "genesis-harness docs-gate",
+      "npm run verify",
+      "npm run eval"
+    ],
+    wrapper_policy: "rtk optional when installed locally; public docs and CI must use portable commands.",
+    layers: []
+  };
+}
+
+function loadContextPolicy(rootPath = process.cwd()) {
+  const projectPolicy = readJsonIfExists(path.join(rootPath, ".codebase", "context-policy.json"));
+  const packagedPolicy = readJsonIfExists(path.join(packageRoot, ".codebase", "context-policy.json"));
+  return {
+    ...defaultContextPolicy(),
+    ...(packagedPolicy || {}),
+    ...(projectPolicy || {})
+  };
+}
+
+function formatCommand(command, wrapper) {
+  if (!wrapper.command) return command;
+  return `${wrapper.command} ${command}`;
+}
+
+function buildLeanCtxReport(rootPath = process.cwd()) {
+  const policy = loadContextPolicy(rootPath);
+  const wrapper = detectCommandWrapper();
+  const tokenBudget = Number(policy.token_budget || 12000);
+  const compactAt = Number(policy.compact_at || 0.7);
+  const hardStopAt = Number(policy.hard_stop_at || 0.85);
+  const lines = [];
+
+  lines.push("# LeanCTX Policy");
+  lines.push("");
+  lines.push(`- Policy: ${policy.name || "leanctx-default"}`);
+  lines.push(`- Token budget: ${tokenBudget}`);
+  lines.push(`- Compact at: ${Math.round(tokenBudget * compactAt)} tokens (${compactAt})`);
+  lines.push(`- Hard stop at: ${Math.round(tokenBudget * hardStopAt)} tokens (${hardStopAt})`);
+  lines.push(`- Command wrapper: ${wrapper.command ? `${wrapper.command} (${wrapper.source})` : `none (${wrapper.source})`} - rtk optional`);
+  lines.push(`- Wrapper policy: ${policy.wrapper_policy || "rtk optional; keep public commands portable."}`);
+  lines.push("");
+  lines.push("## Portable Commands");
+  for (const command of policy.portable_commands || []) {
+    lines.push(`- \`${command}\``);
+  }
+
+  if (wrapper.command) {
+    lines.push("");
+    lines.push("## Local Wrapper Commands");
+    for (const command of policy.portable_commands || []) {
+      lines.push(`- \`${formatCommand(command, wrapper)}\``);
+    }
+  }
+
+  if (Array.isArray(policy.layers) && policy.layers.length > 0) {
+    lines.push("");
+    lines.push("## Context Layers");
+    for (const layer of policy.layers) {
+      lines.push(`- ${layer.name}: ${layer.max_tokens || "unbounded"} tokens`);
+    }
+  }
+
+  lines.push("");
+  lines.push("Use LeanCTX by loading core state first, then active context, then deferred references only when needed.");
+  return lines.join("\n");
 }
 
 function chmodScripts(dir) {
@@ -604,10 +766,17 @@ function primeContext() {
   out.push("3. **Single source**: Avoid duplicating plans across multi-line markdown logs; use `genesis-harness remember` to store critical project coordinates.");
   out.push("4. **TDD Pattern**: Create or update failing tests in `tests/` before making changes to public behaviors.");
   out.push("");
+  out.push("## 🪶 7. LeanCTX Policy");
+  out.push(buildLeanCtxReport(process.cwd()));
+  out.push("");
   out.push("---");
   out.push("");
 
   console.log(out.join("\n"));
+}
+
+function showLeanCtx() {
+  console.log(buildLeanCtxReport(process.cwd()));
 }
 
 function openFileNatively(filePath) {
@@ -879,7 +1048,51 @@ function syncContext() {
 
   srcDirs.forEach(dir => walk(path.join(process.cwd(), dir)));
   // Generate Visual Graph
-  visualOutput += '## Code Architecture (Dependency Graph)\n\n```mermaid\ngraph TD\n';
+  visualOutput += '## Harness Relationship Map\n\n```mermaid\nflowchart LR\n';
+  visualOutput += '  manifest[".codex-plugin/plugin.json"] --> skills[".codex/skills/*"]\n';
+  visualOutput += '  package["package.json"] --> cli["bin/genesis-harness.js"]\n';
+  visualOutput += '  package --> verify["scripts/verify.sh"]\n';
+  visualOutput += '  package --> evals["scripts/run-evals.sh"]\n';
+  visualOutput += '  cli --> install["install / postinstall"]\n';
+  visualOutput += '  cli --> hooks["setup-hooks"]\n';
+  visualOutput += '  hooks --> docsgate["genesis-harness docs-gate"]\n';
+  visualOutput += '  docsgate --> docsync["check-docs-sync.sh"]\n';
+  visualOutput += '  docsgate --> specsync["check-spec-changelog.sh"]\n';
+  visualOutput += '  skills --> contracts["contracts/"]\n';
+  visualOutput += '  skills --> fixtures["fixtures/"]\n';
+  visualOutput += '  skills --> tests["tests/ + playwright/"]\n';
+  visualOutput += '  skills --> memory[".codebase/"]\n';
+  visualOutput += '  verify --> skills\n';
+  visualOutput += '  verify --> contracts\n';
+  visualOutput += '  verify --> fixtures\n';
+  visualOutput += '  verify --> memory\n';
+  visualOutput += '  evals --> install\n';
+  visualOutput += '  evals --> cli\n';
+  visualOutput += '  evals --> unit["tests/unit/*.test.js"]\n';
+  visualOutput += '  evals --> integration["tests/integration/*.test.js"]\n';
+  visualOutput += '  evals --> pack["npm pack smoke"]\n';
+  visualOutput += '```\n\n';
+
+  visualOutput += '## Skill Workflow Relationships\n\n```mermaid\nflowchart TD\n';
+  visualOutput += '  harness["genesis-harness"] --> planning["genesis-planning"]\n';
+  visualOutput += '  harness --> research["genesis-research-first"]\n';
+  visualOutput += '  planning --> architecture["genesis-architecture"]\n';
+  visualOutput += '  planning --> api["genesis-api-contract"]\n';
+  visualOutput += '  planning --> design["genesis-design-spec"]\n';
+  visualOutput += '  api --> apisync["genesis-api-sync"]\n';
+  visualOutput += '  design --> ui["genesis-ui-ux-test"]\n';
+  visualOutput += '  api --> specimpact["spec-impact-engine"]\n';
+  visualOutput += '  specimpact --> specprop["genesis-spec-propagation"]\n';
+  visualOutput += '  specprop --> docs["genesis-docs-automation"]\n';
+  visualOutput += '  ui --> verifybefore["genesis-verification-before-completion"]\n';
+  visualOutput += '  apisync --> verifybefore\n';
+  visualOutput += '  docs --> verifybefore\n';
+  visualOutput += '  verifybefore --> release["genesis-release"]\n';
+  visualOutput += '  harness --> memorymap["genesis-codebase-map"]\n';
+  visualOutput += '  harness --> observability["genesis-observability-automation"]\n';
+  visualOutput += '```\n\n';
+
+  visualOutput += '## Code Dependency Hints\n\n```mermaid\nflowchart TD\n';
   if (depEdges.length > 0) {
     visualOutput += depEdges.join('\n') + '\n';
   } else {
@@ -890,7 +1103,7 @@ function syncContext() {
   // Parse Roadmap for features and roles
   const roadmapFile = path.join(process.cwd(), '.planning', 'ROADMAP.md');
   if (fs.existsSync(roadmapFile)) {
-    visualOutput += '## Project Roadmap & Features\n\n```mermaid\ngraph TD\n';
+    visualOutput += '## .planning/ROADMAP.md Derived Feature Status\n\n```mermaid\ngraph TD\n';
     visualOutput += '  classDef completed fill:#d4edda,stroke:#28a745,stroke-width:2px;\n';
     visualOutput += '  classDef inprogress fill:#fff3cd,stroke:#ffc107,stroke-width:2px;\n';
     visualOutput += '  classDef pending fill:#e2e3e5,stroke:#6c757d,stroke-width:2px;\n';
@@ -929,7 +1142,6 @@ function syncContext() {
           rawName = rawName.replace(/\(files:\s*.+?\)/i, '').trim();
         }
 
-        rawName = rawName.replace(/"/g, "'");
         const taskId = `Task${taskIdCounter++}`;
         allTasksMap.set(rawName.toLowerCase(), taskId);
 
@@ -952,10 +1164,7 @@ function syncContext() {
       roles.forEach((r, idx) => {
         visualOutput += `  subgraph Role_${idx} ["${r.title}"]\n`;
         r.tasks.forEach(t => {
-          let label = t.name;
-          if (t.mappedFiles && t.mappedFiles.length > 0) {
-            label += `<br><i>(${t.mappedFiles.join(', ')})</i>`;
-          }
+          let label = `Roadmap task ${t.id.replace('Task', '')}`;
           visualOutput += `    ${t.id}["${label}"]\n`;
           if (t.statusChar === 'x') {
             visualOutput += `    class ${t.id} completed;\n`;
@@ -995,8 +1204,13 @@ function syncContext() {
   console.log('[genesis-harness] Visual Graph saved to ' + visualFile);
 }
 
-function setupHooks() {
-  const hooksDir = path.join(process.cwd(), '.git', 'hooks');
+function setupHooks(rootPath = process.cwd()) {
+  if (!rootPath) {
+    console.log('[genesis-harness] Project root not detected, skipping hooks setup.');
+    return;
+  }
+
+  const hooksDir = path.join(rootPath, '.git', 'hooks');
   const preCommitFile = path.join(hooksDir, 'pre-commit');
 
   if (!fs.existsSync(hooksDir)) {
@@ -1008,7 +1222,9 @@ function setupHooks() {
 # genesis-harness auto-sync
 echo "[genesis-harness] Syncing compressed context before commit..."
 npx genesis-harness sync
-git add .codebase/COMPRESSED_CONTEXT.md
+echo "[genesis-harness] Running docs drift gate..."
+npx genesis-harness docs-gate
+git add .codebase/COMPRESSED_CONTEXT.md .codebase/VISUAL_GRAPH.md 2>/dev/null || true
 `;
 
   if (fs.existsSync(preCommitFile)) {
@@ -1026,6 +1242,114 @@ git add .codebase/COMPRESSED_CONTEXT.md
   fs.writeFileSync(preCommitFile, hookContent);
   fs.chmodSync(preCommitFile, '755');
   console.log('[genesis-harness] Git pre-commit hook installed successfully.');
+}
+
+function runDocsGate() {
+  const docsSyncScript = path.join(packageRoot, ".codex", "skills", "genesis-harness", "scripts", "check-docs-sync.sh");
+  const specChangelogScript = path.join(packageRoot, ".codex", "skills", "genesis-harness", "scripts", "check-spec-changelog.sh");
+  const bash = resolveBash();
+
+  if (!fs.existsSync(docsSyncScript)) fail(`missing docs sync gate at ${docsSyncScript}`);
+
+  const docsResult = spawnSync(bash, [docsSyncScript, process.cwd()], {
+    stdio: "inherit",
+    env: process.env
+  });
+  if (docsResult.status) process.exit(docsResult.status);
+
+  if (fs.existsSync(path.join(process.cwd(), ".planning", "SPEC_CHANGELOG.md")) && fs.existsSync(specChangelogScript)) {
+    const specResult = spawnSync(bash, [specChangelogScript, process.cwd()], {
+      stdio: "inherit",
+      env: process.env
+    });
+    if (specResult.status) process.exit(specResult.status);
+  }
+}
+
+/**
+ * runVerifyGate() — L09 Victory Blocker
+ *
+ * Runs ALL required verification gates in sequence.
+ * Agent MUST call this before claiming any task is done.
+ * Exits with non-zero if any gate fails — prevents "under-finish" hallucination.
+ */
+function runVerifyGate() {
+  const bash = resolveBash();
+  const verifyScript = path.join(packageRoot, "scripts", "verify.sh");
+  const evalsScript = path.join(packageRoot, "scripts", "run-evals.sh");
+  const coldStartScript = path.join(packageRoot, "scripts", "cold-start-check.js");
+
+  console.log("\x1b[1m\x1b[36m══════════════════════════════════════════════════════\x1b[0m");
+  console.log("\x1b[1m\x1b[36m   GENESIS HARNESS — VERIFY-GATE (L09 Victory Blocker) \x1b[0m");
+  console.log("\x1b[1m\x1b[36m══════════════════════════════════════════════════════\x1b[0m");
+  console.log("\x1b[33mRunning all verification gates. Task is NOT done until all pass.\x1b[0m\n");
+
+  const gates = [
+    {
+      name: "1. Structural verify (verify.sh)",
+      run: () => spawnSync(bash, [verifyScript], { stdio: "inherit", env: process.env }).status
+    },
+    {
+      name: "2. Feature registry + observability (feature_registry.test.js)",
+      run: () => spawnSync(process.execPath, [
+        path.join(packageRoot, "tests", "unit", "feature_registry.test.js")
+      ], { stdio: "inherit", env: process.env }).status
+    },
+    {
+      name: "3. Cold-start check (cold-start-check.js)",
+      run: () => fs.existsSync(coldStartScript)
+        ? spawnSync(process.execPath, [coldStartScript], { stdio: "inherit", env: process.env }).status
+        : 0
+    },
+    {
+      name: "4. Unit tests (tests/unit/*.test.js)",
+      run: () => {
+        const unitDir = path.join(packageRoot, "tests", "unit");
+        if (!fs.existsSync(unitDir)) return 0;
+        for (const f of fs.readdirSync(unitDir).filter(f => f.endsWith(".test.js"))) {
+          const result = spawnSync(process.execPath, [path.join(unitDir, f)], {
+            stdio: "inherit", env: process.env
+          });
+          if (result.status) return result.status;
+        }
+        return 0;
+      }
+    }
+  ];
+
+  let allPassed = true;
+  for (const gate of gates) {
+    process.stdout.write(`\n\x1b[33m▶ ${gate.name}\x1b[0m\n`);
+    const code = gate.run();
+    if (code !== 0) {
+      console.log(`\x1b[31m✗ FAILED (exit ${code})\x1b[0m`);
+      allPassed = false;
+      break; // Stop on first failure
+    }
+    console.log(`\x1b[32m✓ PASSED\x1b[0m`);
+  }
+
+  console.log("\n\x1b[1m\x1b[36m══════════════════════════════════════════════════════\x1b[0m");
+  if (allPassed) {
+    console.log("\x1b[1m\x1b[32m✓ ALL GATES PASSED — Task may now be declared DONE.\x1b[0m");
+    console.log("\x1b[32mUpdate .codebase/CURRENT_STATE.md and RECOVERY_POINTS.md.\x1b[0m");
+  } else {
+    console.log("\x1b[1m\x1b[31m✗ VERIFICATION FAILED — Do NOT declare this task done.\x1b[0m");
+    console.log("\x1b[31mFix the failing gate, then re-run: genesis-harness verify-gate\x1b[0m");
+    process.exit(1);
+  }
+  console.log("\x1b[1m\x1b[36m══════════════════════════════════════════════════════\x1b[0m\n");
+}
+
+function runColdStart() {
+  const coldStartScript = path.join(packageRoot, "scripts", "cold-start-check.js");
+  if (fs.existsSync(coldStartScript)) {
+    const result = spawnSync(process.execPath, [coldStartScript], { stdio: "inherit", env: process.env });
+    process.exit(result.status);
+  } else {
+    console.error("Cold start script not found.");
+    process.exit(1);
+  }
 }
 
 function healTest(testCommand) {
@@ -1147,6 +1471,7 @@ const args = process.argv.slice(3);
 switch (command) {
   case "install":
     copySkills({ target: parseTarget(args, "both") });
+    seedLeanCtxPolicy(process.cwd());
     setupHooks();
     break;
   case "postinstall":
@@ -1154,7 +1479,9 @@ switch (command) {
       process.exit(0);
     }
     copySkills({ quiet: true, target: "both" });
-    setupHooks();
+    const postinstallRoot = resolvePostinstallProjectRoot();
+    seedLeanCtxPolicy(postinstallRoot, { quiet: true });
+    setupHooks(postinstallRoot);
     break;
   case "verify":
     verifySkill(parseTarget(args, "both"));
@@ -1175,6 +1502,9 @@ switch (command) {
   case "docs":
     showDocsStatus();
     break;
+  case "docs-gate":
+    runDocsGate();
+    break;
   case "remember":
     rememberFact(args[0], args[1]);
     break;
@@ -1187,6 +1517,9 @@ switch (command) {
   case "prime":
     primeContext();
     break;
+  case "leanctx":
+    showLeanCtx();
+    break;
   case "view-mockup":
     viewMockupsInteractive(args[0]);
     break;
@@ -1198,6 +1531,12 @@ switch (command) {
     break;
   case "setup-hooks":
     setupHooks();
+    break;
+  case "verify-gate":
+    runVerifyGate();
+    break;
+  case "cold-start":
+    runColdStart();
     break;
   case "heal":
     healTest(args.join(" "));
