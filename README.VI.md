@@ -26,6 +26,17 @@
 
 ---
 
+## 💖 Ủng Hộ Dự Án (Donate)
+
+Dự án này là mã nguồn mở và được phát triển hoàn toàn vì đam mê. Nếu bạn thấy **Genesis Codex Harness** hữu ích và giúp bạn tiết kiệm thời gian, bạn có thể mời tôi một ly cafe để tiếp thêm động lực phát triển nhé:
+
+- **Momo**: `0865814259`
+- **PayPal**: *(Sẽ cập nhật sau)*
+
+Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển của dự án! ❤️
+
+---
+
 ## 🎯 Tại Sao Dùng Genesis? (ROI trong 3 phút)
 
 ### Trước Genesis ❌
@@ -739,17 +750,6 @@ npm run eval            # Chạy evaluation
 - [ ] Tạo skill templates tái sử dụng
 - [ ] Đóng góp cải thiện vào Genesis
 - [ ] Dùng cho dự án production
-
----
-
-## 💖 Ủng Hộ Dự Án (Donate)
-
-Dự án này là mã nguồn mở và được phát triển hoàn toàn vì đam mê. Nếu bạn thấy **Genesis Codex Harness** hữu ích và giúp bạn tiết kiệm thời gian, bạn có thể mời tôi một ly cafe để tiếp thêm động lực phát triển nhé:
-
-- **Momo**: `0865814259`
-- **PayPal**: *(Sẽ cập nhật sau)*
-
-Cảm ơn bạn rất nhiều vì đã đồng hành cùng sự phát triển của dự án! ❤️
 
 ---
 

@@ -27,6 +27,17 @@
 
 ---
 
+## 💖 Support the Project (Donate)
+
+This project is open-source and developed with passion. If you find **Genesis Codex Harness** helpful and it saves you time, consider buying me a coffee to keep the momentum going:
+
+- **Momo (Vietnam)**: `0865814259`
+- **PayPal**: *(Will be updated later)*
+
+Thank you so much for supporting the development of this project! ❤️
+
+---
+
 ## 🎯 Why Genesis? (ROI in 3 minutes)
 
 ### Before Genesis ❌
@@ -746,17 +757,6 @@ npm run pack:check      # Check npm package
 - [ ] Create reusable skill templates
 - [ ] Contribute improvements back to Genesis
 - [ ] Use for production projects
-
----
-
-## 💖 Support the Project (Donate)
-
-This project is open-source and developed with passion. If you find **Genesis Codex Harness** helpful and it saves you time, consider buying me a coffee to keep the momentum going:
-
-- **Momo (Vietnam)**: `0865814259`
-- **PayPal**: *(Will be updated later)*
-
-Thank you so much for supporting the development of this project! ❤️
 
 ---
 

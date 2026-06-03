@@ -13,6 +13,17 @@
 
 ---
 
+## 💖 Support the Project (Donate)
+
+This project is open-source and developed purely out of passion. If you find **Genesis Codex Harness** helpful and it saves you time, you can buy me a coffee to keep the development going:
+
+- **Momo**: `0865814259`
+- **PayPal**: *(Coming soon)*
+
+Thank you so much for your support! ❤️
+
+---
+
 ## ⚡ Core Pillars at a Glance
 
 *   🗺️ **Structured 5-Phase MVP Roadmap (`genesis-mvp-planning`):** Guarantees a decision-complete path to production. Genesis structures project delivery across 5 standard MVP phases (Foundation/API Core, Auth/Security, Core Features, Integrations, and Production Readiness), ensuring core infrastructure is verified before writing feature code.
