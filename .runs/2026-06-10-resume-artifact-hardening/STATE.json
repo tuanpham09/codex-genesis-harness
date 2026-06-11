@@ -1,0 +1,21 @@
+{
+  "session_id": "2026-06-10-resume-artifact-hardening",
+  "current_state": "COMPLETED",
+  "active_work": "Resume + Run Artifact Hardening",
+  "pending_tasks": [],
+  "required_verification": [
+    "npm run verify",
+    "npm run eval",
+    "npm run pack:check",
+    "node tests/unit/feature_registry.test.js",
+    "node scripts/cold-start-check.js",
+    "node bin/genesis-harness.js docs-gate",
+    "node bin/genesis-harness.js leanctx",
+    "node tests/unit/verify_gate.test.js",
+    "node tests/integration/cli-smoke.test.js",
+    "node tests/unit/state_metadata.test.js"
+  ],
+  "latest_recovery_point": "Resume + Run Artifact Hardening",
+  "session_started_at": "2026-06-10T09:05:00Z",
+  "recorded_at": "2026-06-10T09:05:00Z"
+}

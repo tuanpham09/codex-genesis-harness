@@ -61,6 +61,9 @@ Usage:
   genesis-harness leanctx                Show token budget policy and portable command guidance
   genesis-harness view-mockup [slug]      Interactive console UI to search & view mockups
   genesis-harness mcp                    Interactive MCP installer
+  genesis-harness init [--platform codex|antigravity] [--yes] [--idea "<user brief>"]
+  genesis-harness run --idea "<user brief>" [--platform codex|antigravity] [--yes] [--product-approach "..."] [--primary-user "..."] [--v1-outcome "..."] [--qa-owner "..."] [--backend "..."] [--frontend "..."] [--database "..."] [--deployment "..."] [--test-strategy "..."] [--stack-owner "..."]
+  genesis-harness resume                Show the active resumable run summary for this repo
   genesis-harness sync                   Compress and sync codebase context (AST/Regex)
   genesis-harness setup-hooks            Install auto-sync git pre-commit hook
   genesis-harness heal <command>         Run test & print agent directive on failure
@@ -121,7 +124,11 @@ function copySkills({ quiet = false, target = "both" } = {}) {
       if (fs.existsSync(dir)) {
         const backupParent = path.join(root, "..", "backups");
         fs.mkdirSync(backupParent, { recursive: true });
-        const backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}`);
+        let backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}`);
+        let suffix = 1;
+        while (fs.existsSync(backupDir)) {
+          backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}.${suffix++}`);
+        }
         fs.renameSync(dir, backupDir);
         if (!quiet) console.log(`Existing skill backed up to: ${backupDir}`);
       }
@@ -134,6 +141,34 @@ function copySkills({ quiet = false, target = "both" } = {}) {
   }
 
   if (!quiet) console.log("Restart Codex, then invoke: Use $genesis-harness");
+}
+
+function copySkillsToProjectRoot(rootPath, { quiet = false } = {}) {
+  ensureSource();
+  const projectSkillsRoot = path.join(rootPath, ".codex", "skills");
+  fs.mkdirSync(projectSkillsRoot, { recursive: true });
+
+  for (const skillName of skillNames) {
+    const sourceDir = path.join(sourceRoot, skillName);
+    const dir = path.join(projectSkillsRoot, skillName);
+
+    if (fs.existsSync(dir)) {
+      const backupParent = path.join(rootPath, ".codex", "backups");
+      fs.mkdirSync(backupParent, { recursive: true });
+      let backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}`);
+      let suffix = 1;
+      while (fs.existsSync(backupDir)) {
+        backupDir = path.join(backupParent, `${skillName}.backup.${timestamp()}.${suffix++}`);
+      }
+      fs.renameSync(dir, backupDir);
+      if (!quiet) console.log(`Existing project skill backed up to: ${backupDir}`);
+    }
+
+    fs.cpSync(sourceDir, dir, { recursive: true });
+    chmodScripts(path.join(dir, "scripts"));
+
+    if (!quiet) console.log(`Installed ${skillName} to: ${dir}`);
+  }
 }
 
 function shouldSeedProjectRoot(rootPath) {
@@ -406,7 +441,7 @@ function showStatus() {
       }
     }
   } else {
-    console.log("\n\x1b[1m\x1b[33m[-] FSM Active Planning:\x1b[0m No active .planning/ session found. Run `/genesis-init` in Codex to initialize.");
+    console.log("\n\x1b[1m\x1b[33m[-] FSM Active Planning:\x1b[0m No active .planning/ session found. Start with a user idea or run `genesis-harness init --yes --platform codex --idea \"<brief>\"`.");
   }
 
   // 3. Skills Inventory
@@ -791,6 +826,1280 @@ function openFileNatively(filePath) {
 
   const cp = spawnSync(cmd, [filePath]);
   return cp.status === 0;
+}
+
+function ensureProjectScaffold(rootPath) {
+  const dirs = [
+    ".codebase/context",
+    ".codebase/failures",
+    ".codebase/memories",
+    "contracts/api",
+    "contracts/ui",
+    "tests/integration",
+    "tests/unit",
+    "fixtures",
+    "observability/agent-runs"
+  ];
+
+  for (const dir of dirs) {
+    fs.mkdirSync(path.join(rootPath, dir), { recursive: true });
+  }
+}
+
+function runInitPlanning(rootPath, idea = "") {
+  const initScript = path.join(packageRoot, ".codex", "skills", "genesis-harness", "scripts", "init-planning.sh");
+  if (!fs.existsSync(initScript)) {
+    fail(`missing init planning script at ${initScript}`);
+  }
+
+  const bash = resolveBash();
+  const commandArgs = [initScript, "--confirmed", "--root", rootPath];
+  if (idea) {
+    commandArgs.push("--idea", idea);
+  }
+  const result = spawnSync(bash, commandArgs, {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      PROJECT_BRIEF_CONFIRMED: "1"
+    }
+  });
+
+  if (result.status !== 0) {
+    const details = [result.stdout, result.stderr].filter(Boolean).join("\n").trim();
+    fail(`init planning failed${details ? `\n${details}` : ""}`);
+  }
+
+  return result.stdout || "";
+}
+
+function initializeProject({ rootPath = process.cwd(), platform = "antigravity", idea = "" } = {}) {
+  const normalized = String(platform || "").toLowerCase();
+  if (!["antigravity", "codex"].includes(normalized)) {
+    fail(`unsupported init platform "${platform}". Use "antigravity" or "codex".`);
+  }
+
+  const platformLabel = normalized === "codex" ? "Codex / Claude (VS Code)" : "Antigravity IDE (Gemini)";
+  const isAntigravity = normalized === "antigravity";
+
+  console.log(`\n\x1b[1m\x1b[32m[+] Initializing Genesis Harness for ${platformLabel}...\x1b[0m\n`);
+
+  ensureProjectScaffold(rootPath);
+
+  if (!isAntigravity) {
+    console.log("  Copying local skills to .codex/skills/...");
+    copySkillsToProjectRoot(rootPath);
+  } else {
+    console.log("  Skipping local skills copy (Antigravity uses global plugin).");
+  }
+
+  seedLeanCtxPolicy(rootPath);
+  setupHooks(rootPath);
+  runInitPlanning(rootPath, idea);
+
+  console.log("\n\x1b[1m\x1b[32m✓ Initialization Complete.\x1b[0m");
+  console.log("Next steps:");
+  console.log("  1. Answer `.planning/INIT_QA.md`.");
+  console.log("  2. Confirm product approach, tech stack, and QA sign-off owner.");
+  console.log("  3. Update `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, and `.planning/STACK.md` before feature planning.\n");
+}
+
+function parseInitArgs(args) {
+  const options = {
+    autoConfirm: false,
+    platform: null,
+    idea: ""
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--yes" || arg === "--confirmed") {
+      options.autoConfirm = true;
+      continue;
+    }
+    if (arg === "--platform") {
+      options.platform = args[i + 1] || null;
+      i++;
+      continue;
+    }
+    if (arg === "--idea") {
+      options.idea = args[i + 1] || "";
+      i++;
+      continue;
+    }
+    usage(2);
+  }
+
+  return options;
+}
+
+function parseRunArgs(args) {
+  const options = {
+    autoConfirm: false,
+    platform: null,
+    idea: "",
+    productApproach: "",
+    primaryUser: "",
+    v1Outcome: "",
+    qaOwner: "",
+    backend: "",
+    frontend: "",
+    database: "",
+    deployment: "",
+    testStrategy: "",
+    stackOwner: ""
+  };
+
+  const valueFlags = new Map([
+    ["--platform", "platform"],
+    ["--idea", "idea"],
+    ["--product-approach", "productApproach"],
+    ["--primary-user", "primaryUser"],
+    ["--v1-outcome", "v1Outcome"],
+    ["--qa-owner", "qaOwner"],
+    ["--backend", "backend"],
+    ["--frontend", "frontend"],
+    ["--database", "database"],
+    ["--deployment", "deployment"],
+    ["--test-strategy", "testStrategy"],
+    ["--stack-owner", "stackOwner"]
+  ]);
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--yes" || arg === "--confirmed") {
+      options.autoConfirm = true;
+      continue;
+    }
+    if (valueFlags.has(arg)) {
+      const key = valueFlags.get(arg);
+      options[key] = args[i + 1] || "";
+      i++;
+      continue;
+    }
+    usage(2);
+  }
+
+  if (!options.idea) {
+    fail('run requires --idea "<user brief>".');
+  }
+
+  const requiredDiscoveryFields = [
+    ["--product-approach", options.productApproach],
+    ["--primary-user", options.primaryUser],
+    ["--v1-outcome", options.v1Outcome],
+    ["--qa-owner", options.qaOwner],
+    ["--backend", options.backend],
+    ["--frontend", options.frontend],
+    ["--database", options.database],
+    ["--deployment", options.deployment],
+    ["--test-strategy", options.testStrategy]
+  ].filter(([, value]) => !value);
+
+  if (requiredDiscoveryFields.length > 0) {
+    fail(`run requires discovery answers for ${requiredDiscoveryFields.map(([flag]) => flag).join(", ")}.`);
+  }
+
+  return options;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function replaceSection(content, heading, replacement) {
+  const pattern = new RegExp(`(## ${escapeRegExp(heading)}\\n\\n)([\\s\\S]*?)(?=\\n## |$)`);
+  if (!pattern.test(content)) return content;
+  return content.replace(pattern, `$1${replacement.trim()}\n`);
+}
+
+function replaceLineValue(content, label, value) {
+  const pattern = new RegExp(`^${escapeRegExp(label)}: .*?$`, "m");
+  if (!pattern.test(content)) return content;
+  return content.replace(pattern, `${label}: ${value}`);
+}
+
+function writeFileIfChanged(filePath, content) {
+  fs.writeFileSync(filePath, content, "utf8");
+}
+
+function writeJsonFile(filePath, value) {
+  writeFileIfChanged(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function updateMarkdownFile(filePath, updater) {
+  const current = fs.readFileSync(filePath, "utf8");
+  const next = updater(current);
+  writeFileIfChanged(filePath, next);
+}
+
+function normalizeAnswer(value, fallback = "TBD") {
+  const normalized = String(value || "").trim();
+  return normalized || fallback;
+}
+
+function sessionRunDir(rootPath, sessionId) {
+  return path.join(rootPath, ".runs", sessionId);
+}
+
+function buildResumeMarkdown({ sessionId, state, answers, artifactDir }) {
+  const nextTasks = (state.pending_tasks || []).map(task => `- ${task}`);
+  const answerLines = [
+    `- Product approach: ${answers.product_approach || "TBD"}`,
+    `- Primary user: ${answers.primary_user || "TBD"}`,
+    `- V1 outcome: ${answers.v1_outcome || "TBD"}`,
+    `- QA owner: ${answers.qa_owner || "TBD"}`,
+    `- Backend/runtime: ${answers.backend || "TBD"}`,
+    `- Frontend/client: ${answers.frontend || "TBD"}`,
+    `- Database: ${answers.database || "TBD"}`,
+    `- Deployment: ${answers.deployment || "TBD"}`,
+    `- Test strategy: ${answers.test_strategy || "TBD"}`,
+    `- Stack owner: ${answers.stack_owner || "TBD"}`
+  ];
+
+  return [
+    "# Resume Brief",
+    "",
+    `- Session: \`${sessionId}\``,
+    `- Current state: \`${state.current_state || "INIT"}\``,
+    `- Active work: ${state.active_work || "TBD"}`,
+    `- Active feature: ${state.active_feature || "None"}`,
+    `- Artifact dir: \`${artifactDir}\``,
+    "",
+    "## Discovery Snapshot",
+    "",
+    ...answerLines,
+    "",
+    "## Next Tasks",
+    "",
+    ...(nextTasks.length > 0 ? nextTasks : ["- No pending tasks recorded."]),
+    ""
+  ].join("\n");
+}
+
+function persistRunArtifacts(rootPath, { sessionId, state, answers, idea, recordedAt }) {
+  if (!sessionId) {
+    fail("cannot persist run artifacts without session_id");
+  }
+
+  const runDir = sessionRunDir(rootPath, sessionId);
+  fs.mkdirSync(runDir, { recursive: true });
+
+  const discovery = {
+    session_id: sessionId,
+    recorded_at: recordedAt || new Date().toISOString(),
+    idea: idea || "",
+    ...answers
+  };
+
+  const artifactState = {
+    session_id: sessionId,
+    current_state: state.current_state || "INIT",
+    active_work: state.active_work || "",
+    active_feature: state.active_feature || "",
+    pending_tasks: state.pending_tasks || [],
+    required_verification: state.required_verification || [],
+    latest_recovery_point: state.latest_recovery_point || "",
+    session_started_at: state.session_started_at || discovery.recorded_at,
+    recorded_at: discovery.recorded_at
+  };
+
+  writeFileIfChanged(
+    path.join(runDir, "INPUT.md"),
+    [
+      "# Run Input",
+      "",
+      `- Session: \`${sessionId}\``,
+      `- Recorded at: ${discovery.recorded_at}`,
+      "",
+      "## User Brief",
+      "",
+      idea || "No explicit user brief captured.",
+      ""
+    ].join("\n")
+  );
+  writeJsonFile(path.join(runDir, "DISCOVERY.json"), discovery);
+  writeJsonFile(path.join(runDir, "STATE.json"), artifactState);
+  writeFileIfChanged(
+    path.join(runDir, "RESUME.md"),
+    buildResumeMarkdown({
+      sessionId,
+      state: artifactState,
+      answers: discovery,
+      artifactDir: runDir
+    })
+  );
+
+  return runDir;
+}
+
+function backfillRunArtifacts(rootPath, state) {
+  const sessionId = state.session_id;
+  if (!sessionId) {
+    fail("cannot resume because .codebase/state.json is missing session_id");
+  }
+
+  const discoveryAnswers = state.discovery_answers || {};
+  persistRunArtifacts(rootPath, {
+    sessionId,
+    state,
+    answers: discoveryAnswers,
+    idea: discoveryAnswers.idea || "",
+    recordedAt: discoveryAnswers.captured_at || state.session_started_at || new Date().toISOString()
+  });
+
+  return sessionRunDir(rootPath, sessionId);
+}
+
+function resumeProject(rootPath = process.cwd()) {
+  const statePath = path.join(rootPath, ".codebase", "state.json");
+  if (!fs.existsSync(statePath)) {
+    fail(`missing state file at ${statePath}; run init or run first.`);
+  }
+
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  const sessionId = state.session_id;
+  if (!sessionId) {
+    fail("cannot resume because .codebase/state.json does not record session_id");
+  }
+
+  const runDir = fs.existsSync(sessionRunDir(rootPath, sessionId))
+    ? sessionRunDir(rootPath, sessionId)
+    : backfillRunArtifacts(rootPath, state);
+  const artifactStatePath = path.join(runDir, "STATE.json");
+  const artifactDiscoveryPath = path.join(runDir, "DISCOVERY.json");
+  const artifactState = fs.existsSync(artifactStatePath)
+    ? JSON.parse(fs.readFileSync(artifactStatePath, "utf8"))
+    : state;
+  const artifactDiscovery = fs.existsSync(artifactDiscoveryPath)
+    ? JSON.parse(fs.readFileSync(artifactDiscoveryPath, "utf8"))
+    : (state.discovery_answers || {});
+
+  const nextTasks = artifactState.pending_tasks || [];
+  console.log("\nGENESIS HARNESS - RESUME REPORT\n");
+  console.log(`Resume session: ${sessionId}`);
+  console.log(`Current state: ${artifactState.current_state || state.current_state || "INIT"}`);
+  console.log(`Active work: ${artifactState.active_work || state.active_work || "TBD"}`);
+  console.log(`Active feature: ${artifactState.active_feature || state.active_feature || "None"}`);
+  console.log(`Artifact dir: ${runDir}`);
+  console.log(`Primary user: ${artifactDiscovery.primary_user || "TBD"}`);
+  console.log(`Product approach: ${artifactDiscovery.product_approach || "TBD"}`);
+  console.log("Next tasks:");
+  if (nextTasks.length === 0) {
+    console.log("  - No pending tasks recorded.");
+  } else {
+    for (const task of nextTasks) {
+      console.log(`  - ${task}`);
+    }
+  }
+  console.log("");
+}
+
+function completeDiscoveryPhase(rootPath, answers) {
+  const planningRoot = path.join(rootPath, ".planning");
+  if (!fs.existsSync(planningRoot)) {
+    fail(`missing planning directory at ${planningRoot}; run init first.`);
+  }
+
+  const idea = normalizeAnswer(answers.idea, "No explicit user brief captured.");
+  const productApproach = normalizeAnswer(
+    answers.productApproach,
+    `Bootstrap around this brief: ${idea}`
+  );
+  const primaryUser = normalizeAnswer(answers.primaryUser, "TBD");
+  const v1Outcome = normalizeAnswer(answers.v1Outcome, "TBD");
+  const qaOwner = normalizeAnswer(answers.qaOwner, "TBD");
+  const backend = normalizeAnswer(answers.backend, "TBD");
+  const frontend = normalizeAnswer(answers.frontend, "TBD");
+  const database = normalizeAnswer(answers.database, "TBD");
+  const deployment = normalizeAnswer(answers.deployment, "TBD");
+  const testStrategy = normalizeAnswer(answers.testStrategy, "TBD");
+  const stackOwner = normalizeAnswer(answers.stackOwner || answers.qaOwner, "TBD");
+  const nowIso = new Date().toISOString();
+  const today = nowIso.slice(0, 10);
+
+  updateMarkdownFile(path.join(planningRoot, "PROJECT.md"), (content) => {
+    let next = content;
+    next = replaceSection(next, "What This Project Is", `${idea}\n\nPreferred approach: ${productApproach}`);
+    next = replaceSection(next, "Target Users", primaryUser);
+    next = replaceSection(next, "Core Value", v1Outcome);
+    next = replaceSection(
+      next,
+      "Product Scope",
+      `- [x] Build around this brief: ${idea}\n- [x] Preferred product approach: ${productApproach}`
+    );
+    next = replaceSection(next, "Current Milestone", "First feature planning is ready.");
+    next = replaceSection(
+      next,
+      "Success Criteria",
+      `- [x] Discovery closed with explicit product approach.\n- [x] Primary user confirmed: ${primaryUser}\n- [x] Smallest acceptable v1 outcome confirmed: ${v1Outcome}`
+    );
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "REQUIREMENTS.md"), (content) => {
+    let next = content;
+    next = replaceSection(
+      next,
+      "Functional Requirements",
+      `- [x] Support the approved product approach: ${productApproach}\n- [x] Deliver the smallest acceptable v1 outcome: ${v1Outcome}`
+    );
+    next = replaceSection(
+      next,
+      "User Stories",
+      `- [x] As ${primaryUser}, I want ${v1Outcome.toLowerCase()} so that the core workflow can be completed without context loss.`
+    );
+    next = replaceSection(
+      next,
+      "Acceptance Criteria",
+      `- [x] Discovery answers are recorded in INIT_QA.md.\n- [x] Product approach is explicit: ${productApproach}\n- [x] QA sign-off owner is explicit: ${qaOwner}`
+    );
+    next = replaceSection(
+      next,
+      "Known Unknowns",
+      "- [ ] Decompose the approved scope into the first implementation features."
+    );
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "STACK.md"), (content) => {
+    let next = content;
+    next = replaceLineValue(next, "Language", backend);
+    next = replaceLineValue(next, "Framework", frontend);
+    next = replaceLineValue(next, "Runtime", backend);
+    next = replaceLineValue(next, "Database", database);
+    next = replaceLineValue(next, "Test framework", testStrategy);
+    next = replaceLineValue(next, "Deployment target", deployment);
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "INIT_QA.md"), (content) => {
+    const answersBlock = [
+      "## Recorded Answers",
+      "",
+      `- [x] Product approach: ${productApproach}`,
+      `- [x] Primary user: ${primaryUser}`,
+      `- [x] Smallest acceptable v1 outcome: ${v1Outcome}`,
+      `- [x] QA sign-off owner: ${qaOwner}`,
+      `- [x] Backend/runtime choice: ${backend}`,
+      `- [x] Frontend/client choice: ${frontend}`,
+      `- [x] Storage/database choice: ${database}`,
+      `- [x] Test strategy: ${testStrategy}`,
+      `- [x] Deployment target: ${deployment}`,
+      `- [x] Final tech stack owner: ${stackOwner}`
+    ].join("\n");
+
+    if (content.includes("## Recorded Answers")) {
+      return replaceSection(content, "Recorded Answers", answersBlock.replace("## Recorded Answers\n\n", ""));
+    }
+    return `${content.trim()}\n\n${answersBlock}\n`;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "decisions", "ADR-001-tech-stack.md"), (content) => {
+    let next = content;
+    next = next.replace("Status: Proposed", "Status: Accepted");
+    next = replaceSection(next, "Context", `Brief: ${idea}`);
+    next = replaceSection(
+      next,
+      "Decision",
+      `Use ${backend} for backend/runtime, ${frontend} for the client, ${database} for storage, deploy to ${deployment}, and verify through ${testStrategy}.`
+    );
+    next = replaceSection(next, "Alternatives Considered", "- [x] Alternatives will be revisited only if the first feature plan exposes blocking constraints.");
+    next = replaceSection(next, "Consequences", `- [x] Discovery is closed and feature planning can assume this stack.\n- [x] Stack owner: ${stackOwner}`);
+    next = replaceSection(next, "Risks", "- [ ] Feature-level implementation risks will be captured in the first feature plan.");
+    next = replaceSection(next, "Mitigation", "- [x] Revisit this ADR if the first implementation feature invalidates the chosen stack.");
+    next = replaceSection(next, "Verification Evidence", `- [x] Discovery answers captured via genesis-harness run on ${today}.`);
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "ROADMAP.md"), (content) =>
+    content
+      .replace(
+        "| 01 Discovery & QA | Validation | [ ] | 00 Foundation | Product approach confirmed, QA checklist answered, tech stack signed off |",
+        "| 01 Discovery & QA | Validation | [x] | 00 Foundation | Product approach confirmed, QA checklist answered, tech stack signed off |"
+      )
+      .replace(
+        "| TBD | Feature | [ ] | 01 Discovery & QA | To be planned after requirements finalized |",
+        "| TBD | Feature | [~] | 01 Discovery & QA | Ready for first feature plan |"
+      )
+  );
+
+  updateMarkdownFile(path.join(planningRoot, "STATE.md"), (content) => {
+    let next = content;
+    next = next.replace(
+      /Current project state: .*$/m,
+      "Current project state: [~] Discovery closed, ready for feature planning."
+    );
+    next = next.replace(
+      /Current phase: .*$/m,
+      "Current phase: 02 First Feature Planning"
+    );
+    next = next.replace(
+      /Last completed task: .*$/m,
+      "Last completed task: Closed discovery Q&A, QA sign-off path, and tech stack."
+    );
+    next = next.replace(
+      /Next task: .*$/m,
+      "Next task: Create the first feature plan from the approved scope."
+    );
+    next = next.replace(
+      /Latest verification result: .*$/m,
+      "Latest verification result: Discovery bootstrap completed."
+    );
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "SUMMARY.md"), (content) => {
+    let next = content;
+    next = replaceSection(next, "Current Focus", "- [x] Discovery closed and project moved into first feature planning.");
+    next = replaceSection(next, "Recent Changes", `- [x] Discovery answers captured for ${primaryUser}.\n- [x] Stack accepted: ${backend} + ${frontend} + ${database}.`);
+    next = replaceSection(next, "Next Recommended Task", "- [ ] Create the first feature plan and its verification contract.");
+    return next;
+  });
+
+  const currentStatePath = path.join(rootPath, ".codebase", "CURRENT_STATE.md");
+  if (fs.existsSync(currentStatePath)) {
+    writeFileIfChanged(
+      currentStatePath,
+      [
+        "# Current System State",
+        "",
+        `**Time**: ${today}  `,
+        "**Status**: `IN_PROGRESS`  ",
+        `**Latest Session**: \`${today}-run-pipeline\`  `,
+        "",
+        "## Active Bootstrap",
+        "",
+        `- Planning harness initialized from the user brief: ${idea}`,
+        "- Discovery answers are now recorded and the project is ready for feature planning.",
+        "- Current planner phase: `PLANNING`",
+        "- Next task: Create the first feature plan from the approved scope."
+      ].join("\n")
+    );
+  }
+
+  const statePath = path.join(rootPath, ".codebase", "state.json");
+  if (fs.existsSync(statePath)) {
+    const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+    const sessionId = `${today}-run-pipeline`;
+    state.current_state = "PLANNING";
+    state.active_work = "First feature planning";
+    state.active_feature = "";
+    state.session_id = sessionId;
+    state.session_started_at = state.session_started_at || nowIso;
+    state.last_updated_at = nowIso;
+    state.latest_recovery_point = "Discovery Q&A completed";
+    state.required_verification = [
+      "genesis-harness run --idea \"<user brief>\" ...",
+      "genesis-harness resume",
+      "Review .planning/PROJECT.md, REQUIREMENTS.md, STACK.md",
+      "Create the first feature plan"
+    ];
+    state.pending_tasks = ["Create the first feature plan", "Define the first verification contract"];
+    state.discovery_answers = {
+      idea,
+      product_approach: productApproach,
+      primary_user: primaryUser,
+      v1_outcome: v1Outcome,
+      qa_owner: qaOwner,
+      backend,
+      frontend,
+      database,
+      deployment,
+      test_strategy: testStrategy,
+      stack_owner: stackOwner,
+      captured_at: nowIso
+    };
+    writeJsonFile(statePath, state);
+    persistRunArtifacts(rootPath, {
+      sessionId,
+      state,
+      answers: state.discovery_answers,
+      idea,
+      recordedAt: nowIso
+    });
+  }
+}
+
+function slugifyFeature(value, fallback = "first-feature") {
+  const slug = String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/g, "");
+  return slug || fallback;
+}
+
+function toTitleCase(value) {
+  return String(value || "")
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function inferFeatureKind(answers) {
+  const frontend = normalizeAnswer(answers.frontend, "TBD");
+  const backend = normalizeAnswer(answers.backend, "TBD");
+  const approach = `${answers.productApproach || ""} ${answers.v1Outcome || ""}`.toLowerCase();
+  const uiHints = /(dashboard|screen|page|web|mobile|tablet|client|ui|form|portal)/.test(approach);
+  const apiHints = /(api|endpoint|backend|service|queue|workflow|sync|request)/.test(approach);
+  const hasFrontend = frontend !== "TBD";
+  const hasBackend = backend !== "TBD";
+
+  if ((hasFrontend || uiHints) && (hasBackend || apiHints)) return "full-stack";
+  if (hasFrontend || uiHints) return "ui";
+  if (hasBackend || apiHints) return "api";
+  return "generic";
+}
+
+function deriveFeatureSurface(answers, featureRelativePath) {
+  const summary = normalizeAnswer(
+    answers.v1Outcome,
+    normalizeAnswer(answers.productApproach, normalizeAnswer(answers.idea, "first feature slice"))
+  );
+  const combined = `${answers.productApproach || ""} ${summary}`.toLowerCase();
+  let routeSegment = slugifyFeature(summary, path.basename(featureRelativePath));
+  let collectionName = "items";
+  let responseStatus = "ready";
+  let selectionEvent = "onFeatureSelect";
+
+  if (/\bqueue\b/.test(combined)) {
+    routeSegment = "staff-queue";
+    collectionName = "items";
+    responseStatus = "queued";
+    selectionEvent = "onQueueItemSelect";
+  } else if (/\blogin|sign[\s-]?in|auth\b/.test(combined)) {
+    routeSegment = "login";
+    collectionName = "sessions";
+    responseStatus = "authenticated";
+    selectionEvent = "onLoginSubmit";
+  } else if (/\bdashboard\b/.test(combined)) {
+    routeSegment = "dashboard";
+    collectionName = "widgets";
+    responseStatus = "loaded";
+    selectionEvent = "onDashboardCardSelect";
+  }
+
+  const route = `/${routeSegment}`;
+  const apiPath = `/api/${routeSegment}/${collectionName}`;
+
+  return {
+    kind: inferFeatureKind(answers),
+    route,
+    apiPath,
+    responseStatus,
+    selectionEvent,
+    entityName: toTitleCase(collectionName.replace(/-/g, " ")),
+    contractSlug: path.basename(featureRelativePath)
+  };
+}
+
+function deriveFirstFeatureSeed(answers) {
+  const summary = normalizeAnswer(
+    answers.v1Outcome,
+    normalizeAnswer(answers.productApproach, normalizeAnswer(answers.idea, "First feature slice"))
+  );
+  const slugSource = summary
+    .replace(/^staff can\s+/i, "")
+    .replace(/^users can\s+/i, "")
+    .replace(/^allow\s+/i, "");
+  return {
+    summary,
+    slug: slugifyFeature(slugSource, "first-feature-slice")
+  };
+}
+
+function createFeatureScaffold(rootPath, { slug, summary }) {
+  const scriptPath = path.join(packageRoot, ".codex", "skills", "genesis-harness", "scripts", "create-feature.sh");
+  const result = spawnSync("bash", [scriptPath, slug, summary, rootPath], {
+    cwd: rootPath,
+    encoding: "utf8"
+  });
+
+  if (result.status !== 0) {
+    const details = (result.stderr || result.stdout || "unknown create-feature.sh failure").trim();
+    fail(`failed to scaffold first feature: ${details}`);
+  }
+
+  const relativePath = (result.stdout || "").trim();
+  if (!relativePath) {
+    fail("failed to scaffold first feature: create-feature.sh did not return the feature path");
+  }
+
+  return relativePath;
+}
+
+function seedUiContractsAndFixtures(rootPath, featureRelativePath, featureSurface, answers, featureSeed) {
+  const uiContractDir = path.join(rootPath, "contracts", "ui", featureSurface.contractSlug);
+  const uiFixturePath = path.join(rootPath, "playwright", "fixtures", `${featureSurface.contractSlug}-ui-fixture.md`);
+  fs.mkdirSync(uiContractDir, { recursive: true });
+  fs.mkdirSync(path.dirname(uiFixturePath), { recursive: true });
+
+  writeJsonFile(path.join(uiContractDir, "screen-contract.json"), {
+    contract_id: `UI-${featureSurface.contractSlug.toUpperCase().replace(/[^A-Z0-9]+/g, "-")}`,
+    version: "1.0.0",
+    description: `Bootstrap UI contract for the first feature slice: ${featureSeed.summary}.`,
+    inputs: {
+      route: featureSurface.route,
+      data: [
+        {
+          name: "actor",
+          type: "string",
+          validation: normalizeAnswer(answers.primaryUser, "Primary user"),
+          required: true
+        }
+      ]
+    },
+    states: {
+      initial: `Route ${featureSurface.route} is visible with an empty state ready for ${featureSeed.summary.toLowerCase()}.`,
+      valid: `The primary action is enabled and the ${featureSurface.entityName.toLowerCase()} list is interactive.`,
+      loading: "The main action is pending and the primary controls are disabled.",
+      error: "An inline error is shown with enough context for QA triage."
+    },
+    outputs: {
+      events: [
+        {
+          name: featureSurface.selectionEvent,
+          payload: {
+            id: "string",
+            status: featureSurface.responseStatus
+          }
+        }
+      ]
+    },
+    mockup_reference: `${featureRelativePath}/mockup.png`
+  });
+
+  writeFileIfChanged(
+    uiFixturePath,
+    [
+      "# UI Fixture",
+      "",
+      `- Route: \`${featureSurface.route}\``,
+      `- User role: ${normalizeAnswer(answers.primaryUser, "TBD")}`,
+      "- Viewport: tablet landscape",
+      `- Mocked API: \`${featureSurface.apiPath}\` returns ${featureSurface.responseStatus}`,
+      `- Expected text: ${featureSeed.summary}`,
+      `- Expected state: ${featureSurface.responseStatus} items render in the primary queue or list`,
+      ""
+    ].join("\n")
+  );
+
+  return {
+    contractPath: path.relative(rootPath, path.join(uiContractDir, "screen-contract.json")),
+    fixturePath: path.relative(rootPath, uiFixturePath)
+  };
+}
+
+function seedApiContractsAndFixtures(rootPath, featureSurface, answers, featureSeed) {
+  const apiContractDir = path.join(rootPath, "contracts", "api", featureSurface.contractSlug);
+  const apiFixturePath = path.join(rootPath, "fixtures", "api", `${featureSurface.contractSlug}-api-fixture.md`);
+  fs.mkdirSync(apiContractDir, { recursive: true });
+  fs.mkdirSync(path.dirname(apiFixturePath), { recursive: true });
+
+  writeJsonFile(path.join(apiContractDir, "request.json"), {
+    method: "POST",
+    path: featureSurface.apiPath,
+    body: {
+      actor: normalizeAnswer(answers.primaryUser, "Primary user"),
+      intent: featureSeed.summary,
+      status: featureSurface.responseStatus
+    }
+  });
+  writeJsonFile(path.join(apiContractDir, "response.json"), {
+    status: 200,
+    body: {
+      ok: true,
+      status: featureSurface.responseStatus,
+      item: {
+        id: "generated-id",
+        summary: featureSeed.summary
+      }
+    }
+  });
+  writeJsonFile(path.join(apiContractDir, "schema.json"), {
+    type: "object",
+    required: ["ok", "status", "item"],
+    properties: {
+      ok: { type: "boolean" },
+      status: { type: "string" },
+      item: {
+        type: "object",
+        required: ["id", "summary"],
+        properties: {
+          id: { type: "string" },
+          summary: { type: "string" }
+        }
+      }
+    }
+  });
+  writeJsonFile(path.join(apiContractDir, "example.json"), {
+    request: {
+      method: "POST",
+      path: featureSurface.apiPath
+    },
+    response: {
+      status: 200,
+      body: {
+        ok: true,
+        status: featureSurface.responseStatus
+      }
+    }
+  });
+  writeJsonFile(path.join(apiContractDir, "error.json"), {
+    error: "invalid_feature_request",
+    message: `Request failed validation for ${featureSeed.summary}.`
+  });
+
+  writeFileIfChanged(
+    apiFixturePath,
+    [
+      "# API Fixture",
+      "",
+      "## Input",
+      "",
+      "- Method: `POST`",
+      `- Path: \`${featureSurface.apiPath}\``,
+      `- Auth: ${normalizeAnswer(answers.primaryUser, "TBD")}`,
+      `- Body intent: ${featureSeed.summary}`,
+      "",
+      "## Expected Output",
+      "",
+      "- Status: `200`",
+      `- Body status: \`${featureSurface.responseStatus}\``,
+      `- Persistence: a ${featureSurface.entityName.toLowerCase()} record is created or updated`,
+      "",
+      "## Validation Notes",
+      "",
+      "- Request schema must reject missing actor or intent fields.",
+      "- Response schema must include ok/status/item.",
+      ""
+    ].join("\n")
+  );
+
+  return {
+    contractDir: path.relative(rootPath, apiContractDir),
+    fixturePath: path.relative(rootPath, apiFixturePath)
+  };
+}
+
+function seedFirstFeatureExecution(rootPath, answers) {
+  const planningRoot = path.join(rootPath, ".planning");
+  if (!fs.existsSync(planningRoot)) {
+    fail(`missing planning directory at ${planningRoot}; run init first.`);
+  }
+
+  const idea = normalizeAnswer(answers.idea, "No explicit user brief captured.");
+  const productApproach = normalizeAnswer(answers.productApproach, `Bootstrap around this brief: ${idea}`);
+  const primaryUser = normalizeAnswer(answers.primaryUser, "the primary user");
+  const v1Outcome = normalizeAnswer(answers.v1Outcome, "deliver the first feature slice");
+  const qaOwner = normalizeAnswer(answers.qaOwner, "TBD");
+  const backend = normalizeAnswer(answers.backend, "TBD");
+  const frontend = normalizeAnswer(answers.frontend, "TBD");
+  const database = normalizeAnswer(answers.database, "TBD");
+  const deployment = normalizeAnswer(answers.deployment, "TBD");
+  const testStrategy = normalizeAnswer(answers.testStrategy, "TBD");
+  const stackOwner = normalizeAnswer(answers.stackOwner || answers.qaOwner, "TBD");
+  const nowIso = new Date().toISOString();
+  const today = nowIso.slice(0, 10);
+  const featureSeed = deriveFirstFeatureSeed(answers);
+  const featureRelativePath = createFeatureScaffold(rootPath, featureSeed);
+  const featureDir = path.join(rootPath, featureRelativePath);
+  const featureName = path.basename(featureRelativePath);
+  const featureSurface = deriveFeatureSurface(answers, featureRelativePath);
+  const generatedArtifacts = {};
+  if (featureSurface.kind === "ui" || featureSurface.kind === "full-stack") {
+    generatedArtifacts.ui = seedUiContractsAndFixtures(rootPath, featureRelativePath, featureSurface, answers, featureSeed);
+  }
+  if (featureSurface.kind === "api" || featureSurface.kind === "full-stack") {
+    generatedArtifacts.api = seedApiContractsAndFixtures(rootPath, featureSurface, answers, featureSeed);
+  }
+
+  writeFileIfChanged(
+    path.join(featureDir, "SPEC.md"),
+    [
+      `# Feature: ${featureSeed.summary}`,
+      "",
+      "## Summary",
+      "",
+      `${featureSeed.summary}`,
+      "",
+      "## User Story",
+      "",
+      `As ${primaryUser}, I want ${v1Outcome.toLowerCase()} so that the lobby team can complete the first core workflow without context switching.`,
+      "",
+      "## Expected Behavior",
+      "",
+      `- [x] Reflect the approved product approach: ${productApproach}`,
+      `- [x] Deliver the v1 outcome: ${v1Outcome}`,
+      `- [x] Align implementation choices with ${backend} + ${frontend} + ${database}`,
+      "",
+      "## Edge Cases",
+      "",
+      "- [ ] Empty-state flow has a visible fallback.",
+      "- [ ] Failure path preserves enough detail for QA triage.",
+      "- [ ] The first feature slice remains deployable without opening new scope.",
+      "",
+      "## Out Of Scope",
+      "",
+      "- [x] Additional features beyond the first implementation slice.",
+      "- [x] Unapproved stack changes outside the accepted discovery answers.",
+      "",
+      "## Acceptance Criteria",
+      "",
+      `- [x] The first feature plan is scaffolded at \`${featureRelativePath}\`.`,
+      "- [x] Tests, contracts, and verification steps are defined before implementation starts.",
+      `- [x] QA sign-off path names ${qaOwner} as the owner for this slice.`,
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "IMPACT.md"),
+    [
+      "# Impact",
+      "",
+      "| Question | Answer | Notes |",
+      "|---|---|---|",
+      `| Does this affect API? | TBD | Define only the endpoints needed for: ${v1Outcome} |`,
+      `| Does this affect database? | TBD | Keep schema changes bounded to ${database} decisions already accepted |`,
+      "| Does this affect UI? | Yes | First feature execution starts from the approved primary flow |",
+      "| Does this affect auth/security? | TBD | Capture login and permissions assumptions before implementation |",
+      "| Does this affect integrations? | TBD | Defer unless the first slice cannot work without them |",
+      "| Does this affect environment variables? | TBD | Document anything needed before deploy |",
+      "| Does this affect architecture? | No | Stay within the accepted bootstrap architecture unless blocked |",
+      "| Does this require docs update? | Yes | Update planning docs and runtime state as implementation progresses |",
+      `| Does this require tests? | Yes | ${testStrategy} |`,
+      "| Does this require migration? | TBD | Only if the first slice introduces persistent state changes |",
+      "| Does this affect existing user journeys? | Yes | It defines the first explicit journey after discovery |",
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "PLAN.md"),
+    [
+      "# Plan",
+      "",
+      "## Files To Change",
+      "",
+      "### File: `.planning/features/...`",
+      "",
+      "Change: Replace TBD scaffolding with the approved first implementation slice.",
+      `Why: Move the pipeline from discovery into real execution for ${v1Outcome}.`,
+      "Risk: The slice becomes too broad and stops being executable.",
+      `Test: ${testStrategy}`,
+      "Docs impact: STATE.md, SUMMARY.md, FEATURE_INDEX.md, and SPEC_CHANGELOG.md",
+      "",
+      "## Implementation Steps",
+      "",
+      "- [x] Scaffold the first feature directory from the discovery-approved scope.",
+      "- [x] Seed SPEC.md, TEST_CONTRACT.md, and VERIFICATION.md for the active slice.",
+      "- [ ] Add the first failing tests or verification checks for this slice.",
+      "- [ ] Implement the minimum code required to satisfy the first test contract.",
+      "- [ ] Run verification and record evidence in VERIFICATION.md.",
+      "",
+      "## Test Strategy",
+      "",
+      `- [x] Start from ${testStrategy}.`,
+      "- [ ] Add or update the narrowest failing test first.",
+      "- [ ] Expand coverage only after the first slice is green.",
+      "",
+      "## Docs To Update",
+      "",
+      "- [x] `.planning/STATE.md`",
+      "- [x] `.planning/SUMMARY.md`",
+      "- [x] `.planning/FEATURE_INDEX.md`",
+      ...(generatedArtifacts.ui ? [`- [x] \`${generatedArtifacts.ui.contractPath}\``, `- [x] \`${generatedArtifacts.ui.fixturePath}\``] : []),
+      ...(generatedArtifacts.api ? [`- [x] \`${generatedArtifacts.api.contractDir}/request.json\``, `- [x] \`${generatedArtifacts.api.fixturePath}\``] : []),
+      "- [ ] `.planning/SPEC_CHANGELOG.md`",
+      "",
+      "## Diagrams To Update",
+      "",
+      "- [x] `DIAGRAM.mmd`",
+      "",
+      "## Risks",
+      "",
+      `- [ ] Scope drift beyond ${featureSeed.summary}.`,
+      `- [ ] Stack changes that conflict with ${stackOwner}'s sign-off.`,
+      "",
+      "## Rollback Plan",
+      "",
+      "- [ ] Revert the active slice to the last passing verification state and reopen planning if implementation scope changes.",
+      "",
+      "## Verification Commands",
+      "",
+      "```sh",
+      "rtk bash scripts/verify.sh",
+      "rtk bash scripts/run-evals.sh",
+      "rtk node bin/genesis-harness.js verify-gate",
+      "```",
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "TEST_CONTRACT.md"),
+    [
+      "# Test Contract",
+      "",
+      "## Normal Input / Output",
+      "",
+      `- [x] Primary actor: ${primaryUser}`,
+      `- [x] Target behavior: ${v1Outcome}`,
+      `- [x] Runtime direction: ${backend} + ${frontend}`,
+      ...(generatedArtifacts.ui ? [`- [x] UI contract: \`${generatedArtifacts.ui.contractPath}\``] : []),
+      ...(generatedArtifacts.api ? [`- [x] API contract: \`${generatedArtifacts.api.contractDir}/request.json\` and \`${generatedArtifacts.api.contractDir}/response.json\``] : []),
+      "",
+      "## Edge Cases",
+      "",
+      "- [ ] Empty input or no records available.",
+      "- [ ] Verification catches a missing required dependency or contract drift.",
+      "",
+      "## Invalid Inputs",
+      "",
+      "- [ ] Unsupported assumptions that were not approved during discovery.",
+      "- [ ] Scope expansion that needs a new feature plan instead of implementation work.",
+      "",
+      "## Expected Errors",
+      "",
+      "- [ ] Failing tests should clearly identify the missing first-slice behavior.",
+      "",
+      "## Acceptance Tests",
+      "",
+      `- [x] The feature remains traceable to the approved product approach: ${productApproach}`,
+      `- [x] The execution plan stays bounded to: ${featureSeed.summary}`,
+      "",
+      "## Manual Verification",
+      "",
+      `- [x] QA owner: ${qaOwner}`,
+      `- [x] Deployment target: ${deployment}`,
+      ...(generatedArtifacts.ui ? [`- [x] UI fixture: \`${generatedArtifacts.ui.fixturePath}\``] : []),
+      ...(generatedArtifacts.api ? [`- [x] API fixture: \`${generatedArtifacts.api.fixturePath}\``] : []),
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "TASKS.md"),
+    [
+      "# Tasks",
+      "",
+      "- [x] Read required planning docs",
+      "- [x] Read PITFALLS.md",
+      "- [x] Read LESSONS_LEARNED.md",
+      "- [x] Research existing codebase patterns",
+      "- [x] Research best practices",
+      "- [x] Create or update Mermaid diagram",
+      "- [x] Write SPEC.md",
+      "- [x] Write IMPACT.md",
+      "- [x] Write PLAN.md",
+      "- [x] Write TEST_CONTRACT.md",
+      "- [ ] Add failing tests or verification",
+      "- [ ] Implement feature",
+      "- [ ] Run verification",
+      "- [ ] Update docs",
+      "- [ ] Review changed files",
+      "- [ ] Remove unnecessary files/code",
+      "- [x] Update STATE.md",
+      "- [x] Update FEATURE_INDEX.md",
+      "- [ ] Update SPEC_CHANGELOG.md",
+      "- [ ] Mark completed tasks",
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "VERIFICATION.md"),
+    [
+      "# Verification",
+      "",
+      "- [x] Define commands",
+      "- [ ] Run commands",
+      "- [ ] Record results",
+      "",
+      "| Command | Result | Evidence |",
+      "|---|---|---|",
+      "| `rtk bash scripts/verify.sh` | Pending | Run after the first code change for this slice |",
+      "| `rtk bash scripts/run-evals.sh` | Pending | Run after the first code change for this slice |",
+      "| `rtk node bin/genesis-harness.js verify-gate` | Pending | Final blocker before claiming completion |",
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "REVIEW.md"),
+    [
+      "# Review",
+      "",
+      "- [ ] Changed files reviewed",
+      "- [ ] Missing docs checked",
+      "- [ ] Debug logs removed",
+      "- [ ] Unnecessary changes removed",
+      "",
+      "## Findings",
+      "",
+      "| Severity | File | Issue | Follow-Up |",
+      "|---|---|---|---|",
+      "| TBD | TBD | TBD | TBD |",
+      ""
+    ].join("\n")
+  );
+
+  writeFileIfChanged(
+    path.join(featureDir, "DIAGRAM.mmd"),
+    [
+      "flowchart LR",
+      `  User["${primaryUser}"] --> Feature["${featureSeed.summary}"]`,
+      `  Feature --> Product["${productApproach}"]`,
+      `  Product --> Verify["${testStrategy}"]`,
+      ""
+    ].join("\n")
+  );
+
+  updateMarkdownFile(path.join(planningRoot, "FEATURE_INDEX.md"), (content) => {
+    const row = `| ${featureSeed.summary} | [~] | 02 | ${featureRelativePath.replace(".planning/", "")} | Active first implementation slice |`;
+    if (content.includes(`| ${featureSeed.summary} |`)) return content;
+    return `${content.trim()}\n${row}\n`;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "ROADMAP.md"), (content) =>
+    content.replace(
+      "| TBD | Feature | [~] | 01 Discovery & QA | Ready for first feature plan |",
+      `| 02 ${featureSeed.summary} | Feature | [~] | 01 Discovery & QA | Active first implementation slice is scaffolded and ready for tests |`
+    )
+  );
+
+  updateMarkdownFile(path.join(planningRoot, "STATE.md"), (content) => {
+    let next = content;
+    next = next.replace(
+      /Current project state: .*$/m,
+      "Current project state: [~] Active first feature execution."
+    );
+    next = next.replace(
+      /Current phase: .*$/m,
+      "Current phase: 02 First Feature Execution"
+    );
+    next = next.replace(
+      /Current feature or bug: .*$/m,
+      `Current feature or bug: ${featureRelativePath.replace(".planning/", "")}`
+    );
+    next = next.replace(
+      /Last completed task: .*$/m,
+      `Last completed task: Seeded the first execution-ready feature scaffold for ${featureSeed.summary}.`
+    );
+    next = next.replace(
+      /Next task: .*$/m,
+      `Next task: Add the first failing tests for ${featureSeed.summary}.`
+    );
+    next = next.replace(
+      /Latest verification result: .*$/m,
+      "Latest verification result: Discovery complete and first feature execution scaffolded."
+    );
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "SUMMARY.md"), (content) => {
+    let next = content;
+    next = replaceSection(next, "Current Focus", `- [x] Active feature execution started for ${featureSeed.summary}.`);
+    next = replaceSection(
+      next,
+      "Recent Changes",
+      `- [x] Discovery answers closed into an execution-ready feature scaffold.\n- [x] Active feature path: ${featureRelativePath.replace(".planning/", "")}.`
+    );
+    next = replaceSection(next, "Next Recommended Task", `- [ ] Add the first failing test and implement ${featureSeed.summary}.`);
+    return next;
+  });
+
+  updateMarkdownFile(path.join(planningRoot, "SPEC_CHANGELOG.md"), (content) => {
+    const entry = `| ${nowIso} | Scaffolded first execution-ready feature: ${featureSeed.summary} | Close the bootstrap gap between discovery and implementation | .planning/features/, STATE.md, SUMMARY.md, FEATURE_INDEX.md | tests/integration/cli-smoke.test.js | None |`;
+    if (content.includes(`Scaffolded first execution-ready feature: ${featureSeed.summary}`)) return content;
+    return `${content.trim()}\n${entry}\n`;
+  });
+
+  const currentStatePath = path.join(rootPath, ".codebase", "CURRENT_STATE.md");
+  if (fs.existsSync(currentStatePath)) {
+    writeFileIfChanged(
+      currentStatePath,
+      [
+        "# Current System State",
+        "",
+        `**Time**: ${today}  `,
+        "**Status**: `IN_PROGRESS`  ",
+        `**Latest Session**: \`${today}-run-pipeline\`  `,
+        "",
+        "## Active Bootstrap",
+        "",
+        `- Planning harness initialized from the user brief: ${idea}`,
+        `- Discovery answers were promoted into the first active feature: ${featureRelativePath.replace(".planning/", "")}.`,
+        "- Current planner phase: `IMPLEMENTATION`",
+        `- Next task: Add the first failing tests for ${featureSeed.summary}.`
+      ].join("\n")
+    );
+  }
+
+  const statePath = path.join(rootPath, ".codebase", "state.json");
+  if (fs.existsSync(statePath)) {
+    const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+    const sessionId = state.session_id || `${today}-run-pipeline`;
+    state.current_state = "IMPLEMENTATION";
+    state.active_work = `Implement ${featureName}`;
+    state.active_feature = featureRelativePath;
+    state.session_id = sessionId;
+    state.session_started_at = state.session_started_at || nowIso;
+    state.last_updated_at = nowIso;
+    state.latest_recovery_point = "First feature execution scaffolded";
+    state.required_verification = [
+      `Review ${featureRelativePath}/SPEC.md`,
+      `Review ${featureRelativePath}/TEST_CONTRACT.md`,
+      "Add the first failing test for the active slice",
+      "rtk bash scripts/verify.sh",
+      "rtk bash scripts/run-evals.sh",
+      "rtk node bin/genesis-harness.js verify-gate"
+    ];
+    state.pending_tasks = [
+      "Add the first failing test",
+      "Implement the first feature slice",
+      "Run verification and record evidence"
+    ];
+    writeJsonFile(statePath, state);
+    persistRunArtifacts(rootPath, {
+      sessionId,
+      state,
+      answers: state.discovery_answers || {
+        idea,
+        product_approach: productApproach,
+        primary_user: primaryUser,
+        v1_outcome: v1Outcome,
+        qa_owner: qaOwner,
+        backend,
+        frontend,
+        database,
+        deployment,
+        test_strategy: testStrategy,
+        stack_owner: stackOwner,
+        captured_at: nowIso
+      },
+      idea,
+      recordedAt: nowIso
+    });
+  }
+
+  return featureRelativePath;
+}
+
+function runBootstrapPipeline({ rootPath = process.cwd(), options }) {
+  initializeProject({
+    rootPath,
+    platform: options.platform || "codex",
+    idea: options.idea
+  });
+  completeDiscoveryPhase(rootPath, options);
+  const featurePath = seedFirstFeatureExecution(rootPath, options);
+  console.log("\n\x1b[1m\x1b[32m✓ Run pipeline complete.\x1b[0m");
+  console.log(`Discovery answers recorded and ${featurePath} is ready for execution.\n`);
 }
 
 function discoverMockups(rootPath = packageRoot) {
@@ -1278,6 +2587,8 @@ function runVerifyGate() {
   const verifyScript = path.join(packageRoot, "scripts", "verify.sh");
   const evalsScript = path.join(packageRoot, "scripts", "run-evals.sh");
   const coldStartScript = path.join(packageRoot, "scripts", "cold-start-check.js");
+  const cliPath = path.join(packageRoot, "bin", "genesis-harness.js");
+  const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 
   console.log("\x1b[1m\x1b[36m══════════════════════════════════════════════════════\x1b[0m");
   console.log("\x1b[1m\x1b[36m   GENESIS HARNESS — VERIFY-GATE (L09 Victory Blocker) \x1b[0m");
@@ -1287,35 +2598,48 @@ function runVerifyGate() {
   const gates = [
     {
       name: "1. Structural verify (verify.sh)",
-      run: () => spawnSync(bash, [verifyScript], { stdio: "inherit", env: process.env }).status
+      run: () => spawnSync(bash, [verifyScript], { cwd: packageRoot, stdio: "inherit", env: process.env }).status
     },
     {
-      name: "2. Feature registry + observability (feature_registry.test.js)",
-      run: () => spawnSync(process.execPath, [
-        path.join(packageRoot, "tests", "unit", "feature_registry.test.js")
-      ], { stdio: "inherit", env: process.env }).status
+      name: "2. Eval regression suite (run-evals.sh)",
+      run: () => spawnSync(bash, [evalsScript], { cwd: packageRoot, stdio: "inherit", env: process.env }).status
     },
     {
-      name: "3. Cold-start check (cold-start-check.js)",
+      name: "3. Documentation drift gate (docs-gate)",
+      run: () => spawnSync(process.execPath, [cliPath, "docs-gate"], {
+        cwd: packageRoot,
+        stdio: "inherit",
+        env: process.env
+      }).status
+    },
+    {
+      name: "4. Cold-start check (cold-start-check.js)",
       run: () => fs.existsSync(coldStartScript)
-        ? spawnSync(process.execPath, [coldStartScript], { stdio: "inherit", env: process.env }).status
+        ? spawnSync(process.execPath, [coldStartScript], { cwd: packageRoot, stdio: "inherit", env: process.env }).status
         : 0
     },
     {
-      name: "4. Unit tests (tests/unit/*.test.js)",
-      run: () => {
-        const unitDir = path.join(packageRoot, "tests", "unit");
-        if (!fs.existsSync(unitDir)) return 0;
-        for (const f of fs.readdirSync(unitDir).filter(f => f.endsWith(".test.js"))) {
-          const result = spawnSync(process.execPath, [path.join(unitDir, f)], {
-            stdio: "inherit", env: process.env
-          });
-          if (result.status) return result.status;
-        }
-        return 0;
-      }
+      name: "5. Package dry-run (npm run pack:check)",
+      run: () => spawnSync(npmCmd, ["run", "pack:check"], {
+        cwd: packageRoot,
+        stdio: "inherit",
+        env: process.env
+      }).status
+    },
+    {
+      name: "6. Lean context report (genesis-harness leanctx)",
+      run: () => spawnSync(process.execPath, [cliPath, "leanctx"], {
+        cwd: packageRoot,
+        stdio: "inherit",
+        env: process.env
+      }).status
     }
   ];
+
+  if (process.env.GENESIS_VERIFY_GATE_SELF_TEST === "1") {
+    console.log(gates.map((gate) => gate.name).join("\n"));
+    return;
+  }
 
   let allPassed = true;
   for (const gate of gates) {
@@ -1465,6 +2789,73 @@ function mcpSetupInteractive() {
   });
 }
 
+function initInteractive() {
+  const options = [
+    { name: "Antigravity IDE (Gemini)", desc: "Uses global plugin", selected: true },
+    { name: "Codex / Claude (VS Code)", desc: "Uses local .codex/skills", selected: false }
+  ];
+
+  let selectedIndex = 0;
+
+  const renderMenu = () => {
+    console.clear();
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m");
+    console.log("\x1b[1m\x1b[36m                GENESIS HARNESS - INITIALIZATION                      \x1b[0m");
+    console.log("\x1b[1m\x1b[36m======================================================================\x1b[0m\n");
+    console.log("  \x1b[1mWhich AI Agent Platform are you using?\x1b[0m");
+    console.log("  Use \x1b[33mUp/Down Arrow\x1b[0m to navigate.");
+    console.log("  Press \x1b[32mEnter\x1b[0m to confirm and initialize.");
+    console.log("  Press \x1b[90mEsc or Ctrl+C\x1b[0m to cancel.\n");
+
+    options.forEach((opt, idx) => {
+      const cursor = idx === selectedIndex ? "\x1b[1m\x1b[36m➔\x1b[0m " : "  ";
+      const checkbox = idx === selectedIndex ? "\x1b[32m(◉)\x1b[0m" : "( )";
+      const name = idx === selectedIndex ? `\x1b[1m${opt.name}\x1b[0m` : opt.name;
+      console.log(`  ${cursor} ${checkbox} ${name.padEnd(30)} \x1b[90m(${opt.desc})\x1b[0m`);
+    });
+    console.log("\n\x1b[1m\x1b[36m======================================================================\x1b[0m");
+  };
+
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+
+  const cleanExit = () => {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+    console.clear();
+    console.log("\n\x1b[33m[-] Initialization Cancelled.\x1b[0m\n");
+    process.exit(0);
+  };
+
+  const executeInit = () => {
+    process.stdin.setRawMode(false);
+    process.stdin.pause();
+    console.clear();
+    initializeProject({
+      rootPath: process.cwd(),
+      platform: selectedIndex === 0 ? "antigravity" : "codex"
+    });
+    process.exit(0);
+  };
+
+  renderMenu();
+
+  process.stdin.on("data", (key) => {
+    if (key === "\u0003" || key === "\u001b") { // Ctrl+C or Esc
+      cleanExit();
+    } else if (key === "\u001b[A") { // Up arrow
+      selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+      renderMenu();
+    } else if (key === "\u001b[B") { // Down arrow
+      selectedIndex = (selectedIndex + 1) % options.length;
+      renderMenu();
+    } else if (key === "\r") { // Enter
+      executeInit();
+    }
+  });
+}
+
 const command = process.argv[2] || "help";
 const args = process.argv.slice(3);
 
@@ -1525,6 +2916,36 @@ switch (command) {
     break;
   case "mcp":
     mcpSetupInteractive();
+    break;
+  case "init": {
+    const initOptions = parseInitArgs(args);
+    if (initOptions.autoConfirm) {
+      initializeProject({
+        rootPath: process.cwd(),
+        platform: initOptions.platform || "codex",
+        idea: initOptions.idea
+      });
+      break;
+    }
+    if (!process.stdin.isTTY || typeof process.stdin.setRawMode !== "function") {
+      fail("init requires a TTY unless you pass --yes --platform <codex|antigravity>.");
+    }
+    initInteractive();
+    break;
+  }
+  case "run": {
+    const runOptions = parseRunArgs(args);
+    if (!runOptions.autoConfirm) {
+      fail("run requires --yes so the bootstrap pipeline stays deterministic.");
+    }
+    runBootstrapPipeline({
+      rootPath: process.cwd(),
+      options: runOptions
+    });
+    break;
+  }
+  case "resume":
+    resumeProject(process.cwd());
     break;
   case "sync":
     syncContext();

@@ -1,15 +1,17 @@
 name: Publish npm package
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types:
+      - published
+  workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
-  group: npm-publish-main
+  group: npm-publish-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -19,75 +21,32 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 20
+          node-version: 22.14.0
           registry-url: https://registry.npmjs.org/
+          cache: npm
 
-      - name: Configure and validate npm auth
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::error::NPM_TOKEN is empty or missing. Create an npm automation token with publish rights and save it as the repository secret named NPM_TOKEN."
-            exit 1
-          fi
-
-          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
-          mkdir -p "$(dirname "$npmrc")"
-          {
-            echo "registry=https://registry.npmjs.org/"
-            echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}"
-          } > "$npmrc"
-          chmod 0600 "$npmrc"
-
-          package_name="$(node -p "require('./package.json').name")"
-          npm_user="$(npm whoami --registry=https://registry.npmjs.org/)"
-          echo "Authenticated to npm as: ${npm_user}"
-
-          if ! npm view "${package_name}" name --registry=https://registry.npmjs.org/ >/tmp/npm-view.out 2>/tmp/npm-view.err; then
-            if grep -Eq 'E404|404 Not Found' /tmp/npm-view.err; then
-              echo "Package ${package_name} is not published yet; the first publish must use a token that can create public packages."
-            else
-              cat /tmp/npm-view.err >&2
-              echo "::error::The NPM_TOKEN cannot read package ${package_name}. This usually means the package name is owned by another npm account/org, npm package access has not been granted to this token, or the token is blocked by npm security policy."
-              exit 1
-            fi
-          fi
+      - name: Install dependencies
+        run: npm ci
 
       - name: Verify package
         run: |
-          npm ci
           npm run verify
           npm run eval
           npm run pack:check
 
-      - name: Derive publish version
-        id: version
-        shell: bash
-        run: |
-          base_version="$(node -p "require('./package.json').version")"
-          publish_version="${base_version}-ci.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
-
-          npm pkg set "version=${publish_version}"
-
-          echo "publish_version=${publish_version}" >> "$GITHUB_OUTPUT"
-
-      - name: Check package name
+      - name: Confirm release version
         run: |
           node -p "require('./package.json').name"
           node -p "require('./package.json').version"
 
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          npm publish --access public --tag latest
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
 
       - name: Summary
-        run: echo "Published codex-genesis-harness@${{ steps.version.outputs.publish_version }}"
+        run: |
+          echo "Published $(node -p \"require('./package.json').name\")@$(node -p \"require('./package.json').version\")" >> "$GITHUB_STEP_SUMMARY"

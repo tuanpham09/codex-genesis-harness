@@ -1,13 +1,13 @@
 {
   "current_state": "COMPLETED",
-  "completed_at": "2026-06-03T02:42:00Z",
-  "active_work": "Full Score Harness Fix — L02-L12",
-  "session_id": "2026-06-03-full-score-fix",
-  "session_started_at": "2026-06-03T02:35:00Z",
-  "ttfv_seconds": 180,
-  "_comment_ttfv": "Time-to-First-Verification: seconds from session start to first passing test (L06 KPI). 180s = 3min for this session.",
+  "completed_at": "2026-06-11T10:25:00+07:00",
+  "active_work": "Release README Preparation",
+  "session_id": "2026-06-11-release-readme-prep",
+  "session_started_at": "2026-06-11T10:10:00+07:00",
+  "ttfv_seconds": 60,
+  "_comment_ttfv": "Time-to-First-Verification: seconds from session start to first passing test (L06 KPI). 60s = 1min for this session.",
   "latest_handoff": ".codebase/IMPLEMENTATION_HANDOFF.md",
-  "latest_recovery_point": "Full Score Harness Fix — feature registry + observability",
+  "latest_recovery_point": "Release README Preparation",
   "required_verification": [
     "npm run verify",
     "npm run eval",
@@ -15,9 +15,35 @@
     "node tests/unit/feature_registry.test.js",
     "node scripts/cold-start-check.js",
     "node bin/genesis-harness.js docs-gate",
-    "node bin/genesis-harness.js leanctx"
+    "node bin/genesis-harness.js leanctx",
+    "node tests/unit/verify_gate.test.js",
+    "node tests/unit/workflow_contracts.test.js",
+    "node tests/integration/cli-smoke.test.js",
+    "node tests/unit/state_metadata.test.js",
+    "node bin/genesis-harness.js verify-gate"
   ],
   "history": [
+    {
+      "from": "COMPLETED",
+      "to": "COMPLETED",
+      "reason": "Prepared README and changelog notes for the next release candidate and verified package contents.",
+      "timestamp": "2026-06-11T10:25:00+07:00",
+      "session_id": "2026-06-11-release-readme-prep"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "COMPLETED",
+      "reason": "Runtime pipeline now emits API/UI-specific contracts and fixtures for the first scaffolded feature slice.",
+      "timestamp": "2026-06-10T10:25:00Z",
+      "session_id": "2026-06-10-typed-first-slice-bootstrap"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "COMPLETED",
+      "reason": "Runtime pipeline now auto-scaffolds the first execution-ready feature and persists the active feature checkpoint for resume.",
+      "timestamp": "2026-06-10T10:05:00Z",
+      "session_id": "2026-06-10-feature-execution-bootstrap"
+    },
     {
       "from": "VERIFICATION",
       "to": "COMPLETED",
@@ -41,15 +67,14 @@
     },
     {
       "from": "COMPLETED",
-      "to": "EXECUTE",
+      "to": "IMPLEMENTATION",
       "reason": "Started full harness evaluation and score fix: L08 feature registry, L11 observability live, L04 instruction size, L03 cold-start, L05 session boundary, L07 scope, L09 victory blocker, L12 known problems.",
       "timestamp": "2026-06-03T02:35:00Z",
       "session_id": "2026-06-03-full-score-fix"
     }
   ],
   "context": {
-    "score_target": "110/110",
-    "package_version": "0.1.7",
+    "package_version": "0.1.8",
     "verification_owner": "scripts/run-evals.sh",
     "context_policy": ".codebase/context-policy.json",
     "evaluation_report": ".codebase/../artifacts/harness_evaluation_report.md"

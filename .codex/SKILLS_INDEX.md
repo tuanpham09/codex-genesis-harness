@@ -73,10 +73,14 @@ See each skill below for updated workflows using these new tools.
 - Creates `.planning/` structure with 22+ documentation files
 - Detects existing project info from README, package.json, code structure
 - Asks for product brief confirmation before creating structure
-- Creates **Phase 0 (Foundation)** as setup phase ONLY - no feature implementation
+- If the repo is still empty and the user gives only an idea, this is treated as an implicit `/init`
+- Creates **Phase 0 (Foundation)** and **Phase 1 (Discovery & QA)** before feature planning
+- Seeds `PROJECT.md`, `REQUIREMENTS.md`, `STACK.md`, `SUMMARY.md`, and `INIT_QA.md` from the first user brief when provided
+- `genesis-harness run --yes --platform codex --idea "<brief>" ...` is the deterministic bootstrap path when discovery answers are available in the same turn
 - Creates **PHASE_DEPENDENCY_MAP.md** - essential for spec-impact-engine
 - Phase 0 focuses on completing documentation and establishing planning framework
-- Feature phases (Phase 1+) are created later, only after requirements are confirmed and prioritized
+- Phase 1 focuses on discovery Q&A, QA closure, and tech stack sign-off
+- Feature phases (Phase 2+) are created later, only after requirements are confirmed and prioritized
 - Does NOT create feature-specific phases until roadmap is finalized
 
 ---

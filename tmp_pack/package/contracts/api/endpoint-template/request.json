@@ -1,7 +1,0 @@
-{
-  "method": "POST",
-  "path": "/api/example",
-  "body": {
-    "id": "example-id"
-  }
-}

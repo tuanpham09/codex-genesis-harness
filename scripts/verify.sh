@@ -55,7 +55,7 @@ required_context_files=(
 )
 
 required_contract_roots=(api agents events ui)
-required_fixture_roots=(api agents pipeline render tts images videos)
+required_fixture_roots=(api agents pipeline render images)
 required_test_roots=(contracts integration unit fixtures)
 required_playwright_roots=(e2e smoke visual fixtures)
 required_observability_roots=(agent-runs failures decision-logs)

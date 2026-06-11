@@ -129,6 +129,59 @@ genesis-harness prime
 
 ---
 
+## 🧭 Next Release Candidate (v0.1.9)
+
+The next release focuses on turning Genesis from a planning scaffold into a resumable runtime bootstrap that can start from a single product idea and carry the first feature slice into implementation.
+
+### Runtime Bootstrap
+
+```bash
+# Initialize a blank repo from a user idea
+genesis-harness init --platform codex --yes --idea "Build a staff-facing request queue"
+
+# Run deterministic discovery and promote the first feature slice
+genesis-harness run \
+  --platform codex \
+  --yes \
+  --idea "Build a concierge booking assistant" \
+  --product-approach "Staff-facing tablet dashboard" \
+  --primary-user "Front-desk staff" \
+  --v1-outcome "Staff can log, prioritize, and resolve guest requests in one queue" \
+  --qa-owner "Operations lead" \
+  --backend "Node.js" \
+  --frontend "React" \
+  --database "PostgreSQL" \
+  --deployment "Fly.io" \
+  --test-strategy "Node integration tests and Playwright smoke tests"
+
+# Resume the active run from disk
+genesis-harness resume
+```
+
+### What Changes
+
+1. **Implicit init from an idea**: Empty repos can be bootstrapped directly from the first product brief.
+2. **Discovery & QA phase**: Init now creates `.planning/INIT_QA.md`, a Discovery & QA phase, and `.codebase/PHASE_DEPENDENCY_MAP.md`.
+3. **Idea-seeded planning docs**: `PROJECT.md`, `REQUIREMENTS.md`, `STACK.md`, `SUMMARY.md`, `.codebase/CURRENT_STATE.md`, and `.codebase/state.json` are seeded from the user brief when available.
+4. **Deterministic `run --idea` pipeline**: Discovery answers can be provided in one command and promoted into an active first feature under `.planning/features/`.
+5. **Typed first-slice contracts**: The first feature scaffold can generate API/UI contracts and fixtures under `contracts/api`, `contracts/ui`, `fixtures/api`, and `playwright/fixtures`.
+6. **Resumable run artifacts**: `.runs/<session-id>/INPUT.md`, `DISCOVERY.json`, `STATE.json`, and `RESUME.md` persist the active checkpoint.
+7. **Stronger verify-gate**: `genesis-harness verify-gate` now runs structural verify, evals, docs-gate, cold-start, package dry-run, and LeanCTX reporting.
+8. **Release publishing hardening**: GitHub release/manual publishing now uses npm trusted publishing with provenance instead of long-lived npm tokens or CI-mutated versions.
+
+### Release Readiness Checklist
+
+```bash
+npm run verify
+npm run eval
+npm run pack:check
+node bin/genesis-harness.js verify-gate
+```
+
+Before tagging, confirm `package.json`, `.codex-plugin/plugin.json`, `VERSION`, `CHANGELOG.md`, and the README version labels all agree.
+
+---
+
 ## 📦 Quick Start & Usage
 
 ### 1. Installation
@@ -156,6 +209,23 @@ After installation, simply type standard commands in your Codex chat interface t
 ```
 
 *All commands are strictly enforced to run in a Codex-only, no-switching environment.*
+
+For non-interactive CLI bootstrap, use:
+
+```bash
+genesis-harness init --platform codex --yes --idea "<brief>"
+genesis-harness run --platform codex --yes --idea "<brief>" \
+  --product-approach "<approach>" \
+  --primary-user "<user>" \
+  --v1-outcome "<smallest useful outcome>" \
+  --qa-owner "<owner>" \
+  --backend "<runtime>" \
+  --frontend "<client>" \
+  --database "<storage>" \
+  --deployment "<target>" \
+  --test-strategy "<tests>"
+genesis-harness resume
+```
 
 ---
 
@@ -202,7 +272,7 @@ If you prefer not to install them globally, you can configure your Agent Client 
 - ✅ **Codex-Only Enforcement**: `100%`
 - ✅ **Skills Matrix**: 25 fully implemented, structured, and verified skills
 - ✅ **Token Caching Savings**: `40% to 60%` verified per enterprise project
-- ✅ **Stability & Readiness**: Production Ready (`v0.1.8` - June 2026)
+- ✅ **Stability & Readiness**: Production Ready (`v0.1.8`) with `v0.1.9` release-candidate bootstrap hardening in progress
 
 ---
 
@@ -212,5 +282,5 @@ Licensed under the [MIT License](LICENSE). Contributions, bug reports, and featu
 
 ---
 
-**Genesis Codex Harness** v0.1.8 | June 2026
+**Genesis Codex Harness** v0.1.8 stable | v0.1.9 release candidate notes prepared | June 2026
 👉 **[Full English Guide](README.EN.md) | [Tiếng Việt Hướng Dẫn](README.VI.md)**

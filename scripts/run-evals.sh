@@ -58,6 +58,7 @@ assert_contains "$repo_root/.codex-plugin/plugin.json" '"skills"'
 assert_contains "$repo_root/.codex-plugin/plugin.json" '"genesis-skill-set"'
 assert_contains "$repo_root/.codex-plugin/plugin.json" '$genesis-pipeline-orchestration'
 assert_contains "$repo_root/.codex-plugin/plugin.json" '$genesis-api-contract'
+assert_contains "$repo_root/.codex-plugin/plugin.json" 'implicit init'
 assert_not_contains "$repo_root/.codex-plugin/plugin.json" '$pipeline-orchestration-skill'
 assert_not_contains "$repo_root/.codex-plugin/plugin.json" '$api-contract-skill'
 assert_contains "$harness_dir/SKILL.md" '/genesis-init'
@@ -65,6 +66,7 @@ assert_contains "$repo_root/.codex/SKILLS_INDEX.md" '/genesis-init'
 assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness docs-gate'
 assert_contains "$repo_root/bin/genesis-harness.js" 'check-docs-sync.sh'
 assert_contains "$repo_root/bin/genesis-harness.js" 'npx genesis-harness docs-gate'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness resume'
 assert_contains "$harness_dir/scripts/check-docs-sync.sh" '.codebase/'
 assert_contains "$harness_dir/scripts/check-docs-sync.sh" 'README(\.[A-Z]{2})?\.md'
 assert_contains "$repo_root/.codebase/VISUAL_GRAPH.md" 'genesis-harness'
@@ -73,12 +75,14 @@ assert_contains "$repo_root/.codebase/PIPELINE_FLOW.md" 'contracts --> impl'
 assert_not_contains "$repo_root/.codebase/VISUAL_GRAPH.md" 'Đăng nhập'
 assert_not_contains "$repo_root/.codebase/VISUAL_GRAPH.md" 'src/auth.js'
 assert_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'Harness Drift Gate Hardening'
-assert_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" '2026-06-03'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" '_[Name and reference]_'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'Feature A'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'YYYY-MM-DD'
-assert_contains "$repo_root/.codebase/state.json" '"completed_at": "2026-06-03'
-assert_contains "$repo_root/.codebase/CURRENT_STATE.md" '2026-06-03'
+assert_contains "$repo_root/.codebase/state.json" '"completed_at": "'
+assert_contains "$repo_root/.codebase/CURRENT_STATE.md" '**Time**: '
+assert_contains "$repo_root/.codebase/MODULE_INDEX.md" '.runs/'
+assert_not_contains "$repo_root/.codebase/CURRENT_STATE.md" '110/110 perfect score'
+assert_not_contains "$repo_root/.codebase/state.json" '"to": "EXECUTE"'
 assert_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'npm run eval'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'rtk '
 assert_not_contains "$repo_root/.codebase/state.json" 'rtk '
@@ -105,6 +109,16 @@ assert_contains "$repo_root/package.json" '"fixtures"'
 assert_contains "$repo_root/package.json" '"playwright"'
 assert_contains "$repo_root/package.json" '"observability"'
 assert_contains "$repo_root/README.md" '.codex/skills/'
+
+plugin_version=$(node -p "require('$repo_root/.codex-plugin/plugin.json').version")
+package_version=$(node -p "require('$repo_root/package.json').version")
+[ "$plugin_version" = "$package_version" ] || fail "plugin version ($plugin_version) must match package version ($package_version)"
+
+[ "$(grep -c '^- `bin/genesis-harness.js`:' "$repo_root/.codebase/MODULE_INDEX.md")" -eq 1 ] \
+  || fail ".codebase/MODULE_INDEX.md must contain a single canonical bin/genesis-harness.js entry"
+
+[ "$(grep -c '^- `tests/integration/cli-smoke.test.js`:' "$repo_root/.codebase/TEST_MATRIX.md")" -eq 1 ] \
+  || fail ".codebase/TEST_MATRIX.md must describe cli-smoke in one canonical entry"
 
 for skill_name in "${skill_names[@]}"; do
   assert_contains "$repo_root/bin/genesis-harness.js" "$skill_name"

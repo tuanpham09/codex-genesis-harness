@@ -1,7 +1,10 @@
 # Module Index
 
 - `.codex/skills/`: packaged Codex skills.
-- `bin/genesis-harness.js`: npm CLI for install, verify, uninstall, and path output.
+- `bin/genesis-harness.js`: npm CLI for install, verify, uninstall, docs gates, init bootstrap orchestration, and the `run --idea` pipeline that now advances from discovery into the first execution-ready feature scaffold with typed API/UI contracts and fixtures.
+- `.github/workflows/reusable-verify.yml`: reusable GitHub Actions workflow that runs the canonical `genesis-harness verify-gate` path and uploads verification artifacts.
+- `.github/workflows/docs-sync.yml`: CI entrypoint that delegates pull-request and protected-branch verification to the reusable verify workflow.
+- `.github/workflows/publish-npm.yml`: release-oriented npm publishing workflow using GitHub OIDC trusted publishing and provenance.
 - `scripts/verify.sh`: structural and smoke verification.
 - `scripts/run-evals.sh`: package-level regression checks.
 - `.codebase/`: compressed repository memory.
@@ -13,9 +16,14 @@
 - `fixtures/`: reusable test and validation fixtures.
 - `tests/`: harness test architecture templates.
 - `tests/unit/feature_registry.test.js`: validates feature registry schema and observability live data (L08 + L11).
+- `tests/unit/workflow_contracts.test.js`: validates that GitHub workflows use the reusable verify path and trusted npm publishing defaults.
 - `playwright/`: UI smoke, e2e, and visual harness templates.
 - `observability/`: autonomous run and decision logging templates.
 - `observability/agent-runs/`: per-session agent execution records (L11).
 - `observability/decision-logs/`: rationale logs for significant decisions (L11).
 - `observability/failures/`: failure records with root-cause and prevention notes (L11).
-
+- `.codex/skills/genesis-harness/scripts/init-planning.sh`: planning bootstrap that now creates Foundation + Discovery/QA scaffolds.
+- `.planning/INIT_QA.md`: initialization questionnaire for product approach, QA closure, and tech stack sign-off.
+- `.codebase/PHASE_DEPENDENCY_MAP.md`: init-created dependency map used by spec-impact-engine and downstream planning.
+- `.codebase/state.json`: canonical runtime state for the harness repo and generated projects; `run --idea` now advances project state into `IMPLEMENTATION` with `active_feature`, and `resume` restores the next actionable task from it.
+- `.runs/`: per-session run artifacts (`INPUT.md`, `DISCOVERY.json`, `STATE.json`, `RESUME.md`) used for mid-project resume, including the active feature execution checkpoint.

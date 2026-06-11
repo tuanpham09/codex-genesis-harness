@@ -1,7 +1,0 @@
-{
-  "route": "/example",
-  "state": "empty",
-  "expected": {
-    "visibleText": ["No records yet"]
-  }
-}

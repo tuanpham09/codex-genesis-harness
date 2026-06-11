@@ -1,6 +1,0 @@
-interface:
-  display_name: "Genesis TDD"
-  short_description: "Đảm bảo tuân thủ TDD loop"
-  default_prompt: "Viết test (Red), implement (Green) và Refactor. Phải có test fail trước khi sửa code."
-policy:
-  allow_implicit_invocation: true

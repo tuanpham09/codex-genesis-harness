@@ -167,6 +167,39 @@ genesis-harness prime
 
 ---
 
+## 🧭 Next Release Candidate (v0.1.9)
+
+The next release adds a deterministic bootstrap path that starts from a product idea, records discovery answers, scaffolds the first implementation-ready feature, and persists a resumable checkpoint.
+
+```bash
+genesis-harness init --platform codex --yes --idea "<brief>"
+genesis-harness run --platform codex --yes --idea "<brief>" \
+  --product-approach "<approach>" \
+  --primary-user "<user>" \
+  --v1-outcome "<smallest useful outcome>" \
+  --qa-owner "<owner>" \
+  --backend "<runtime>" \
+  --frontend "<client>" \
+  --database "<storage>" \
+  --deployment "<target>" \
+  --test-strategy "<tests>"
+genesis-harness resume
+```
+
+Release highlights:
+
+1. Blank repos can be initialized from the first user idea.
+2. Init now creates Discovery & QA scaffolding plus `.codebase/PHASE_DEPENDENCY_MAP.md`.
+3. `run --idea` can promote discovery answers into the active first feature under `.planning/features/`.
+4. First-slice scaffolding can generate typed API/UI contracts and fixtures.
+5. `.runs/<session-id>/` stores resumable run artifacts.
+6. `verify-gate` now covers verify, evals, docs-gate, cold-start, package dry-run, and LeanCTX.
+7. npm publishing is hardened for GitHub release/manual runs with provenance and trusted publishing.
+
+Before tagging, confirm `package.json`, `.codex-plugin/plugin.json`, `VERSION`, `CHANGELOG.md`, and README version labels all agree.
+
+---
+
 ## 🔬 Research-First Guarantee (NEW)
 
 **Every important decision is grounded in evidence. No guessing.**

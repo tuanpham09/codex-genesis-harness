@@ -35,10 +35,10 @@
 | F013 | verified | Feature Registry as harness primitive (L08) | `node tests/unit/feature_registry.test.js` | genesis-harness-engineering |
 | F014 | verified | npm pack / tarball smoke test | `bash scripts/run-evals.sh` | genesis-release |
 | F015 | verified | spec-impact-engine propagation chain | `bash scripts/verify.sh .codex/skills/spec-impact-engine` | spec-impact-engine |
-| F016 | in-progress | Cold-start test automation (L03) | `node scripts/cold-start-check.js` | genesis-harness |
+| F016 | verified | Cold-start test automation (L03) | `node scripts/cold-start-check.js` | genesis-harness |
 | F017 | planned | Per-session Time-to-First-Verification KPI (L06) | `node bin/genesis-harness.js status --ttfv` | genesis-harness |
-| F018 | planned | Scope ledger per task (L07) | `bash scripts/check-scope.sh` | genesis-harness |
-| F019 | verified | Demo Feature (Mockup + Contract + E2E) | `npm test` (or npx playwright test) | genesis-harness-engineering |
+| F018 | verified | Scope ledger per task (L07) | `bash scripts/check-scope.sh` | genesis-harness |
+| F019 | planned | Demo feature templates (mockup + contract + E2E) | `npx playwright test playwright/e2e/auth/login-screen.spec.js` | genesis-harness-engineering |
 
 ---
 
@@ -47,10 +47,10 @@
 > Update this section after each CI run.
 
 ```
-Date: 2026-06-03T02:38:00Z
-scripts/verify.sh       → verify passed
-scripts/run-evals.sh    → evals passed
-feature_registry.test.js → feature_registry tests passed
+Date: 2026-06-10T08:30:00Z
+scripts/verify.sh         → verify passed
+scripts/run-evals.sh      → evals passed
+genesis-harness verify-gate → passed
 ```
 
 ---

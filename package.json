@@ -31,6 +31,8 @@
     "bin",
     "scripts",
     "README.md",
+    "README.EN.md",
+    "README.VI.md",
     "LICENSE",
     "VERSION",
     "CHANGELOG.md"

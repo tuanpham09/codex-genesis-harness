@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [0.1.9] - Unreleased
+
+### Added
+- **Non-interactive bootstrap CLI**: Added `genesis-harness init --platform ... --yes --idea ...` for deterministic project initialization from a blank repo or first product brief.
+- **Run pipeline**: Added `genesis-harness run --idea ... --yes` to persist discovery answers and promote the first implementation slice into `.planning/features/`.
+- **Resume artifacts**: Added `.runs/<session-id>/INPUT.md`, `DISCOVERY.json`, `STATE.json`, and `RESUME.md` so future sessions can resume from disk.
+- **Typed first-slice contracts**: The first scaffolded feature can now emit API/UI contracts and fixtures under `contracts/api`, `contracts/ui`, `fixtures/api`, and `playwright/fixtures`.
+- **Verify-gate contract tests**: Added tests for the expanded `verify-gate`, workflow contracts, state metadata, and CLI bootstrap smoke paths.
+
+### Changed
+- **Verify-gate hardening**: `genesis-harness verify-gate` now runs structural verify, eval regression, docs-gate, cold-start, package dry-run, and LeanCTX reporting.
+- **CI verification**: GitHub verification now delegates to a reusable verify workflow.
+- **npm publishing**: Publish workflow now targets GitHub release/manual events and uses npm trusted publishing with provenance instead of long-lived npm tokens or CI-mutated versions.
+- **Package contents**: `README.EN.md` and `README.VI.md` are included in the npm tarball because root `README.md` links to both language guides.
+
+### Release Notes
+- Before tagging this release, confirm `package.json`, `.codex-plugin/plugin.json`, `VERSION`, README labels, and this changelog all agree on the final version number.
+- Known cleanup candidate: `tmp_pack/package/**` is a tracked pack artifact and should be reviewed before release if its deletion is intended.
+
+---
+
 ## [0.1.8] - 2026-06-01
 
 ### Added

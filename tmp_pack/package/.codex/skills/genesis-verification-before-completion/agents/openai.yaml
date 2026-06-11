@@ -1,6 +1,0 @@
-interface:
-  display_name: "Genesis Verification"
-  short_description: "Bắt buộc kiểm định trước khi hoàn tất"
-  default_prompt: "Chạy các script kiểm định, smoke test và evaluation để đưa ra bằng chứng trước khi báo cáo hoàn tất."
-policy:
-  allow_implicit_invocation: true

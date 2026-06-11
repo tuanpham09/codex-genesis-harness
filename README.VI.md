@@ -167,6 +167,39 @@ genesis-harness prime
 
 ---
 
+## 🧭 Release Candidate Tiếp Theo (v0.1.9)
+
+Phiên bản tiếp theo bổ sung luồng bootstrap deterministic: bắt đầu từ ý tưởng sản phẩm, ghi lại discovery answers, scaffold feature đầu tiên sẵn sàng implement, và lưu checkpoint để phiên sau resume từ ổ đĩa.
+
+```bash
+genesis-harness init --platform codex --yes --idea "<brief>"
+genesis-harness run --platform codex --yes --idea "<brief>" \
+  --product-approach "<approach>" \
+  --primary-user "<user>" \
+  --v1-outcome "<smallest useful outcome>" \
+  --qa-owner "<owner>" \
+  --backend "<runtime>" \
+  --frontend "<client>" \
+  --database "<storage>" \
+  --deployment "<target>" \
+  --test-strategy "<tests>"
+genesis-harness resume
+```
+
+Điểm chính của release:
+
+1. Repo trống có thể init trực tiếp từ ý tưởng đầu tiên của user.
+2. Init tạo Discovery & QA scaffold cùng `.codebase/PHASE_DEPENDENCY_MAP.md`.
+3. `run --idea` có thể đưa discovery answers thành feature đầu tiên đang active trong `.planning/features/`.
+4. First-slice scaffold có thể sinh API/UI contracts và fixtures có kiểu rõ ràng.
+5. `.runs/<session-id>/` lưu artifacts để resume.
+6. `verify-gate` giờ bao phủ verify, evals, docs-gate, cold-start, package dry-run, và LeanCTX.
+7. npm publish được harden cho GitHub release/manual runs với provenance và trusted publishing.
+
+Trước khi tag release, cần xác nhận `package.json`, `.codex-plugin/plugin.json`, `VERSION`, `CHANGELOG.md`, và nhãn version trong README đều khớp nhau.
+
+---
+
 ## 🔬 Bảo Đảm Research-First (MỚI)
 
 **Mỗi quyết định quan trọng đều dựa trên bằng chứng. Không đoán mò.**

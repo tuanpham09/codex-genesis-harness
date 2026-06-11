@@ -17,6 +17,12 @@ Operate a repository through a test-first, contract-first, memory-backed Codex h
 - `/spec-change`, `/propagate-spec`, `/validate-specs`
 - Any multi-step task that changes code, contracts, fixtures, tests, docs, or `.codebase`.
 
+## Auto-init trigger
+- If the repository has no `.planning/` yet and the user provides a product idea, feature idea, or project brief, treat that as an implicit `/init`.
+- Do not wait for the literal word `/init`.
+- Create the planning harness first, seed `PROJECT.md`, `REQUIREMENTS.md`, `STACK.md`, `SUMMARY.md`, and `INIT_QA.md` from the user brief when possible, then immediately move into discovery Q&A for product direction, QA closure, and tech stack sign-off.
+- When a deterministic bootstrap is needed, call `genesis-harness run --yes --platform codex --idea "<user brief>"` and pass discovery answers if they are already known.
+
 ## When NOT to use
 - Simple read-only answers with no repository workflow.
 - Tasks that are fully handled by a narrower skill and do not need planning, state, or verification artifacts.
@@ -77,6 +83,7 @@ Operate a repository through a test-first, contract-first, memory-backed Codex h
 ```txt
 /genesis-init
 /init
+/run <idea>
 /new-feature <description>
 /fix-bug <description>
 /plan <description>
@@ -104,4 +111,6 @@ Operate a repository through a test-first, contract-first, memory-backed Codex h
 - `scripts/check-docs-sync.sh`, `scripts/check-spec-changelog.sh`, `scripts/check-required-planning-files.sh`: mechanical validation.
 
 ## Initialization rule
-`/genesis-init` and `/init` create Phase 0 Foundation only. Feature phases start later after requirements are confirmed and prioritized.
+`/genesis-init` and `/init` create Phase 0 Foundation plus Phase 1 Discovery & QA. Feature phases start only after discovery answers, QA closure, and tech stack sign-off are recorded.
+
+`genesis-harness run --yes --platform codex --idea "<brief>" ...` is the deterministic CLI path when the caller wants bootstrap plus persisted discovery answers in one execution.

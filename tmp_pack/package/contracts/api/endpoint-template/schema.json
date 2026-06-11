@@ -1,9 +1,0 @@
-{
-  "type": "object",
-  "required": ["method", "path", "body"],
-  "properties": {
-    "method": { "type": "string" },
-    "path": { "type": "string" },
-    "body": { "type": "object" }
-  }
-}

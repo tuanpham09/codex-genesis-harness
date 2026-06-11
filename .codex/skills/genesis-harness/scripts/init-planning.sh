@@ -2,6 +2,7 @@
 set -euo pipefail
 
 confirmed="${PROJECT_BRIEF_CONFIRMED:-0}"
+idea="${USER_IDEA:-}"
 root="."
 script_source="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -16,8 +17,12 @@ while [ "$#" -gt 0 ]; do
       [ -n "$root" ] || { echo "--root requires a path" >&2; exit 2; }
       shift 2
       ;;
+    --idea)
+      idea="${2:-}"
+      shift 2
+      ;;
     --help|-h)
-      echo "Usage: $0 --confirmed [--root path]" >&2
+      echo "Usage: $0 --confirmed [--root path] [--idea \"user brief\"]" >&2
       echo "Or: PROJECT_BRIEF_CONFIRMED=1 $0 [--root path]" >&2
       exit 0
       ;;
@@ -43,11 +48,78 @@ fi
 
 cd "$root"
 
+normalize_inline() {
+  printf '%s' "$1" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//'
+}
+
+trim_to_words() {
+  local text="$1"
+  local limit="${2:-8}"
+  printf '%s\n' "$text" | awk -v limit="$limit" '{
+    out="";
+    for (i = 1; i <= NF && i <= limit; i++) {
+      out = out (i == 1 ? "" : " ") $i
+    }
+    print out
+  }'
+}
+
+normalized_idea="$(normalize_inline "$idea")"
+detected_stack="$(bash "$script_source/detect-stack.sh" "$root" 2>/dev/null || true)"
+
+if [ -n "$normalized_idea" ]; then
+  idea_summary="$normalized_idea"
+  project_title="$(trim_to_words "$normalized_idea" 8)"
+  project_users="Users described in the brief and adjacent stakeholders."
+  core_value="Turn the idea into a focused v1 outcome without losing the original brief."
+  product_scope="- [ ] Build around this brief: $normalized_idea"
+  current_milestone="Phase 1 discovery and planning bootstrap"
+  success_criteria="- [ ] The first implementation plan stays aligned with this brief: $normalized_idea"
+  functional_requirements="- [ ] Support the core flow implied by the brief: $normalized_idea"
+  user_stories="- [ ] As a target user, I want the product described in this brief: $normalized_idea"
+  acceptance_criteria="- [ ] Discovery confirms scope, QA path, and tech stack for: $normalized_idea"
+  known_unknowns="- [ ] Confirm exact product approach, feature cut, and owners for: $normalized_idea"
+  summary_focus="- [ ] Bootstrap planning from the user idea: $normalized_idea"
+  summary_recent="- [ ] Init seeded planning docs from the first user brief."
+  summary_next="- [ ] Close INIT_QA.md and turn this brief into approved scope."
+  stack_direction="Product direction clue: $(printf '%s' "$normalized_idea" | cut -c1-140)"
+else
+  idea_summary="No explicit user brief captured yet."
+  project_title="TBD"
+  project_users="TBD"
+  core_value="TBD"
+  product_scope="- [ ] TBD"
+  current_milestone="TBD"
+  success_criteria="- [ ] TBD"
+  functional_requirements="- [ ] TBD"
+  user_stories="- [ ] As a user, I want TBD so that TBD."
+  acceptance_criteria="- [ ] TBD"
+  known_unknowns="- [ ] TBD"
+  summary_focus="- [ ] Initialize harness and complete discovery / QA alignment."
+  summary_recent="- [ ] Initial planning skeleton and discovery phase created."
+  summary_next="- [ ] Answer INIT_QA.md and complete Phase 01 discovery artifacts."
+  stack_direction="Product direction clue: TBD"
+fi
+
+if printf '%s' "$normalized_idea" | grep -Eiq 'mobile|ios|android|responsive'; then
+  stack_hint="Mobile-first delivery is implied by the brief."
+else
+  stack_hint="TBD"
+fi
+
+current_iso_utc="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+current_day_local="$(date +"%Y-%m-%d")"
+
 mkdir -p \
+  .codebase \
+  .codebase/context \
+  .codebase/failures \
+  .codebase/memories \
   .planning/diagrams \
   .planning/research \
   .planning/decisions \
   .planning/phases/00-foundation \
+  .planning/phases/01-discovery-and-qa \
   .planning/features \
   .planning/bugs \
   .planning/audits \
@@ -95,19 +167,19 @@ write_if_missing .planning/PROJECT.md <<'EOF'
 
 ## What This Project Is
 
-TBD
+__PROJECT_WHAT__
 
 ## Target Users
 
-TBD
+__PROJECT_USERS__
 
 ## Core Value
 
-TBD
+__PROJECT_VALUE__
 
 ## Product Scope
 
-- [ ] TBD
+__PROJECT_SCOPE__
 
 ## Out Of Scope
 
@@ -123,11 +195,11 @@ TBD
 
 ## Current Milestone
 
-TBD
+__PROJECT_MILESTONE__
 
 ## Success Criteria
 
-- [ ] TBD
+__PROJECT_SUCCESS__
 EOF
 
 write_if_missing .planning/REQUIREMENTS.md <<'EOF'
@@ -161,12 +233,13 @@ EOF
 write_if_missing .planning/ROADMAP.md <<'EOF'
 # Roadmap
 
-**Note**: Phase 0 (Foundation) is setup and documentation only. Feature phases will be added after requirements are finalized.
+**Note**: Phase 0 (Foundation) is setup and documentation only. Phase 1 captures discovery, QA alignment, and tech stack sign-off before feature phases are planned.
 
 | Phase | Type | Status | Dependencies | Acceptance Criteria |
 |---|---|---|---|---|
 | 00 Foundation | Setup | [ ] | None | Project docs completed, requirements confirmed, harness verified |
-| TBD | Feature | [ ] | 00 Foundation | To be planned after requirements finalized |
+| 01 Discovery & QA | Validation | [ ] | 00 Foundation | Product approach confirmed, QA checklist answered, tech stack signed off |
+| TBD | Feature | [ ] | 01 Discovery & QA | To be planned after requirements finalized |
 EOF
 
 write_if_missing .planning/STATE.md <<'EOF'
@@ -176,7 +249,7 @@ Current project state: [ ] Initialized planning harness pending product confirma
 Current phase: 00 Foundation (Setup phase - documentation only)
 Current feature or bug: None
 Last completed task: None
-Next task: Confirm project brief and refine planning docs.
+Next task: Run discovery Q&A to confirm product approach and tech stack.
 Blocked items: None
 Latest verification result: Not run
 EOF
@@ -409,15 +482,52 @@ write_if_missing .planning/SUMMARY.md <<'EOF'
 
 ## Current Focus
 
-- [ ] Initialize and confirm planning harness.
+- [ ] Initialize harness and complete discovery / QA alignment.
 
 ## Recent Changes
 
-- [ ] Initial planning skeleton created.
+- [ ] Initial planning skeleton and discovery phase created.
 
 ## Next Recommended Task
 
-- [ ] Confirm product brief and fill required planning docs.
+- [ ] Answer INIT_QA.md and complete Phase 01 discovery artifacts.
+EOF
+
+write_if_missing .planning/INIT_QA.md <<'EOF'
+# Init Discovery Q&A
+
+Complete this immediately after `/init`. The next agent turn should request answers or explicit assumptions for every section below.
+
+## Product Direction
+
+- [ ] What problem is this project solving?
+- [ ] Who is the primary user?
+- [ ] What is the smallest acceptable v1 outcome?
+- [ ] What approaches were considered and which one is preferred?
+
+## QA Closure
+
+- [ ] Happy path is described end-to-end.
+- [ ] Failure and edge cases are listed.
+- [ ] Out-of-scope items are explicitly captured.
+- [ ] Acceptance criteria are measurable.
+- [ ] QA sign-off owner is named.
+
+## Tech Stack Sign-Off
+
+- [ ] Backend/runtime choice confirmed.
+- [ ] Frontend/client choice confirmed.
+- [ ] Storage/database choice confirmed.
+- [ ] Test strategy confirmed.
+- [ ] Deployment target confirmed.
+- [ ] Final tech stack owner is named.
+
+## Required Output To User
+
+Ask for a concise answer that closes:
+1. product approach
+2. tech stack
+3. QA sign-off / approval owner
 EOF
 
 write_if_missing .planning/config.json <<'EOF'
@@ -666,6 +776,56 @@ Review Phase 0 documentation quality.
 - [ ] Team confirms understanding
 EOF
 
+write_if_missing .planning/phases/01-discovery-and-qa/PLAN.md <<'EOF'
+# 01 Discovery & QA Plan
+
+Phase 1 closes product direction before feature planning starts.
+
+- [ ] Ask discovery questions from INIT_QA.md
+- [ ] Confirm preferred product approach
+- [ ] Confirm tech stack and deployment direction
+- [ ] Record QA sign-off owner and acceptance criteria
+- [ ] Update PROJECT.md, REQUIREMENTS.md, STACK.md, ROADMAP.md
+- [ ] Mark feature planning ready
+EOF
+write_if_missing .planning/phases/01-discovery-and-qa/TASKS.md <<'EOF'
+# 01 Discovery & QA Tasks
+
+- [ ] Ask user to confirm product approach
+- [ ] Ask user to confirm target users and success criteria
+- [ ] Ask user to confirm backend, frontend, database, and deployment stack
+- [ ] Run new-feature-qa checklist against current scope
+- [ ] Run requirements-validation checklist
+- [ ] Assign QA sign-off owner
+- [ ] Update ADR-001-tech-stack.md with chosen stack
+- [ ] Update PROJECT.md and REQUIREMENTS.md with approved direction
+- [ ] Update STATE.md next task toward first feature plan
+EOF
+write_if_missing .planning/phases/01-discovery-and-qa/TESTS.md <<'EOF'
+# 01 Discovery & QA Tests
+
+- [ ] INIT_QA.md completed with no unresolved blockers
+- [ ] STACK.md has confirmed stack values or documented assumptions
+- [ ] QA owner and approval path recorded
+- [ ] ROADMAP.md ready for first feature phase creation
+EOF
+write_if_missing .planning/phases/01-discovery-and-qa/VERIFICATION.md <<'EOF'
+# 01 Discovery & QA Verification
+
+- [ ] INIT_QA.md answered
+- [ ] PROJECT.md, REQUIREMENTS.md, STACK.md updated
+- [ ] ADR-001-tech-stack.md updated
+- [ ] Next phase can be created without open product ambiguity
+EOF
+write_if_missing .planning/phases/01-discovery-and-qa/REVIEW.md <<'EOF'
+# 01 Discovery & QA Review
+
+- [ ] Product approach is explicit
+- [ ] Tech stack is explicit
+- [ ] QA sign-off path is explicit
+- [ ] No blocking TBD remains for feature planning
+EOF
+
 write_if_missing .planning/features/FEATURE_TEMPLATE.md <<'EOF'
 # Feature Template
 
@@ -694,6 +854,16 @@ write_if_missing .planning/checks/CHECKS.md <<'EOF'
 - [ ] Spec changelog
 - [ ] Architecture boundaries
 - [ ] Project verification
+EOF
+
+write_if_missing .codebase/PHASE_DEPENDENCY_MAP.md <<'EOF'
+# Phase Dependency Map
+
+| Phase | Depends On | Purpose |
+|---|---|---|
+| 00 Foundation | None | Bootstrap planning harness and baseline docs |
+| 01 Discovery & QA | 00 Foundation | Close product direction, QA checklist, and tech stack sign-off |
+| Feature phases (TBD) | 01 Discovery & QA | Implementation planning begins only after discovery is closed |
 EOF
 for check in lint typecheck test build docs-sync architecture-fitness; do
   write_if_missing ".planning/checks/$check.md" <<EOF
@@ -746,5 +916,67 @@ for script in "$script_source"/*.sh; do
   cp "$script" ".planning/scripts/$(basename "$script")"
   chmod +x ".planning/scripts/$(basename "$script")"
 done
+
+GH_PROJECT_WHAT="$project_title" \
+GH_PROJECT_USERS="$project_users" \
+GH_PROJECT_VALUE="$core_value" \
+GH_PROJECT_SCOPE="$product_scope" \
+GH_PROJECT_MILESTONE="$current_milestone" \
+GH_PROJECT_SUCCESS="$success_criteria" \
+perl -0pi -e 's/__PROJECT_WHAT__/$ENV{GH_PROJECT_WHAT}/g; s/__PROJECT_USERS__/$ENV{GH_PROJECT_USERS}/g; s/__PROJECT_VALUE__/$ENV{GH_PROJECT_VALUE}/g; s/__PROJECT_SCOPE__/$ENV{GH_PROJECT_SCOPE}/g; s/__PROJECT_MILESTONE__/$ENV{GH_PROJECT_MILESTONE}/g; s/__PROJECT_SUCCESS__/$ENV{GH_PROJECT_SUCCESS}/g' .planning/PROJECT.md
+
+GH_FUNCTIONAL_REQUIREMENTS="$functional_requirements" \
+GH_USER_STORIES="$user_stories" \
+GH_ACCEPTANCE_CRITERIA="$acceptance_criteria" \
+GH_KNOWN_UNKNOWNS="$known_unknowns" \
+perl -0pi -e 's/- \[ \] TBD\n\n## Non-Functional Requirements/- [ ] TBD\n\n## Seeded From User Idea\n\n$ENV{GH_FUNCTIONAL_REQUIREMENTS}\n\n## Non-Functional Requirements/s; s/- \[ \] As a user, I want TBD so that TBD\./$ENV{GH_USER_STORIES}/g; s/## Acceptance Criteria\n\n- \[ \] TBD/## Acceptance Criteria\n\n$ENV{GH_ACCEPTANCE_CRITERIA}/s; s/## Known Unknowns\n\n- \[ \] TBD/## Known Unknowns\n\n$ENV{GH_KNOWN_UNKNOWNS}/s' .planning/REQUIREMENTS.md
+
+GH_STACK_DIRECTION="$stack_direction" \
+GH_STACK_HINT="$stack_hint" \
+GH_STACK_CLUES="$detected_stack" \
+perl -0pi -e 's/Version constraints: TBD/Version constraints: TBD\n\n## Product Direction Clues\n- $ENV{GH_STACK_DIRECTION}\n- $ENV{GH_STACK_HINT}\n\n## Repository Stack Clues\n$ENV{GH_STACK_CLUES}/s' .planning/STACK.md
+
+GH_SUMMARY_FOCUS="$summary_focus" \
+GH_SUMMARY_RECENT="$summary_recent" \
+GH_SUMMARY_NEXT="$summary_next" \
+perl -0pi -e 's/- \[ \] Initialize harness and complete discovery \/ QA alignment\./$ENV{GH_SUMMARY_FOCUS}/g; s/- \[ \] Initial planning skeleton and discovery phase created\./$ENV{GH_SUMMARY_RECENT}/g; s/- \[ \] Answer INIT_QA\.md and complete Phase 01 discovery artifacts\./$ENV{GH_SUMMARY_NEXT}/g' .planning/SUMMARY.md
+
+GH_IDEA_SUMMARY="$idea_summary" \
+perl -0pi -e 's/Complete this immediately after `\/init`\./Complete this immediately after `\/init`.\n\n## Original User Brief\n\n- [ ] $ENV{GH_IDEA_SUMMARY}\n/s' .planning/INIT_QA.md
+
+write_if_missing .codebase/CURRENT_STATE.md <<EOF
+# Current System State
+
+**Time**: $current_day_local
+**Status**: \`IN_PROGRESS\`
+**Latest Session**: \`$current_day_local-auto-init-bootstrap\`
+
+## Active Bootstrap
+
+- Planning harness initialized automatically from the first user brief.
+- Current planner phase: \`REQUIREMENTS_GATHERING\`
+- User brief: $idea_summary
+- Next task: Answer \`.planning/INIT_QA.md\` and confirm product approach, QA closure, and tech stack.
+EOF
+
+write_if_missing .codebase/state.json <<EOF
+{
+  "current_state": "REQUIREMENTS_GATHERING",
+  "active_work": "Auto-init from user idea",
+  "session_id": "$current_day_local-auto-init-bootstrap",
+  "session_started_at": "$current_iso_utc",
+  "latest_recovery_point": "Auto-init bootstrap in progress",
+  "required_verification": [
+    "genesis-harness init --yes --platform codex --idea '<user brief>'",
+    "Answer .planning/INIT_QA.md",
+    "Update .planning/PROJECT.md, REQUIREMENTS.md, STACK.md"
+  ],
+  "pending_tasks": [
+    "Confirm product approach",
+    "Confirm QA sign-off owner",
+    "Confirm tech stack"
+  ]
+}
+EOF
 
 echo "Project Genesis Harness planning files initialized."
