@@ -129,9 +129,9 @@ genesis-harness prime
 
 ---
 
-## 🧭 Next Release Candidate (v0.1.9)
+## 🧭 Release v0.1.9
 
-The next release focuses on turning Genesis from a planning scaffold into a resumable runtime bootstrap that can start from a single product idea and carry the first feature slice into implementation.
+Genesis v0.1.9 turns the harness from a planning scaffold into a resumable runtime bootstrap that can start from a single product idea and carry the first feature slice into implementation.
 
 ### Runtime Bootstrap
 
@@ -272,7 +272,7 @@ If you prefer not to install them globally, you can configure your Agent Client 
 - ✅ **Codex-Only Enforcement**: `100%`
 - ✅ **Skills Matrix**: 25 fully implemented, structured, and verified skills
 - ✅ **Token Caching Savings**: `40% to 60%` verified per enterprise project
-- ✅ **Stability & Readiness**: Production Ready (`v0.1.8`) with `v0.1.9` release-candidate bootstrap hardening in progress
+- ✅ **Stability & Readiness**: Production Ready (`v0.1.9` - June 2026)
 
 ---
 
@@ -282,5 +282,5 @@ Licensed under the [MIT License](LICENSE). Contributions, bug reports, and featu
 
 ---
 
-**Genesis Codex Harness** v0.1.8 stable | v0.1.9 release candidate notes prepared | June 2026
+**Genesis Codex Harness** v0.1.9 | June 2026
 👉 **[Full English Guide](README.EN.md) | [Tiếng Việt Hướng Dẫn](README.VI.md)**

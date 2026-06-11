@@ -1,0 +1,6 @@
+interface:
+  display_name: "Genesis Executing Plans"
+  short_description: "Thực thi kế hoạch nghiêm ngặt"
+  default_prompt: "Thực thi theo kế hoạch đã đề ra, đánh dấu công việc đã hoàn thành và tuyệt đối không đi chệch hướng."
+policy:
+  allow_implicit_invocation: true

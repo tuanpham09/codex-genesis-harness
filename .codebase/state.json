@@ -26,7 +26,7 @@
     {
       "from": "COMPLETED",
       "to": "COMPLETED",
-      "reason": "Prepared README and changelog notes for the next release candidate and verified package contents.",
+      "reason": "Prepared README and changelog notes for the v0.1.9 release and verified package contents.",
       "timestamp": "2026-06-11T10:25:00+07:00",
       "session_id": "2026-06-11-release-readme-prep"
     },
@@ -74,7 +74,7 @@
     }
   ],
   "context": {
-    "package_version": "0.1.8",
+    "package_version": "0.1.9",
     "verification_owner": "scripts/run-evals.sh",
     "context_policy": ".codebase/context-policy.json",
     "evaluation_report": ".codebase/../artifacts/harness_evaluation_report.md"

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Docs Automation Skill"
+  short_description: "Automatically sync documentation with code changes across all phases"
+  default_prompt: "Use $genesis-docs-automation to synchronize documentation with the latest code changes."
+
+policy:
+  allow_implicit_invocation: true

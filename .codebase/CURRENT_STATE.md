@@ -43,10 +43,10 @@ It is usable as a project harness, but it is still evolving toward a stricter ru
 
 ## Recent Changes (2026-06-11)
 
-- **Release README preparation**: Root README now documents the v0.1.9 release-candidate bootstrap flow, including `init --idea`, deterministic `run --idea`, `resume`, verify-gate coverage, and npm provenance publishing.
-- **Localized release notes**: `README.EN.md`, `README.VI.md`, and `CHANGELOG.md` now summarize the next release candidate and pre-tag consistency checks.
+- **Release README preparation**: Root README now documents the v0.1.9 bootstrap flow, including `init --idea`, deterministic `run --idea`, `resume`, verify-gate coverage, and npm provenance publishing.
+- **Localized release notes**: `README.EN.md`, `README.VI.md`, and `CHANGELOG.md` now summarize the v0.1.9 release and verification checks.
 - **Package README fix**: `package.json` now includes `README.EN.md` and `README.VI.md` in the npm tarball so root README language links resolve after publish.
-- **Release review risk**: `tmp_pack/package/**` remains a tracked artifact deletion candidate and should be explicitly accepted or restored before the release commit.
+- **Release review fix**: `tmp_pack/package/**` remains tracked as the historical pack artifact; accidental deletion was restored before the follow-up push.
 - **Verification evidence**: `npm run verify`, `npm run eval`, `npm run pack:check`, `npm pack --dry-run --json`, and `node bin/genesis-harness.js verify-gate` passed on 2026-06-11.
 
 ## Active Context Layers
@@ -58,6 +58,6 @@ It is usable as a project harness, but it is still evolving toward a stricter ru
 ## Next Task Ready
 
 The next session can now safely focus on:
-1. Decide whether the tracked `tmp_pack/package/**` deletion is intentional before release.
-2. If releasing v0.1.9, bump `package.json`, `.codex-plugin/plugin.json`, and `VERSION` together, then convert `CHANGELOG.md` from `Unreleased` to a dated release.
-3. Publish only after the final release commit passes `node bin/genesis-harness.js verify-gate`.
+1. Confirm remote CI for the v0.1.9 branch after push.
+2. Publish only after the final release commit passes `node bin/genesis-harness.js verify-gate`.
+3. Create the GitHub release/tag from the verified v0.1.9 commit.

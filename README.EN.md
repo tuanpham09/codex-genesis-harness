@@ -167,9 +167,9 @@ genesis-harness prime
 
 ---
 
-## 🧭 Next Release Candidate (v0.1.9)
+## 🧭 Release v0.1.9
 
-The next release adds a deterministic bootstrap path that starts from a product idea, records discovery answers, scaffolds the first implementation-ready feature, and persists a resumable checkpoint.
+Genesis v0.1.9 adds a deterministic bootstrap path that starts from a product idea, records discovery answers, scaffolds the first implementation-ready feature, and persists a resumable checkpoint.
 
 ```bash
 genesis-harness init --platform codex --yes --idea "<brief>"
@@ -809,7 +809,7 @@ npm run pack:check      # Check npm package
 - ✅ **Skills**: 25 fully implemented & verified (added 5-Phase MVP Roadmap planner, advanced self-healing and compaction engines)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.8)
+- ✅ **Production Ready**: Yes (v0.1.9)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -821,7 +821,7 @@ npm run pack:check      # Check npm package
 
 MIT License - See [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Build production software with Codex | v0.1.8 | June 2026
+**Genesis Codex Harness** - Build production software with Codex | v0.1.9 | June 2026
 
 ---
 

@@ -167,9 +167,9 @@ genesis-harness prime
 
 ---
 
-## 🧭 Release Candidate Tiếp Theo (v0.1.9)
+## 🧭 Release v0.1.9
 
-Phiên bản tiếp theo bổ sung luồng bootstrap deterministic: bắt đầu từ ý tưởng sản phẩm, ghi lại discovery answers, scaffold feature đầu tiên sẵn sàng implement, và lưu checkpoint để phiên sau resume từ ổ đĩa.
+Genesis v0.1.9 bổ sung luồng bootstrap deterministic: bắt đầu từ ý tưởng sản phẩm, ghi lại discovery answers, scaffold feature đầu tiên sẵn sàng implement, và lưu checkpoint để phiên sau resume từ ổ đĩa.
 
 ```bash
 genesis-harness init --platform codex --yes --idea "<brief>"
@@ -802,7 +802,7 @@ npm run eval            # Chạy evaluation
 - ✅ **25 Skills**: Hoàn toàn kế thừa và triển khai đầy đủ (đã bổ sung lộ trình 5-Phase MVP, tự chữa lành & nén context)
 - ✅ **Test Coverage**: 80%+ required
 - ✅ **Token Savings**: 40-60%
-- ✅ **Production Ready**: Yes (v0.1.8)
+- ✅ **Production Ready**: Yes (v0.1.9)
 - ✅ **Auto-Research Enforcement**: Active
 - ✅ **Auto-Debug Verification**: Active
 - ✅ **Auto-Spec-Propagation**: Active
@@ -814,7 +814,7 @@ npm run eval            # Chạy evaluation
 
 MIT License - Xem [LICENSE](LICENSE)
 
-**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.8 | Tháng 6, 2026
+**Genesis Codex Harness** - Xây dựng phần mềm production với Codex | v0.1.9 | Tháng 6, 2026
 
 ---
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Research First Skill"
+  short_description: "Auto-enforce research-first pattern before any important technical decision"
+  default_prompt: "Use $genesis-research-first to research documentation, best practices, and existing patterns before planning this feature."
+
+policy:
+  allow_implicit_invocation: true

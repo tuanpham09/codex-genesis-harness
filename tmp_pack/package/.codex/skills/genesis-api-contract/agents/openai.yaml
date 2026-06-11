@@ -1,0 +1,7 @@
+interface:
+  display_name: "API Contract Skill"
+  short_description: "Define API contracts before endpoints"
+  default_prompt: "Use $api-contract-skill to create endpoint contracts and tests before implementation."
+policy:
+  allow_implicit_invocation: true
+

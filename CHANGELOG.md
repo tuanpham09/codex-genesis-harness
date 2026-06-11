@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-## [0.1.9] - Unreleased
+## [0.1.9] - 2026-06-11
 
 ### Added
 - **Non-interactive bootstrap CLI**: Added `genesis-harness init --platform ... --yes --idea ...` for deterministic project initialization from a blank repo or first product brief.
@@ -22,8 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Package contents**: `README.EN.md` and `README.VI.md` are included in the npm tarball because root `README.md` links to both language guides.
 
 ### Release Notes
-- Before tagging this release, confirm `package.json`, `.codex-plugin/plugin.json`, `VERSION`, README labels, and this changelog all agree on the final version number.
-- Known cleanup candidate: `tmp_pack/package/**` is a tracked pack artifact and should be reviewed before release if its deletion is intended.
+- `package.json`, `package-lock.json`, `.codex-plugin/plugin.json`, `VERSION`, README labels, and this changelog are aligned on `0.1.9`.
+- `tmp_pack/package/**` remains tracked as the historical pack artifact; the accidental deletion from the release-prep commit was restored.
 
 ---
 
