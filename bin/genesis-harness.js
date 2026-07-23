@@ -64,6 +64,12 @@ Usage:
   genesis-harness init [--platform codex|antigravity] [--yes] [--idea "<user brief>"]
   genesis-harness run --idea "<user brief>" [--platform codex|antigravity] [--yes] [--product-approach "..."] [--primary-user "..."] [--v1-outcome "..."] [--qa-owner "..."] [--backend "..."] [--frontend "..."] [--database "..."] [--deployment "..."] [--test-strategy "..."] [--stack-owner "..."]
   genesis-harness resume                Show the active resumable run summary for this repo
+  genesis-harness next                  Show the next executable lifecycle action
+  genesis-harness add-feature --title "<title>" --slug "<slug>" --verify-cmd "<command>"
+  genesis-harness complete-feature --verify-cmd "<command>" --evidence "<summary>"
+  genesis-harness verify-project --verify-cmd "<command>" --evidence "<summary>"
+  genesis-harness complete-project --evidence "<summary>"
+  genesis-harness pipeline-audit        Validate lifecycle state, proof, and artifacts
   genesis-harness sync                   Compress and sync codebase context (AST/Regex)
   genesis-harness setup-hooks            Install auto-sync git pre-commit hook
   genesis-harness heal <command>         Run test & print agent directive on failure
@@ -1003,6 +1009,68 @@ function parseRunArgs(args) {
   return options;
 }
 
+function parseCompleteFeatureArgs(args) {
+  const options = {
+    verifyCmd: "",
+    evidence: ""
+  };
+  const valueFlags = new Map([
+    ["--verify-cmd", "verifyCmd"],
+    ["--evidence", "evidence"]
+  ]);
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!valueFlags.has(arg)) usage(2);
+    options[valueFlags.get(arg)] = args[i + 1] || "";
+    i++;
+  }
+
+  if (!options.verifyCmd) fail('complete-feature requires --verify-cmd "<command>".');
+  if (!options.evidence) fail('complete-feature requires --evidence "<summary>".');
+  return options;
+}
+
+function parseAddFeatureArgs(args) {
+  const options = {
+    title: "",
+    slug: "",
+    verifyCmd: ""
+  };
+  const valueFlags = new Map([
+    ["--title", "title"],
+    ["--slug", "slug"],
+    ["--verify-cmd", "verifyCmd"]
+  ]);
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (!valueFlags.has(arg)) usage(2);
+    options[valueFlags.get(arg)] = args[i + 1] || "";
+    i++;
+  }
+
+  if (!options.title) fail('add-feature requires --title "<title>".');
+  if (!options.slug) fail('add-feature requires --slug "<slug>".');
+  if (!options.verifyCmd) fail('add-feature requires --verify-cmd "<command>".');
+  return options;
+}
+
+function parseProjectVerificationArgs(args) {
+  return parseCompleteFeatureArgs(args);
+}
+
+function parseProjectCompletionArgs(args) {
+  const options = { evidence: "" };
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] !== "--evidence") usage(2);
+    options.evidence = args[i + 1] || "";
+    i++;
+  }
+  if (!options.evidence) fail('complete-project requires --evidence "<summary>".');
+  return options;
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -1040,6 +1108,73 @@ function normalizeAnswer(value, fallback = "TBD") {
 
 function sessionRunDir(rootPath, sessionId) {
   return path.join(rootPath, ".runs", sessionId);
+}
+
+function appendLifecycleEvent(rootPath, state, event) {
+  const sessionId = state.session_id || "lifecycle";
+  const runDir = sessionRunDir(rootPath, sessionId);
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.appendFileSync(
+    path.join(runDir, "EVENTS.jsonl"),
+    `${JSON.stringify({
+      timestamp: new Date().toISOString(),
+      session_id: sessionId,
+      ...event
+    })}\n`,
+    "utf8"
+  );
+}
+
+function runProofCommand(rootPath, command, label) {
+  const result = spawnSync(command, {
+    cwd: rootPath,
+    env: process.env,
+    shell: true,
+    stdio: "inherit"
+  });
+  if (result.error) {
+    return { ok: false, message: `${label} could not start: ${result.error.message}` };
+  }
+  if (result.status !== 0) {
+    return { ok: false, message: `${label} failed with exit ${result.status}.` };
+  }
+  return { ok: true, message: `${label} passed.` };
+}
+
+function writeLifecycleCurrentState(rootPath, state, details) {
+  const now = state.last_updated_at || new Date().toISOString();
+  writeFileIfChanged(
+    path.join(rootPath, ".codebase", "CURRENT_STATE.md"),
+    [
+      "# Current System State",
+      "",
+      `**Time**: ${now.slice(0, 10)}`,
+      `**Status**: \`${state.current_state}\``,
+      `**Latest Session**: \`${state.session_id || "lifecycle"}\``,
+      "",
+      "## Lifecycle",
+      "",
+      ...details.map(detail => `- ${detail}`),
+      ""
+    ].join("\n")
+  );
+}
+
+function writeLifecycleRunRecord(rootPath, state, record, aliases = []) {
+  const observabilityDir = path.join(rootPath, "observability", "agent-runs");
+  fs.mkdirSync(observabilityDir, { recursive: true });
+  const sessionId = state.session_id || record.phase || "lifecycle";
+  const payload = {
+    session_id: sessionId,
+    timestamp: record.timestamp || new Date().toISOString(),
+    skill: "genesis-pipeline-orchestration",
+    recovery_needed: false,
+    ...record
+  };
+  writeJsonFile(path.join(observabilityDir, `${sessionId}-${record.id}.json`), payload);
+  for (const alias of aliases) {
+    writeJsonFile(path.join(observabilityDir, `${sessionId}-${alias}.json`), payload);
+  }
 }
 
 function buildResumeMarkdown({ sessionId, state, answers, artifactDir }) {
@@ -1101,6 +1236,8 @@ function persistRunArtifacts(rootPath, { sessionId, state, answers, idea, record
     required_verification: state.required_verification || [],
     latest_recovery_point: state.latest_recovery_point || "",
     session_started_at: state.session_started_at || discovery.recorded_at,
+    completed_at: state.completed_at || "",
+    metrics: state.metrics || {},
     recorded_at: discovery.recorded_at
   };
 
@@ -1193,6 +1330,504 @@ function resumeProject(rootPath = process.cwd()) {
     }
   }
   console.log("");
+}
+
+function readProjectLifecycle(rootPath) {
+  const statePath = path.join(rootPath, ".codebase", "state.json");
+  const registryPath = path.join(rootPath, ".planning", "FEATURE_REGISTRY.json");
+  if (!fs.existsSync(statePath)) {
+    fail(`missing state file at ${statePath}; run genesis-harness run first.`);
+  }
+  if (!fs.existsSync(registryPath)) {
+    fail(`missing feature registry at ${registryPath}; run genesis-harness run first.`);
+  }
+  const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+  const registry = JSON.parse(fs.readFileSync(registryPath, "utf8"));
+  registry.project_status = registry.project_status
+    || (state.current_state === "COMPLETED" ? "completed" : "implementation");
+  registry.project_verification = registry.project_verification || {
+    status: "pending",
+    verify_cmd: "",
+    evidence: "",
+    verified_at: ""
+  };
+  registry.features = (registry.features || []).map(feature => ({
+    attempts: 0,
+    last_error: "",
+    ...feature
+  }));
+  return {
+    statePath,
+    registryPath,
+    state,
+    registry
+  };
+}
+
+function showNextAction(rootPath = process.cwd()) {
+  const { state, registry } = readProjectLifecycle(rootPath);
+  const active = registry.features.find(feature => feature.status === "in-progress")
+    || registry.features.find(feature => feature.status === "planned");
+  const nextTask = (state.pending_tasks || [])[0];
+
+  console.log("\nGENESIS HARNESS - NEXT ACTION\n");
+  if (!active) {
+    if (state.current_state === "VERIFICATION") {
+      console.log("Next action: Run genesis-harness verify-project.");
+    } else if (state.current_state === "RELEASE_READY") {
+      console.log("Next action: Run genesis-harness complete-project.");
+    } else {
+      console.log("No planned or in-progress feature remains.");
+    }
+    return;
+  }
+  console.log(`Feature: ${active.title}`);
+  console.log(`Path: ${active.path}`);
+  console.log(`Status: ${active.status}`);
+  console.log(`Next action: ${nextTask || "Run feature verification and complete the feature."}`);
+  console.log("");
+}
+
+function addFeature(rootPath, options) {
+  const { statePath, registryPath, state, registry } = readProjectLifecycle(rootPath);
+  if (["RELEASE_READY", "COMPLETED"].includes(state.current_state)) {
+    fail(`cannot add a feature while project state is ${state.current_state}.`);
+  }
+  if (registry.features.some(feature => feature.title === options.title)) {
+    console.log(`Feature already queued: ${options.title}`);
+    return;
+  }
+
+  const featureRelativePath = createFeatureScaffold(rootPath, {
+    slug: slugifyFeature(options.slug),
+    summary: options.title
+  });
+  const now = new Date().toISOString();
+  const nextId = `F${String(registry.features.length + 1).padStart(3, "0")}`;
+  registry.features.push({
+    id: nextId,
+    status: "planned",
+    title: options.title,
+    path: featureRelativePath,
+    verify_cmd: options.verifyCmd,
+    evidence: "",
+    started_at: "",
+    verified_at: "",
+    attempts: 0,
+    last_error: ""
+  });
+  registry.project_status = "implementation";
+  registry.updated_at = now;
+  writeJsonFile(registryPath, registry);
+
+  const featureIndexPath = path.join(rootPath, ".planning", "FEATURE_INDEX.md");
+  if (fs.existsSync(featureIndexPath)) {
+    updateMarkdownFile(featureIndexPath, content => {
+      const row = `| ${options.title} | [ ] | Queue | ${featureRelativePath.replace(".planning/", "")} | Planned feature |`;
+      return content.includes(`| ${options.title} |`) ? content : `${content.trim()}\n${row}\n`;
+    });
+  }
+
+  state.last_updated_at = now;
+  state.pending_tasks = state.pending_tasks || [];
+  writeJsonFile(statePath, state);
+  appendLifecycleEvent(rootPath, state, {
+    type: "feature.queued",
+    feature_id: nextId,
+    feature_path: featureRelativePath
+  });
+  persistRunArtifacts(rootPath, {
+    sessionId: state.session_id || "lifecycle",
+    state,
+    answers: state.discovery_answers || {},
+    idea: (state.discovery_answers && state.discovery_answers.idea) || "",
+    recordedAt: now
+  });
+  console.log(`Feature queued: ${options.title}`);
+  console.log(`Path: ${featureRelativePath}`);
+}
+
+function completeFeature(rootPath, options) {
+  const { statePath, registryPath, state, registry } = readProjectLifecycle(rootPath);
+  const previousState = state.current_state || "IMPLEMENTATION";
+  const active = registry.features.find(feature => feature.path === state.active_feature)
+    || registry.features.find(feature => feature.status === "in-progress");
+  if (!active) fail("no in-progress feature is available to complete.");
+
+  const verificationStartedAt = Date.now();
+  active.attempts = (active.attempts || 0) + 1;
+  const verification = runProofCommand(rootPath, options.verifyCmd, `feature ${active.id} verification`);
+  if (!verification.ok) {
+    active.last_error = verification.message;
+    registry.updated_at = new Date().toISOString();
+    writeJsonFile(registryPath, registry);
+    state.metrics = state.metrics || {};
+    state.metrics.failed_gate_count = (state.metrics.failed_gate_count || 0) + 1;
+    state.last_updated_at = new Date().toISOString();
+    writeJsonFile(statePath, state);
+    appendLifecycleEvent(rootPath, state, {
+      type: "feature.verification_failed",
+      feature_id: active.id,
+      error: verification.message
+    });
+    fail(verification.message);
+  }
+
+  const now = new Date().toISOString();
+  const startedAt = Date.parse(active.started_at || state.session_started_at || now);
+  const leadTimeSeconds = Math.max(0, Math.round((Date.now() - startedAt) / 1000));
+  active.status = "verified";
+  active.verify_cmd = options.verifyCmd;
+  active.evidence = options.evidence;
+  active.verified_at = now;
+  active.last_error = "";
+  const nextFeature = registry.features.find(feature => feature.status === "planned");
+  if (nextFeature) {
+    nextFeature.status = "in-progress";
+    nextFeature.started_at = now;
+    registry.project_status = "implementation";
+    state.current_state = "IMPLEMENTATION";
+    state.active_work = `Implement ${nextFeature.title}`;
+    state.active_feature = nextFeature.path;
+    state.pending_tasks = [
+      `Add the first failing test for ${nextFeature.title}`,
+      `Implement ${nextFeature.title}`,
+      "Run feature verification and record evidence"
+    ];
+  } else {
+    registry.project_status = "verification";
+    state.current_state = "VERIFICATION";
+    state.active_work = "Project verification";
+    state.active_feature = "";
+    state.pending_tasks = ["Run project verification", "Prepare final implementation handoff"];
+  }
+  registry.updated_at = now;
+  writeJsonFile(registryPath, registry);
+
+  const featureIndexPath = path.join(rootPath, ".planning", "FEATURE_INDEX.md");
+  if (fs.existsSync(featureIndexPath)) {
+    updateMarkdownFile(featureIndexPath, content =>
+      content.replace(
+        new RegExp(`\\| ${escapeRegExp(active.title)} \\| \\[~\\] \\|`),
+        `| ${active.title} | [x] |`
+      )
+    );
+  }
+
+  const verificationPath = path.join(rootPath, active.path, "VERIFICATION.md");
+  if (fs.existsSync(verificationPath)) {
+    updateMarkdownFile(verificationPath, content => [
+      content.trim(),
+      "",
+      "## Completion Evidence",
+      "",
+      `- Verified at: ${now}`,
+      `- Command: \`${options.verifyCmd}\``,
+      `- Evidence: ${options.evidence}`,
+      ""
+    ].join("\n"));
+  }
+
+  state.history = state.history || [];
+  state.history.push({
+    from: previousState,
+    to: nextFeature ? "IMPLEMENTATION" : "VERIFICATION",
+    reason: `Verified feature: ${active.title}`,
+    timestamp: now,
+    session_id: state.session_id || "feature-completion"
+  });
+  state.last_updated_at = now;
+  state.latest_recovery_point = `Feature verified: ${active.title}`;
+  state.metrics = {
+    ...(state.metrics || {}),
+    time_to_verified_feature_seconds: leadTimeSeconds,
+    last_verification_duration_ms: Date.now() - verificationStartedAt,
+    failed_gate_count: (state.metrics && state.metrics.failed_gate_count) || 0
+  };
+  writeJsonFile(statePath, state);
+
+  writeLifecycleCurrentState(rootPath, state, [
+    `Verified feature: ${active.title}`,
+    `Evidence: ${options.evidence}`,
+    nextFeature
+      ? `Promoted next feature: ${nextFeature.title}`
+      : "All queued features are verified; project verification is next."
+  ]);
+
+  writeLifecycleRunRecord(
+    rootPath,
+    state,
+    {
+      id: `${active.id}-complete`,
+      timestamp: now,
+      phase: "verify",
+      outcome: "success",
+      evidence: options.evidence,
+      task_id: active.id,
+      duration_ms: Date.now() - verificationStartedAt,
+      metrics: state.metrics
+    },
+    ["feature-complete"]
+  );
+
+  appendLifecycleEvent(rootPath, state, {
+    type: "feature.verified",
+    feature_id: active.id,
+    evidence: options.evidence,
+    next_feature_id: nextFeature ? nextFeature.id : ""
+  });
+  persistRunArtifacts(rootPath, {
+    sessionId: state.session_id || "feature-completion",
+    state,
+    answers: state.discovery_answers || {},
+    idea: (state.discovery_answers && state.discovery_answers.idea) || "",
+    recordedAt: now
+  });
+
+  console.log(`Feature completed: ${active.title}`);
+  console.log(`Evidence: ${options.evidence}`);
+  console.log(nextFeature ? `Next feature: ${nextFeature.title}` : "Next stage: project verification");
+}
+
+function verifyProject(rootPath, options) {
+  const { statePath, registryPath, state, registry } = readProjectLifecycle(rootPath);
+  if (state.current_state === "RELEASE_READY" && registry.project_verification.status === "passed") {
+    console.log("Project already verified and release-ready.");
+    return;
+  }
+  if (state.current_state !== "VERIFICATION") {
+    fail(`verify-project requires project state VERIFICATION, found ${state.current_state}.`);
+  }
+  const incomplete = registry.features.filter(feature => feature.status !== "verified");
+  if (incomplete.length > 0) {
+    fail(`verify-project blocked by unverified features: ${incomplete.map(feature => feature.id).join(", ")}.`);
+  }
+
+  const startedAt = Date.now();
+  for (const feature of registry.features) {
+    const result = runProofCommand(rootPath, feature.verify_cmd, `feature ${feature.id} proof`);
+    if (!result.ok) {
+      state.metrics = state.metrics || {};
+      state.metrics.failed_gate_count = (state.metrics.failed_gate_count || 0) + 1;
+      state.last_updated_at = new Date().toISOString();
+      writeJsonFile(statePath, state);
+      appendLifecycleEvent(rootPath, state, {
+        type: "project.verification_failed",
+        feature_id: feature.id,
+        error: result.message
+      });
+      fail(result.message);
+    }
+  }
+  const projectProof = runProofCommand(rootPath, options.verifyCmd, "project verification");
+  if (!projectProof.ok) {
+    state.metrics = state.metrics || {};
+    state.metrics.failed_gate_count = (state.metrics.failed_gate_count || 0) + 1;
+    state.last_updated_at = new Date().toISOString();
+    writeJsonFile(statePath, state);
+    appendLifecycleEvent(rootPath, state, {
+      type: "project.verification_failed",
+      error: projectProof.message
+    });
+    fail(projectProof.message);
+  }
+
+  const now = new Date().toISOString();
+  registry.project_status = "release-ready";
+  registry.project_verification = {
+    status: "passed",
+    verify_cmd: options.verifyCmd,
+    evidence: options.evidence,
+    verified_at: now
+  };
+  registry.updated_at = now;
+  writeJsonFile(registryPath, registry);
+
+  writeJsonFile(path.join(rootPath, ".planning", "PROJECT_VERIFICATION.json"), {
+    status: "passed",
+    verified_at: now,
+    feature_count: registry.features.length,
+    feature_proofs: registry.features.map(feature => ({
+      id: feature.id,
+      verify_cmd: feature.verify_cmd,
+      evidence: feature.evidence,
+      verified_at: feature.verified_at
+    })),
+    project_verify_cmd: options.verifyCmd,
+    evidence: options.evidence
+  });
+  writeFileIfChanged(
+    path.join(rootPath, ".planning", "IMPLEMENTATION_HANDOFF.md"),
+    [
+      "# Implementation Handoff",
+      "",
+      `- Status: Release ready`,
+      `- Verified at: ${now}`,
+      `- Features verified: ${registry.features.length}`,
+      `- Project evidence: ${options.evidence}`,
+      `- Project proof command: \`${options.verifyCmd}\``,
+      "",
+      "## Verified Features",
+      "",
+      ...registry.features.map(feature => `- [x] ${feature.id}: ${feature.title} - ${feature.evidence}`),
+      "",
+      "## Next Action",
+      "",
+      "- Run `genesis-harness complete-project --evidence \"<release or acceptance evidence>\"`.",
+      ""
+    ].join("\n")
+  );
+
+  state.history = state.history || [];
+  state.history.push({
+    from: "VERIFICATION",
+    to: "RELEASE_READY",
+    reason: "Project verification passed",
+    timestamp: now,
+    session_id: state.session_id || "project-verification"
+  });
+  state.current_state = "RELEASE_READY";
+  state.active_work = "Release readiness";
+  state.pending_tasks = ["Complete project with release or acceptance evidence"];
+  state.last_updated_at = now;
+  state.latest_handoff = ".planning/IMPLEMENTATION_HANDOFF.md";
+  state.metrics = {
+    ...(state.metrics || {}),
+    project_verification_duration_ms: Date.now() - startedAt
+  };
+  writeJsonFile(statePath, state);
+  writeLifecycleCurrentState(rootPath, state, [
+    "All feature proof commands passed.",
+    `Project evidence: ${options.evidence}`,
+    "Final completion is awaiting release or acceptance evidence."
+  ]);
+  appendLifecycleEvent(rootPath, state, {
+    type: "project.verified",
+    evidence: options.evidence
+  });
+  writeLifecycleRunRecord(rootPath, state, {
+    id: "project-verified",
+    timestamp: now,
+    phase: "verify",
+    outcome: "success",
+    evidence: options.evidence,
+    task_id: "PROJECT",
+    duration_ms: Date.now() - startedAt,
+    metrics: state.metrics
+  });
+  persistRunArtifacts(rootPath, {
+    sessionId: state.session_id || "project-verification",
+    state,
+    answers: state.discovery_answers || {},
+    idea: (state.discovery_answers && state.discovery_answers.idea) || "",
+    recordedAt: now
+  });
+  console.log("Project verified: all feature and project proof commands passed.");
+  console.log("State: RELEASE_READY");
+}
+
+function completeProject(rootPath, options) {
+  const { statePath, registryPath, state, registry } = readProjectLifecycle(rootPath);
+  if (state.current_state === "COMPLETED" && registry.project_status === "completed") {
+    console.log("Project already completed.");
+    return;
+  }
+  if (state.current_state !== "RELEASE_READY") {
+    fail(`complete-project requires project state RELEASE_READY, found ${state.current_state}.`);
+  }
+  if (registry.project_verification.status !== "passed") {
+    fail("complete-project requires passed project verification.");
+  }
+
+  const now = new Date().toISOString();
+  registry.project_status = "completed";
+  registry.completed_at = now;
+  registry.completion_evidence = options.evidence;
+  registry.updated_at = now;
+  writeJsonFile(registryPath, registry);
+
+  state.history = state.history || [];
+  state.history.push({
+    from: "RELEASE_READY",
+    to: "COMPLETED",
+    reason: options.evidence,
+    timestamp: now,
+    session_id: state.session_id || "project-completion"
+  });
+  state.current_state = "COMPLETED";
+  state.completed_at = now;
+  state.active_work = "";
+  state.active_feature = "";
+  state.pending_tasks = [];
+  state.last_updated_at = now;
+  state.latest_recovery_point = "Project completed from release-ready state";
+  writeJsonFile(statePath, state);
+  writeLifecycleCurrentState(rootPath, state, [
+    "All queued features are verified.",
+    `Project verification: ${registry.project_verification.evidence}`,
+    `Completion evidence: ${options.evidence}`
+  ]);
+  appendLifecycleEvent(rootPath, state, {
+    type: "project.completed",
+    evidence: options.evidence
+  });
+  writeLifecycleRunRecord(rootPath, state, {
+    id: "project-completed",
+    timestamp: now,
+    phase: "release",
+    outcome: "success",
+    evidence: options.evidence,
+    task_id: "PROJECT",
+    duration_ms: 0,
+    metrics: state.metrics || {}
+  });
+  persistRunArtifacts(rootPath, {
+    sessionId: state.session_id || "project-completion",
+    state,
+    answers: state.discovery_answers || {},
+    idea: (state.discovery_answers && state.discovery_answers.idea) || "",
+    recordedAt: now
+  });
+  console.log("Project completed.");
+  console.log(`Evidence: ${options.evidence}`);
+}
+
+function auditPipeline(rootPath) {
+  const { state, registry } = readProjectLifecycle(rootPath);
+  const errors = [];
+  const activeFeatures = registry.features.filter(feature => feature.status === "in-progress");
+  const unverified = registry.features.filter(feature => feature.status !== "verified");
+  const verificationPath = path.join(rootPath, ".planning", "PROJECT_VERIFICATION.json");
+  const handoffPath = path.join(rootPath, ".planning", "IMPLEMENTATION_HANDOFF.md");
+  const eventsPath = path.join(sessionRunDir(rootPath, state.session_id || "lifecycle"), "EVENTS.jsonl");
+
+  if (state.current_state === "IMPLEMENTATION" && activeFeatures.length !== 1) {
+    errors.push(`IMPLEMENTATION requires exactly one active feature; found ${activeFeatures.length}.`);
+  }
+  if (["VERIFICATION", "RELEASE_READY", "COMPLETED"].includes(state.current_state) && unverified.length > 0) {
+    errors.push(`${state.current_state} contains unverified features: ${unverified.map(feature => feature.id).join(", ")}.`);
+  }
+  if (state.active_feature && !registry.features.some(feature => feature.path === state.active_feature && feature.status === "in-progress")) {
+    errors.push("state.active_feature does not match an in-progress registry feature.");
+  }
+  if (["RELEASE_READY", "COMPLETED"].includes(state.current_state)) {
+    if (registry.project_verification.status !== "passed") errors.push("project verification is not passed.");
+    if (!fs.existsSync(verificationPath)) errors.push("PROJECT_VERIFICATION.json is missing.");
+    if (!fs.existsSync(handoffPath)) errors.push("IMPLEMENTATION_HANDOFF.md is missing.");
+  }
+  if (state.current_state === "COMPLETED" && registry.project_status !== "completed") {
+    errors.push("completed state does not match registry project_status.");
+  }
+  if (!fs.existsSync(eventsPath)) errors.push("lifecycle event history is missing.");
+
+  if (errors.length > 0) {
+    console.error("Pipeline audit failed:");
+    for (const error of errors) console.error(`- ${error}`);
+    process.exit(1);
+  }
+  console.log("Pipeline audit passed.");
+  console.log(`State: ${state.current_state}`);
+  console.log(`Features: ${registry.features.length}`);
 }
 
 function completeDiscoveryPhase(rootPath, answers) {
@@ -1963,6 +2598,32 @@ function seedFirstFeatureExecution(rootPath, answers) {
     const row = `| ${featureSeed.summary} | [~] | 02 | ${featureRelativePath.replace(".planning/", "")} | Active first implementation slice |`;
     if (content.includes(`| ${featureSeed.summary} |`)) return content;
     return `${content.trim()}\n${row}\n`;
+  });
+
+  writeJsonFile(path.join(planningRoot, "FEATURE_REGISTRY.json"), {
+    version: "1.0.0",
+    updated_at: nowIso,
+    project_status: "implementation",
+    project_verification: {
+      status: "pending",
+      verify_cmd: "",
+      evidence: "",
+      verified_at: ""
+    },
+    features: [
+      {
+        id: "F001",
+        status: "in-progress",
+        title: featureSeed.summary,
+        path: featureRelativePath,
+        verify_cmd: "node bin/genesis-harness.js verify-gate",
+        evidence: "",
+        started_at: nowIso,
+        verified_at: "",
+        attempts: 0,
+        last_error: ""
+      }
+    ]
   });
 
   updateMarkdownFile(path.join(planningRoot, "ROADMAP.md"), (content) =>
@@ -2946,6 +3607,24 @@ switch (command) {
   }
   case "resume":
     resumeProject(process.cwd());
+    break;
+  case "next":
+    showNextAction(process.cwd());
+    break;
+  case "add-feature":
+    addFeature(process.cwd(), parseAddFeatureArgs(args));
+    break;
+  case "complete-feature":
+    completeFeature(process.cwd(), parseCompleteFeatureArgs(args));
+    break;
+  case "verify-project":
+    verifyProject(process.cwd(), parseProjectVerificationArgs(args));
+    break;
+  case "complete-project":
+    completeProject(process.cwd(), parseProjectCompletionArgs(args));
+    break;
+  case "pipeline-audit":
+    auditPipeline(process.cwd());
     break;
   case "sync":
     syncContext();

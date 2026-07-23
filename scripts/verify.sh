@@ -180,6 +180,8 @@ verify_repository_harness() {
 
 verify_repository_harness
 
+node "$repo_root/scripts/check-repository-hygiene.js"
+
 verify_skill_metadata() {
   local skill_dir="$1"
   local expected_name="$2"

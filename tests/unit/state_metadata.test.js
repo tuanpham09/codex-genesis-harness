@@ -16,6 +16,7 @@ const allowedStates = new Set([
   "PLANNING",
   "IMPLEMENTATION",
   "VERIFICATION",
+  "RELEASE_READY",
   "COMPLETED"
 ]);
 
@@ -47,12 +48,19 @@ assert(
 const sessionStartedAt = Date.parse(repoState.session_started_at);
 assert(!Number.isNaN(sessionStartedAt), "state.json should include a valid session_started_at timestamp");
 
-const completedAt = Date.parse(repoState.completed_at);
-assert(!Number.isNaN(completedAt), "state.json should include a valid completed_at timestamp");
-assert(
-  completedAt >= sessionStartedAt,
-  "state.json completed_at must not be older than session_started_at"
-);
+if (repoState.current_state === "COMPLETED") {
+  const completedAt = Date.parse(repoState.completed_at);
+  assert(!Number.isNaN(completedAt), "completed state should include a valid completed_at timestamp");
+  assert(
+    completedAt >= sessionStartedAt,
+    "state.json completed_at must not be older than session_started_at"
+  );
+} else {
+  assert(
+    !Object.prototype.hasOwnProperty.call(repoState, "completed_at"),
+    "active states should not retain a stale completed_at timestamp"
+  );
+}
 
 for (const transition of repoState.history || []) {
   assert(

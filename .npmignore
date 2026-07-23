@@ -2,5 +2,9 @@ scripts/scratch_parser.js
 src/
 scratch/
 node_modules/
+scripts/bin/
+harness.db
+harness.db-wal
+harness.db-shm
 .DS_Store
 *.tgz

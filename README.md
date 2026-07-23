@@ -156,6 +156,12 @@ genesis-harness run \
 
 # Resume the active run from disk
 genesis-harness resume
+genesis-harness add-feature --title "Notify staff" --slug "staff-notifications" --verify-cmd "npm test"
+genesis-harness next
+genesis-harness complete-feature --verify-cmd "npm test" --evidence "All feature tests passed"
+genesis-harness verify-project --verify-cmd "npm run verify" --evidence "Acceptance suite passed"
+genesis-harness complete-project --evidence "Release candidate accepted"
+genesis-harness pipeline-audit
 ```
 
 ### What Changes
@@ -167,7 +173,9 @@ genesis-harness resume
 5. **Typed first-slice contracts**: The first feature scaffold can generate API/UI contracts and fixtures under `contracts/api`, `contracts/ui`, `fixtures/api`, and `playwright/fixtures`.
 6. **Resumable run artifacts**: `.runs/<session-id>/INPUT.md`, `DISCOVERY.json`, `STATE.json`, and `RESUME.md` persist the active checkpoint.
 7. **Stronger verify-gate**: `genesis-harness verify-gate` now runs structural verify, evals, docs-gate, cold-start, package dry-run, and LeanCTX reporting.
-8. **Release publishing hardening**: GitHub release/manual publishing now uses npm trusted publishing with provenance instead of long-lived npm tokens or CI-mutated versions.
+8. **End-to-end lifecycle**: Features are queued and verified one at a time; project-wide verification creates a release-ready handoff before final completion.
+9. **Durable audit trail**: `.runs/<session-id>/EVENTS.jsonl` records lifecycle events, while `pipeline-audit` detects queue, state, proof, and handoff drift.
+10. **Release publishing hardening**: GitHub release/manual publishing now uses npm trusted publishing with provenance instead of long-lived npm tokens or CI-mutated versions.
 
 ### Release Readiness Checklist
 

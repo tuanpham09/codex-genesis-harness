@@ -67,6 +67,12 @@ assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness docs-gate'
 assert_contains "$repo_root/bin/genesis-harness.js" 'check-docs-sync.sh'
 assert_contains "$repo_root/bin/genesis-harness.js" 'npx genesis-harness docs-gate'
 assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness resume'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness next'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness add-feature'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness complete-feature'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness verify-project'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness complete-project'
+assert_contains "$repo_root/bin/genesis-harness.js" 'genesis-harness pipeline-audit'
 assert_contains "$harness_dir/scripts/check-docs-sync.sh" '.codebase/'
 assert_contains "$harness_dir/scripts/check-docs-sync.sh" 'README(\.[A-Z]{2})?\.md'
 assert_contains "$repo_root/.codebase/VISUAL_GRAPH.md" 'genesis-harness'
@@ -78,7 +84,16 @@ assert_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'Harness Drift 
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" '_[Name and reference]_'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'Feature A'
 assert_not_contains "$repo_root/.codebase/IMPLEMENTATION_HANDOFF.md" 'YYYY-MM-DD'
-assert_contains "$repo_root/.codebase/state.json" '"completed_at": "'
+node - "$repo_root/.codebase/state.json" <<'NODE'
+const fs = require("fs");
+const state = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+if (state.current_state === "COMPLETED" && !state.completed_at) {
+  throw new Error("completed state must include completed_at");
+}
+if (state.current_state !== "COMPLETED" && Object.prototype.hasOwnProperty.call(state, "completed_at")) {
+  throw new Error("active state must not retain completed_at");
+}
+NODE
 assert_contains "$repo_root/.codebase/CURRENT_STATE.md" '**Time**: '
 assert_contains "$repo_root/.codebase/MODULE_INDEX.md" '.runs/'
 assert_not_contains "$repo_root/.codebase/CURRENT_STATE.md" '110/110 perfect score'
@@ -207,6 +222,8 @@ pack_tmp="$(mktemp -d)"
 npm pack --pack-destination "$pack_tmp" >/dev/null
 tarball_path=$(ls "$pack_tmp"/*.tgz | head -n 1)
 [ -f "$tarball_path" ] || fail "npm pack failed to produce tarball"
+tar tzf "$tarball_path" | grep -q '^package/scripts/bin/' \
+  && fail "packaged tarball must not include generated scripts/bin binaries"
 (
   cd "$pack_tmp"
   tar xzf "$tarball_path"
@@ -222,7 +239,9 @@ assert_contains "$repo_root/features/REGISTRY.md" "| id |"
 assert_contains "$repo_root/features/REGISTRY.md" "| status |"
 assert_contains "$repo_root/features/REGISTRY.md" "| verify_cmd |"
 assert_file "$repo_root/contracts/features/registry-schema.json"
+assert_file "$repo_root/contracts/features/project-registry-schema.json"
 assert_contains "$repo_root/contracts/features/registry-schema.json" '"required_columns"'
+assert_contains "$repo_root/contracts/features/project-registry-schema.json" '"completion_rule"'
 assert_contains "$repo_root/.codebase/MODULE_INDEX.md" "features/REGISTRY.md"
 
 # L11 — Observability Live Data

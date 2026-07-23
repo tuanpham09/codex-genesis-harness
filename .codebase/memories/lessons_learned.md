@@ -55,3 +55,9 @@ This file chronicles the major failures, recursive bugs, and architectural dead-
 - **Root Cause**: The runtime scaffold did not classify the first slice by surface area and did not reuse the repository's contract and fixture structure.
 - **Resolution**: The bootstrap now infers `ui`, `api`, or `full-stack` from discovery answers and emits typed artifacts in `contracts/ui/<feature>/`, `contracts/api/<feature>/`, `playwright/fixtures/`, and `fixtures/api/`.
 - **Rule**: If a harness claims contract-first execution, the first slice must already contain the concrete contract and fixture paths needed by the likely implementation surface.
+
+## 10. Feature Completion Is Not Project Completion
+- **Symptom**: The runtime could verify one active feature, but there was no repeatable queue promotion, project-wide proof rerun, release-ready handoff, or drift audit before marking the project done.
+- **Root Cause**: Feature lifecycle state and project lifecycle state were treated as the same boundary.
+- **Resolution**: Added a multi-feature registry, append-only lifecycle events, project-wide verification, a distinct `RELEASE_READY` state, evidence-gated project completion, and `pipeline-audit`.
+- **Rule**: A project may reach `COMPLETED` only after every feature is verified, all proof commands pass again at project scope, the handoff exists, and release or acceptance evidence is recorded.

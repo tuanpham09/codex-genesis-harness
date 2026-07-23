@@ -1,13 +1,12 @@
 {
   "current_state": "COMPLETED",
-  "completed_at": "2026-06-11T10:25:00+07:00",
-  "active_work": "Release README Preparation",
-  "session_id": "2026-06-11-release-readme-prep",
-  "session_started_at": "2026-06-11T10:10:00+07:00",
-  "ttfv_seconds": 60,
-  "_comment_ttfv": "Time-to-First-Verification: seconds from session start to first passing test (L06 KPI). 60s = 1min for this session.",
+  "active_work": "",
+  "session_id": "2026-06-12-lifecycle-pipeline-hardening",
+  "session_started_at": "2026-06-12T16:47:17+07:00",
+  "ttfv_seconds": 180,
+  "_comment_ttfv": "Time-to-First-Verification: 180s from session start to first passing targeted lifecycle test.",
   "latest_handoff": ".codebase/IMPLEMENTATION_HANDOFF.md",
-  "latest_recovery_point": "Release README Preparation",
+  "latest_recovery_point": "End-to-end lifecycle pipeline verified with project closure and audit",
   "required_verification": [
     "npm run verify",
     "npm run eval",
@@ -20,9 +19,17 @@
     "node tests/unit/workflow_contracts.test.js",
     "node tests/integration/cli-smoke.test.js",
     "node tests/unit/state_metadata.test.js",
+    "node tests/unit/repository_hygiene.test.js",
     "node bin/genesis-harness.js verify-gate"
   ],
   "history": [
+    {
+      "from": "IMPLEMENTATION",
+      "to": "COMPLETED",
+      "reason": "Added project feature registry routing, evidence-gated feature completion, lifecycle metrics, observability output, and repository hygiene enforcement.",
+      "timestamp": "2026-06-12T16:50:17+07:00",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
     {
       "from": "COMPLETED",
       "to": "COMPLETED",
@@ -71,6 +78,90 @@
       "reason": "Started full harness evaluation and score fix: L08 feature registry, L11 observability live, L04 instruction size, L03 cold-start, L05 session boundary, L07 scope, L09 victory blocker, L12 known problems.",
       "timestamp": "2026-06-03T02:35:00Z",
       "session_id": "2026-06-03-full-score-fix"
+    },
+    {
+      "from": "COMPLETED",
+      "to": "IMPLEMENTATION",
+      "reason": "Implement end-to-end multi-feature project lifecycle",
+      "timestamp": "2026-06-12T10:03:52.067Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "VERIFICATION",
+      "reason": "Run full lifecycle and repository verification",
+      "timestamp": "2026-06-12T10:03:52.118Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "VERIFICATION",
+      "to": "IMPLEMENTATION",
+      "reason": "Refresh lifecycle metadata after transition script fix",
+      "timestamp": "2026-06-12T10:04:41.327Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "VERIFICATION",
+      "reason": "Run full lifecycle and repository verification",
+      "timestamp": "2026-06-12T10:04:41.409Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "VERIFICATION",
+      "to": "IMPLEMENTATION",
+      "reason": "Refresh current-state metadata contract",
+      "timestamp": "2026-06-12T10:05:21.693Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "VERIFICATION",
+      "reason": "Run full lifecycle and repository verification",
+      "timestamp": "2026-06-12T10:05:21.810Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "VERIFICATION",
+      "to": "RELEASE_READY",
+      "reason": "All feature and project verification gates passed",
+      "timestamp": "2026-06-12T10:05:54.545Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "RELEASE_READY",
+      "to": "COMPLETED",
+      "reason": "End-to-end lifecycle pipeline verified with project closure and audit",
+      "timestamp": "2026-06-12T10:06:47.807Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "COMPLETED",
+      "to": "IMPLEMENTATION",
+      "reason": "Refresh completed-state metadata behavior",
+      "timestamp": "2026-06-12T10:07:09.243Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "IMPLEMENTATION",
+      "to": "VERIFICATION",
+      "reason": "Final verification after state writer hardening",
+      "timestamp": "2026-06-12T10:07:09.342Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "VERIFICATION",
+      "to": "RELEASE_READY",
+      "reason": "Canonical verify-gate passed for end-to-end lifecycle",
+      "timestamp": "2026-06-12T10:07:09.466Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
+    },
+    {
+      "from": "RELEASE_READY",
+      "to": "COMPLETED",
+      "reason": "End-to-end lifecycle pipeline verified with project closure and audit",
+      "timestamp": "2026-06-12T10:07:37.415Z",
+      "session_id": "2026-06-12-lifecycle-pipeline-hardening"
     }
   ],
   "context": {
@@ -79,5 +170,7 @@
     "context_policy": ".codebase/context-policy.json",
     "evaluation_report": ".codebase/../artifacts/harness_evaluation_report.md"
   },
-  "pending_tasks": []
+  "pending_tasks": [],
+  "last_updated_at": "2026-06-12T10:07:37.415Z",
+  "completed_at": "2026-06-12T10:07:37.415Z"
 }

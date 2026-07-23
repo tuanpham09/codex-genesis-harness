@@ -39,7 +39,8 @@ const allowed = {
   'REQUIREMENTS_GATHERING': ['PLANNING'],
   'PLANNING': ['IMPLEMENTATION'],
   'IMPLEMENTATION': ['VERIFICATION', 'PLANNING'],
-  'VERIFICATION': ['COMPLETED', 'IMPLEMENTATION'],
+  'VERIFICATION': ['RELEASE_READY', 'IMPLEMENTATION'],
+  'RELEASE_READY': ['COMPLETED', 'IMPLEMENTATION'],
   'COMPLETED': ['INIT', 'REQUIREMENTS_GATHERING', 'IMPLEMENTATION']
 };
 
@@ -54,6 +55,11 @@ if (allowed[current] && allowed[current].includes(newState)) {
   data.last_updated_at = now;
   if (newState === 'COMPLETED') {
     data.completed_at = now;
+    data.active_work = '';
+    data.pending_tasks = [];
+    data.latest_recovery_point = reason;
+  } else {
+    delete data.completed_at;
   }
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
   console.log('Transition successful: ' + current + ' -> ' + newState);
@@ -64,12 +70,15 @@ if (allowed[current] && allowed[current].includes(newState)) {
 "
 
 if [ $? -eq 0 ]; then
+  SESSION_ID=$(node -p "JSON.parse(require('fs').readFileSync('$STATE_FILE', 'utf8')).session_id || 'manual-transition'")
+  TTFV_SECONDS=$(node -p "JSON.parse(require('fs').readFileSync('$STATE_FILE', 'utf8')).ttfv_seconds || 0")
   cat > "$CURRENT_STATE_MD" <<EOF
 # Current System State
 
 **Time**: $(date +%F)
 **Status**: \`$NEW_STATE\`
-**Latest Session**: \`manual-transition\`
+**Latest Session**: \`$SESSION_ID\`
+**Time to First Verification (TTFV)**: ${TTFV_SECONDS}s
 
 ## Latest Transition
 

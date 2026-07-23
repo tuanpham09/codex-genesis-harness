@@ -1,6 +1,6 @@
 # Known Problems
 
-Last updated: 2026-06-03
+Last updated: 2026-06-12
 
 ## Active Technical Debt
 
@@ -55,3 +55,22 @@ Last updated: 2026-06-03
 - **Mitigation**: `genesis-verification-before-completion` skill partially addresses this through mandatory evidence.
 - **Permanent Fix Needed**: Integrate a token-budget warning callback in the `prompt_sentinel.js` that flags imminent convergence.
 - **Priority**: P3
+
+### TD-009: Dependency directory was tracked in Git
+- **Symptom**: `node_modules/` contributed hundreds of tracked files even though dependencies are reproducible from `package-lock.json`.
+- **Impact**: Noisy diffs, larger clones, and a higher risk of stale or platform-specific dependency artifacts.
+- **Fix applied**: Removed `node_modules/` from the Git index, added it to `.gitignore`, and added `scripts/check-repository-hygiene.js` to the structural verification path.
+- **Status**: RESOLVED
+
+### TD-010: Historical unpacked package artifact remains tracked
+- **Symptom**: `tmp_pack/` keeps a full historical package tree in Git.
+- **Impact**: Repository duplication remains higher than necessary.
+- **Mitigation**: Explicitly allowlisted for now because current repository state identifies it as historical evidence.
+- **Permanent Fix Needed**: Replace it with a compact expected tarball manifest after confirming no release or regression workflow consumes the unpacked tree.
+- **Priority**: P2
+
+### TD-011: Feature completion previously lacked project closure
+- **Symptom**: A verified active feature could be presented as lifecycle completion without proving all queued work or producing a release-ready handoff.
+- **Impact**: Projects could stop between feature execution and acceptance with no deterministic next action.
+- **Fix applied**: Added queue promotion, `verify-project`, `RELEASE_READY`, `complete-project`, append-only event history, and `pipeline-audit`.
+- **Status**: RESOLVED

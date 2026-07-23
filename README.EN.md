@@ -184,6 +184,12 @@ genesis-harness run --platform codex --yes --idea "<brief>" \
   --deployment "<target>" \
   --test-strategy "<tests>"
 genesis-harness resume
+genesis-harness add-feature --title "Notify staff" --slug "staff-notifications" --verify-cmd "npm test"
+genesis-harness next
+genesis-harness complete-feature --verify-cmd "npm test" --evidence "All feature tests passed"
+genesis-harness verify-project --verify-cmd "npm run verify" --evidence "Acceptance suite passed"
+genesis-harness complete-project --evidence "Release candidate accepted"
+genesis-harness pipeline-audit
 ```
 
 Release highlights:
@@ -194,7 +200,10 @@ Release highlights:
 4. First-slice scaffolding can generate typed API/UI contracts and fixtures.
 5. `.runs/<session-id>/` stores resumable run artifacts.
 6. `verify-gate` now covers verify, evals, docs-gate, cold-start, package dry-run, and LeanCTX.
-7. npm publishing is hardened for GitHub release/manual runs with provenance and trusted publishing.
+7. `add-feature`, `next`, and `complete-feature` operate a repeatable multi-feature execution queue with persisted evidence and lead-time metrics.
+8. `verify-project` reruns every feature proof plus the project proof, creates the implementation handoff, and moves the project to `RELEASE_READY`.
+9. `complete-project` requires release or acceptance evidence, while `pipeline-audit` detects lifecycle drift.
+10. npm publishing is hardened for GitHub release/manual runs with provenance and trusted publishing.
 
 Before tagging, confirm `package.json`, `.codex-plugin/plugin.json`, `VERSION`, `CHANGELOG.md`, and README version labels all agree.
 

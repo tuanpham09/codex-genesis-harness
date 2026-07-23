@@ -184,6 +184,12 @@ genesis-harness run --platform codex --yes --idea "<brief>" \
   --deployment "<target>" \
   --test-strategy "<tests>"
 genesis-harness resume
+genesis-harness add-feature --title "Thông báo cho nhân viên" --slug "staff-notifications" --verify-cmd "npm test"
+genesis-harness next
+genesis-harness complete-feature --verify-cmd "npm test" --evidence "Toàn bộ test feature đã pass"
+genesis-harness verify-project --verify-cmd "npm run verify" --evidence "Acceptance suite đã pass"
+genesis-harness complete-project --evidence "Release candidate đã được chấp nhận"
+genesis-harness pipeline-audit
 ```
 
 Điểm chính của release:
@@ -194,7 +200,10 @@ genesis-harness resume
 4. First-slice scaffold có thể sinh API/UI contracts và fixtures có kiểu rõ ràng.
 5. `.runs/<session-id>/` lưu artifacts để resume.
 6. `verify-gate` giờ bao phủ verify, evals, docs-gate, cold-start, package dry-run, và LeanCTX.
-7. npm publish được harden cho GitHub release/manual runs với provenance và trusted publishing.
+7. `add-feature`, `next`, và `complete-feature` vận hành queue nhiều feature lặp lại, đồng thời lưu evidence và lead-time metrics.
+8. `verify-project` chạy lại toàn bộ feature proof cùng project proof, tạo implementation handoff, rồi chuyển dự án sang `RELEASE_READY`.
+9. `complete-project` yêu cầu release hoặc acceptance evidence; `pipeline-audit` phát hiện lifecycle drift.
+10. npm publish được harden cho GitHub release/manual runs với provenance và trusted publishing.
 
 Trước khi tag release, cần xác nhận `package.json`, `.codex-plugin/plugin.json`, `VERSION`, `CHANGELOG.md`, và nhãn version trong README đều khớp nhau.
 

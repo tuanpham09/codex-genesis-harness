@@ -14,7 +14,7 @@
     "session_id": "string — unique identifier for the agent session (e.g. UUID or date-prefixed slug)",
     "timestamp": "ISO 8601 string",
     "skill": "string — name of the genesis skill invoked",
-    "phase": "string — one of: init, plan, execute, verify, handoff",
+    "phase": "string — one of: init, plan, execute, verify, handoff, release",
     "outcome": "string — one of: success, failure, partial, skipped",
     "evidence": "string — CLI output snippet or file path proving the outcome"
   },
@@ -25,6 +25,11 @@
     "recovery_needed": "boolean — whether a recovery point was consulted"
   },
   "changelog": [
+    {
+      "version": "1.1.0",
+      "date": "2026-06-12",
+      "change": "Added release phase for project completion records"
+    },
     {
       "version": "1.0.0",
       "date": "2026-06-03",

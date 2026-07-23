@@ -4,6 +4,20 @@ A reverse-chronological log of stable states to return to if the current task co
 
 ---
 
+## 2026-06-12: End-to-End Project Lifecycle
+- **Status**: Stable
+- **Git State**: Multi-feature orchestration, project verification, release-ready handoff, append-only events, and lifecycle audit are implemented and covered by integration tests.
+- **Why it's stable**: `cli-smoke.test.js` exercises idea bootstrap through two feature completions, project proof, final completion, idempotency, event history, and audit; the canonical `verify-gate` passes and is now the single completion gate.
+- **How to recover**: Use `.runs/<session-id>/STATE.json`, `RESUME.md`, and `EVENTS.jsonl`; run `pipeline-audit` before resuming the command reported by `next`.
+- **Files changed**: CLI, lifecycle state machine, project registry contract, pipeline fixtures/tests, orchestration skill, plugin prompt, README files, and repository memory.
+
+## 2026-06-12T16:50:17+07:00: Lifecycle Pipeline + Repository Hygiene
+- **Status**: Stable
+- **Git State**: Lifecycle and hygiene changes verified locally; tracked `node_modules/` entries are staged for removal while local installed dependencies remain available.
+- **Why it's stable**: `run --idea` creates a project feature registry, `next` resolves executable work, and `complete-feature` requires a passing command plus explicit evidence before closing state. Repository verification blocks tracked dependencies and generated package artifacts, while tarball smoke tests reject generated `scripts/bin/` binaries.
+- **How to recover**: Reapply this checkpoint if `.planning/FEATURE_REGISTRY.json` stops being generated, completion bypasses verification, evidence or metrics disappear, or `node_modules/` becomes tracked again.
+- **Files changed**: `bin/genesis-harness.js`, `scripts/check-repository-hygiene.js`, `scripts/verify.sh`, `scripts/run-evals.sh`, lifecycle contracts/fixtures/tests, README files, and `.codebase/*`.
+
 ## 2026-06-10T10:05:00Z: Feature Execution Bootstrap
 - **Status**: Stable
 - **Git State**: Working tree verified after `run`/`resume` orchestration started auto-scaffolding the first execution-ready feature.

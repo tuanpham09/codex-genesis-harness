@@ -39,6 +39,8 @@
 | F017 | planned | Per-session Time-to-First-Verification KPI (L06) | `node bin/genesis-harness.js status --ttfv` | genesis-harness |
 | F018 | verified | Scope ledger per task (L07) | `bash scripts/check-scope.sh` | genesis-harness |
 | F019 | planned | Demo feature templates (mockup + contract + E2E) | `npx playwright test playwright/e2e/auth/login-screen.spec.js` | genesis-harness-engineering |
+| F020 | verified | Stateful feature lifecycle (`next` → evidence-gated `complete-feature`) | `node tests/integration/cli-smoke.test.js` | genesis-pipeline-orchestration |
+| F021 | verified | End-to-end multi-feature lifecycle with project verification, release-ready handoff, completion, event history, and audit | `node tests/integration/cli-smoke.test.js` | genesis-pipeline-orchestration |
 
 ---
 
@@ -47,7 +49,7 @@
 > Update this section after each CI run.
 
 ```
-Date: 2026-06-10T08:30:00Z
+Date: 2026-06-12T09:50:17Z
 scripts/verify.sh         → verify passed
 scripts/run-evals.sh      → evals passed
 genesis-harness verify-gate → passed

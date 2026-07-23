@@ -24,6 +24,15 @@ function run(args, cwd = tmp) {
   });
 }
 
+function runFailure(args, cwd = tmp) {
+  try {
+    run(args, cwd);
+  } catch (error) {
+    return `${error.stdout || ""}${error.stderr || ""}`;
+  }
+  assert.fail(`expected command to fail: ${args.join(" ")}`);
+}
+
 function runPostinstall(initCwd) {
   return execFileSync(process.execPath, [cli, "postinstall"], {
     cwd: repoRoot,
@@ -271,6 +280,197 @@ assert(
   resumeOutput.includes("Implement the first feature slice"),
   "resume should direct the next implementation task"
 );
+const featureRegistryPath = path.join(runTmp, ".planning", "FEATURE_REGISTRY.json");
+assert(
+  fs.existsSync(featureRegistryPath),
+  "run should create a machine-readable project feature registry"
+);
+const projectFeatureRegistry = JSON.parse(fs.readFileSync(featureRegistryPath, "utf8"));
+assert.strictEqual(projectFeatureRegistry.features.length, 1, "run should register the first feature");
+assert.strictEqual(
+  projectFeatureRegistry.features[0].status,
+  "in-progress",
+  "the scaffolded first feature should enter the execution queue"
+);
+assert.strictEqual(
+  projectFeatureRegistry.project_status,
+  "implementation",
+  "the project registry should record the implementation lifecycle stage"
+);
+
+const secondFeatureTitle = "Notify staff when a guest request changes";
+const addFeatureOutput = run(
+  [
+    "add-feature",
+    "--title",
+    secondFeatureTitle,
+    "--slug",
+    "guest-request-notifications",
+    "--verify-cmd",
+    `${process.execPath} -e "process.exit(0)"`
+  ],
+  runTmp
+);
+assert(addFeatureOutput.includes(secondFeatureTitle), "add-feature should report the queued feature");
+const registryWithQueue = JSON.parse(fs.readFileSync(featureRegistryPath, "utf8"));
+assert.strictEqual(registryWithQueue.features.length, 2, "add-feature should append to the project queue");
+assert.strictEqual(registryWithQueue.features[1].status, "planned", "new features should remain planned");
+assert(
+  fs.existsSync(path.join(runTmp, registryWithQueue.features[1].path, "TASKS.md")),
+  "add-feature should create an execution packet for the queued feature"
+);
+
+const nextOutput = run(["next"], runTmp);
+assert(nextOutput.includes(path.basename(activeFeatureDir)), "next should identify the active feature");
+assert(nextOutput.includes("Add the first failing test"), "next should print the next pending action");
+
+const missingEvidenceOutput = runFailure(
+  ["complete-feature", "--verify-cmd", `${process.execPath} -e "process.exit(0)"`],
+  runTmp
+);
+assert(
+  missingEvidenceOutput.includes("--evidence"),
+  "complete-feature should require explicit verification evidence"
+);
+
+const completionOutput = run(
+  [
+    "complete-feature",
+    "--verify-cmd",
+    `${process.execPath} -e "process.exit(0)"`,
+    "--evidence",
+    "CLI lifecycle smoke verification passed"
+  ],
+  runTmp
+);
+assert(completionOutput.includes("Feature completed"), "complete-feature should report successful completion");
+const promotedState = JSON.parse(fs.readFileSync(path.join(runTmp, ".codebase", "state.json"), "utf8"));
+assert.strictEqual(
+  promotedState.current_state,
+  "IMPLEMENTATION",
+  "complete-feature should keep the project in implementation while queued work remains"
+);
+assert(
+  promotedState.active_feature.includes("guest-request-notifications"),
+  "complete-feature should promote the next planned feature"
+);
+assert(
+  promotedState.metrics.time_to_verified_feature_seconds >= 0,
+  "complete-feature should record feature lead-time telemetry"
+);
+const promotedRegistry = JSON.parse(fs.readFileSync(featureRegistryPath, "utf8"));
+assert.strictEqual(
+  promotedRegistry.features[0].status,
+  "verified",
+  "complete-feature should move the active feature to verified"
+);
+assert.strictEqual(
+  promotedRegistry.features[0].evidence,
+  "CLI lifecycle smoke verification passed",
+  "complete-feature should persist verification evidence"
+);
+assert.strictEqual(
+  promotedRegistry.features[1].status,
+  "in-progress",
+  "complete-feature should promote the next queued feature"
+);
+const featureIndexAfterCompletion = fs.readFileSync(path.join(runTmp, ".planning", "FEATURE_INDEX.md"), "utf8");
+assert(
+  featureIndexAfterCompletion.includes(`| ${promotedRegistry.features[0].title} | [x] |`),
+  "complete-feature should mark the feature complete in FEATURE_INDEX.md"
+);
+const lifecycleRunLog = path.join(
+  runTmp,
+  "observability",
+  "agent-runs",
+  `${promotedState.session_id}-feature-complete.json`
+);
+assert(fs.existsSync(lifecycleRunLog), "complete-feature should write an observability run record");
+const nextPromotedOutput = run(["next"], runTmp);
+assert(nextPromotedOutput.includes(secondFeatureTitle), "next should resolve the promoted feature");
+
+run(
+  [
+    "complete-feature",
+    "--verify-cmd",
+    `${process.execPath} -e "process.exit(0)"`,
+    "--evidence",
+    "Notification feature verification passed"
+  ],
+  runTmp
+);
+const verificationState = JSON.parse(fs.readFileSync(path.join(runTmp, ".codebase", "state.json"), "utf8"));
+assert.strictEqual(
+  verificationState.current_state,
+  "VERIFICATION",
+  "completing the final feature should move the project to verification"
+);
+assert.strictEqual(verificationState.active_feature, "", "final feature completion should clear active work");
+
+const prematureCompletion = runFailure(["complete-project", "--evidence", "Premature close"], runTmp);
+assert(
+  prematureCompletion.includes("RELEASE_READY"),
+  "complete-project should reject projects that have not passed project verification"
+);
+
+const projectVerificationOutput = run(
+  [
+    "verify-project",
+    "--verify-cmd",
+    `${process.execPath} -e "process.exit(0)"`,
+    "--evidence",
+    "Project acceptance suite passed"
+  ],
+  runTmp
+);
+assert(projectVerificationOutput.includes("Project verified"), "verify-project should report success");
+const releaseReadyState = JSON.parse(fs.readFileSync(path.join(runTmp, ".codebase", "state.json"), "utf8"));
+assert.strictEqual(
+  releaseReadyState.current_state,
+  "RELEASE_READY",
+  "verify-project should move the project to release readiness"
+);
+assert(
+  fs.existsSync(path.join(runTmp, ".planning", "PROJECT_VERIFICATION.json")),
+  "verify-project should persist project-level proof"
+);
+assert(
+  fs.existsSync(path.join(runTmp, ".planning", "IMPLEMENTATION_HANDOFF.md")),
+  "verify-project should create a final implementation handoff"
+);
+
+const projectCompletionOutput = run(
+  ["complete-project", "--evidence", "Release readiness approved"],
+  runTmp
+);
+assert(projectCompletionOutput.includes("Project completed"), "complete-project should close release-ready work");
+const completedState = JSON.parse(fs.readFileSync(path.join(runTmp, ".codebase", "state.json"), "utf8"));
+assert.strictEqual(completedState.current_state, "COMPLETED", "complete-project should close project state");
+const historyLength = completedState.history.length;
+const eventsPath = path.join(runArtifactDir, "EVENTS.jsonl");
+assert(fs.existsSync(eventsPath), "lifecycle transitions should create append-only run events");
+const eventCount = fs.readFileSync(eventsPath, "utf8").trim().split("\n").length;
+assert(eventCount >= 5, "event history should include queue, feature, verification, and completion transitions");
+
+const repeatedCompletionOutput = run(
+  ["complete-project", "--evidence", "Release readiness approved"],
+  runTmp
+);
+assert(repeatedCompletionOutput.includes("already completed"), "complete-project should be idempotent");
+const repeatedCompletionState = JSON.parse(fs.readFileSync(path.join(runTmp, ".codebase", "state.json"), "utf8"));
+assert.strictEqual(
+  repeatedCompletionState.history.length,
+  historyLength,
+  "idempotent completion should not duplicate state history"
+);
+assert.strictEqual(
+  fs.readFileSync(eventsPath, "utf8").trim().split("\n").length,
+  eventCount,
+  "idempotent completion should not duplicate lifecycle events"
+);
+
+const auditOutput = run(["pipeline-audit"], runTmp);
+assert(auditOutput.includes("Pipeline audit passed"), "pipeline-audit should validate the completed lifecycle");
 
 const statusOutput = run(["status"]);
 assert(statusOutput.includes("GENESIS HARNESS - STATUS REPORT"), "status should render status report");

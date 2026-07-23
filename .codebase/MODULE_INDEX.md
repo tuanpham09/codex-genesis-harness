@@ -1,7 +1,9 @@
 # Module Index
 
 - `.codex/skills/`: packaged Codex skills.
-- `bin/genesis-harness.js`: npm CLI for install, verify, uninstall, docs gates, init bootstrap orchestration, and the `run --idea` pipeline that now advances from discovery into the first execution-ready feature scaffold with typed API/UI contracts and fixtures.
+- `bin/genesis-harness.js`: npm CLI for install, verify, uninstall, docs gates, idea bootstrap, resumable execution, multi-feature queue routing, feature/project verification, release-ready completion, and pipeline audit.
+- `scripts/check-repository-hygiene.js`: blocks tracked dependency and generated artifacts such as `node_modules/`, `dist/`, and package tarballs.
+- `contracts/features/project-registry-schema.json`: contract for generated `.planning/FEATURE_REGISTRY.json` lifecycle queues.
 - `.github/workflows/reusable-verify.yml`: reusable GitHub Actions workflow that runs the canonical `genesis-harness verify-gate` path and uploads verification artifacts.
 - `.github/workflows/docs-sync.yml`: CI entrypoint that delegates pull-request and protected-branch verification to the reusable verify workflow.
 - `.github/workflows/publish-npm.yml`: release-oriented npm publishing workflow using GitHub OIDC trusted publishing and provenance.
@@ -26,4 +28,7 @@
 - `.planning/INIT_QA.md`: initialization questionnaire for product approach, QA closure, and tech stack sign-off.
 - `.codebase/PHASE_DEPENDENCY_MAP.md`: init-created dependency map used by spec-impact-engine and downstream planning.
 - `.codebase/state.json`: canonical runtime state for the harness repo and generated projects; `run --idea` now advances project state into `IMPLEMENTATION` with `active_feature`, and `resume` restores the next actionable task from it.
-- `.runs/`: per-session run artifacts (`INPUT.md`, `DISCOVERY.json`, `STATE.json`, `RESUME.md`) used for mid-project resume, including the active feature execution checkpoint.
+- `.runs/`: per-session run artifacts (`INPUT.md`, `DISCOVERY.json`, `STATE.json`, `RESUME.md`, `EVENTS.jsonl`) used for resume and append-only lifecycle history.
+- `.planning/FEATURE_REGISTRY.json`: generated project-level execution queue consumed by `add-feature`, `next`, `complete-feature`, `verify-project`, `complete-project`, and `pipeline-audit`.
+- `.planning/PROJECT_VERIFICATION.json`: project-wide feature proof and acceptance proof record.
+- `.planning/IMPLEMENTATION_HANDOFF.md`: release-ready handoff generated only after all proofs pass.
